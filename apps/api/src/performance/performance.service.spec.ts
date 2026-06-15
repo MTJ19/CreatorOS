@@ -64,7 +64,7 @@ describe('PerformanceService', () => {
 
       // engagementRate = ((400 + 100 + 50 + 50) / 10000) * 100 = 6%
       // cpv = 500 / 10000 = 0.05
-      const metrics = result.metrics;
+      const metrics = result.metrics as unknown as { engagementRate: number; cpv: number | null; isPaid: boolean; brandCategory?: string };
       expect(metrics.engagementRate).toBe(6);
       expect(metrics.cpv).toBe(0.05);
       expect(metrics.isPaid).toBe(true);
@@ -91,7 +91,7 @@ describe('PerformanceService', () => {
 
       // engagementRate = ((150 + 50 + 25 + 25) / 5000) * 100 = 5%
       // cpv = null (organic)
-      const metrics = result.metrics;
+      const metrics = result.metrics as unknown as { engagementRate: number; cpv: number | null; isPaid: boolean; brandCategory?: string };
       expect(metrics.engagementRate).toBe(5);
       expect(metrics.cpv).toBeNull();
       expect(metrics.isPaid).toBe(false);

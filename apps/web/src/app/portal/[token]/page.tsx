@@ -28,7 +28,8 @@ import { useToast } from '@/components/ui/toast';
 import { UploadZone } from '@/components/ui/upload-zone';
 
 export default function PublicBrandPortal() {
-  const { token } = useParams();
+  const params = useParams();
+  const token = typeof params?.token === 'string' ? params.token : '';
   const { toast } = useToast();
 
   // Data states

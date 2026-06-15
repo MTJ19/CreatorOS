@@ -401,7 +401,7 @@ export class DealsService {
       };
     }
 
-    const parsedData = brief.parsedData;
+    const parsedData = brief.parsedData as { deliverables?: any[] } | null;
     const reconciliation = this.reconcileDeliverables(
       deal.deliverables,
       parsedData?.deliverables || [],
