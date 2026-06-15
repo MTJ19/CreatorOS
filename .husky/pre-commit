@@ -1,0 +1,8 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# Run lint-staged (lint + format only changed files)
+npx lint-staged
+
+# Type-check all workspaces
+pnpm run type-check

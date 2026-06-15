@@ -1,0 +1,658 @@
+// ============================================================
+// CreatorOS — Prisma Schema
+// PostgreSQL 16 | Prisma 5
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ───────────────────────────────────────────────────
+
+enum UserRole {
+  CREATOR
+  ADMIN
+  BRAND
+}
+
+enum SocialPlatform {
+  INSTAGRAM
+  YOUTUBE
+  TIKTOK
+  TWITTER
+  LINKEDIN
+  TWITCH
+  PINTEREST
+  PODCAST
+}
+
+enum DealStatus {
+  DRAFT
+  NEGOTIATING
+  PENDING_CONTRACT
+  ACTIVE
+  COMPLETED
+  CANCELLED
+  DISPUTED
+}
+
+enum DealStage {
+  NEW_INQUIRY
+  QUALIFIED
+  PITCH_SENT
+  NEGOTIATING
+  CONTRACT_SENT
+  ACTIVE
+  COMPLETED
+  LOST
+}
+
+enum DeliverableType {
+  INSTAGRAM_POST
+  INSTAGRAM_REEL
+  INSTAGRAM_STORY
+  YOUTUBE_VIDEO
+  YOUTUBE_SHORT
+  TIKTOK_VIDEO
+  TWITTER_POST
+  LINKEDIN_POST
+  BLOG_POST
+  PODCAST_MENTION
+  LIVE_STREAM
+  NEWSLETTER
+  UGC_CONTENT
+  OTHER
+}
+
+enum DeliverableStatus {
+  PENDING
+  IN_PROGRESS
+  SUBMITTED
+  APPROVED
+  REVISION_REQUESTED
+}
+
+enum ContractStatus {
+  DRAFT
+  PENDING_REVIEW
+  PENDING_SIGNATURE
+  SIGNED
+  EXPIRED
+  TERMINATED
+}
+
+enum RiskSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  VIEWED
+  PARTIALLY_PAID
+  PAID
+  OVERDUE
+  CANCELLED
+  DISPUTED
+}
+
+enum PerformanceSource {
+  MANUAL
+  API_SYNC
+  IMPORT
+}
+
+enum PortalPermission {
+  VIEW_DELIVERABLES
+  VIEW_PERFORMANCE
+  VIEW_INVOICES
+  APPROVE_CONTENT
+  DOWNLOAD_ASSETS
+}
+
+enum PortalApprovalStatus {
+  PENDING_REVIEW
+  APPROVED
+  APPROVED_WITH_CHANGES
+  REJECTED
+}
+
+enum PortalCommentAuthor {
+  BRAND
+  CREATOR
+}
+
+enum PostingFrequency {
+  DAILY
+  MULTIPLE_WEEKLY
+  WEEKLY
+  BIWEEKLY
+  MONTHLY
+  LESS_THAN_MONTHLY
+}
+
+enum ContentFormat {
+  SHORT_FORM_VIDEO    // Reels, TikToks, Shorts
+  LONG_FORM_VIDEO     // YouTube videos
+  STATIC_IMAGE
+  CAROUSEL
+  STORIES
+  LIVE_STREAM
+  PODCAST
+  BLOG_ARTICLE
+  NEWSLETTER
+  UGC_RAW_FOOTAGE
+}
+
+enum AudienceAgeRange {
+  AGE_13_17
+  AGE_18_24
+  AGE_25_34
+  AGE_35_44
+  AGE_45_54
+  AGE_55_PLUS
+}
+
+enum BrandTier {
+  NANO        // < 1K followers brand audience
+  MICRO       // 1K–10K
+  MID         // 10K–100K
+  MACRO       // 100K–1M
+  MEGA        // 1M+
+  ENTERPRISE  // Fortune 500 / global brand
+}
+
+enum DealType {
+  SPONSORED_POST
+  UGC
+  AMBASSADOR
+  AFFILIATE
+  PRODUCT_GIFTING
+  EVENT
+}
+
+enum DealConfidence {
+  CONFIRMED
+  LIKELY
+  SPECULATIVE
+}
+
+enum PaymentTerms {
+  NET_15
+  NET_30
+  NET_45
+  NET_60
+  NET_90
+  FIFTY_FIFTY
+}
+
+enum ContentFormatPerf {
+  SHORT_FORM_VIDEO
+  LONG_FORM_VIDEO
+  STATIC_IMAGE
+  CAROUSEL
+  STORIES
+  LIVE_STREAM
+  PODCAST
+  BLOG_ARTICLE
+  NEWSLETTER
+  UGC_RAW_FOOTAGE
+}
+
+// ─── Models ──────────────────────────────────────────────────
+
+/// Creator / brand user account
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  role      UserRole @default(CREATOR)
+  avatarUrl String?
+  /// Bcrypt-hashed password (nullable for OAuth-only users)
+  password  String?
+  /// OAuth provider (google, github, etc.)
+  provider  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  profile            CreatorProfile?
+  deals              Deal[]
+  contracts          Contract[]
+  invoices           Invoice[]
+  performanceLogs    PerformanceLog[]
+  brandPortalTokens  BrandPortalToken[]
+  refreshTokens      RefreshToken[]
+  auditLogs          AuditLog[]
+  rateIntelligenceRequests RateIntelligenceRequest[]
+  financialSettings  FinancialSettings?
+
+  @@map("users")
+}
+
+/// Extended profile for creator accounts
+model CreatorProfile {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  bio               String?
+  niche             String[]
+  location          String?
+  website           String?
+  /// JSON array of { platform, handle, url, followerCount, verified }
+  platformHandles   Json              @default("[]")
+  primaryPlatform   SocialPlatform?
+  avgEngagementRate Float?
+  avgViews          Int?
+  totalFollowers    Int               @default(0)
+  postingFrequency  PostingFrequency?
+  contentFormats    ContentFormat[]
+  audienceGeography String[]
+  audienceAgeRange  AudienceAgeRange[]
+  currency          String            @default("USD") @db.Char(3)
+  baseRate          Decimal?          @db.Decimal(12, 2)
+  isOnboardingComplete Boolean        @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("creator_profiles")
+}
+
+/// JWT refresh token store for rotation
+model RefreshToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  token     String   @unique
+  expiresAt DateTime
+  isRevoked Boolean  @default(false)
+  userAgent String?
+  ipAddress String?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([token])
+  @@map("refresh_tokens")
+}
+
+/// Audit log for security-sensitive operations
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  action     String   // e.g. "profile.create", "profile.update", "auth.login"
+  resource   String?  // e.g. "CreatorProfile"
+  resourceId String?
+  metadata   Json?    // additional context
+  ipAddress  String?
+  userAgent  String?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+/// A brand sponsorship deal
+model Deal {
+  id        String @id @default(cuid())
+  creatorId String
+  creator   User   @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+
+  brandName    String
+  brandEmail   String?
+  brandWebsite String?
+  title        String
+  description  String?
+  amount       Decimal    @db.Decimal(12, 2)
+  currency     String     @default("USD") @db.Char(3)
+  status       DealStatus @default(DRAFT)
+  brandInstagram   String?
+  dealSource       String?
+  stage            DealStage  @default(NEW_INQUIRY)
+  quotedAmount     Decimal?   @db.Decimal(12, 2)
+  offeredAmount    Decimal?   @db.Decimal(12, 2)
+  deadline         DateTime?
+  followUpReminder DateTime?
+
+  startDate        DateTime?
+  endDate          DateTime?
+  exclusivityDays  Int?
+  exclusivityNotes String?
+  usageRights      String?
+  notes            String?
+  tags             String[]
+  confidence       DealConfidence @default(LIKELY)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  deliverables    Deliverable[]
+  contract        Contract?
+  brief           Brief?
+  invoices        Invoice[]
+  performanceLogs PerformanceLog[]
+  brandPortalTokens BrandPortalToken[]
+
+  @@index([creatorId])
+  @@index([creatorId, stage])
+  @@index([status])
+  @@map("deals")
+}
+
+/// Individual content deliverable within a deal
+model Deliverable {
+  id     String @id @default(cuid())
+  dealId String
+  deal   Deal   @relation(fields: [dealId], references: [id], onDelete: Cascade)
+
+  type        DeliverableType
+  status      DeliverableStatus @default(PENDING)
+  description String?
+  dueDate     DateTime
+  submittedAt DateTime?
+  approvedAt  DateTime?
+  platform    String?
+  contentUrl  String?
+  notes       String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  performanceLogs PerformanceLog[]
+  invoiceLineItems InvoiceLineItem[]
+
+  @@index([dealId])
+  @@index([status])
+  @@map("deliverables")
+}
+
+/// Contract document linked to a deal
+model Contract {
+  id        String @id @default(cuid())
+  dealId    String @unique
+  deal      Deal   @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  creatorId String
+  creator   User   @relation(fields: [creatorId], references: [id])
+
+  title            String
+  fileUrl          String?
+  fileKey          String?
+  status           ContractStatus @default(DRAFT)
+  signedAt         DateTime?
+  expiresAt        DateTime?
+  parties          String[]
+  jurisdiction     String?
+  governingLaw     String?
+  aiSummary        String?
+  overallRiskScore Float?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  riskFlags ContractRiskFlag[]
+
+  @@index([creatorId])
+  @@index([status])
+  @@map("contracts")
+}
+
+/// AI-identified risky clause in a contract
+model ContractRiskFlag {
+  id         String   @id @default(cuid())
+  contractId String
+  contract   Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  clause          String
+  clauseText      String?
+  severity        RiskSeverity
+  description     String
+  recommendation  String?
+  scenario        String?
+  suggestedClause String?
+  pageNumber      Int?
+  isAcknowledged  Boolean   @default(false)
+  acknowledgedAt  DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([contractId])
+  @@index([severity])
+  @@map("contract_risk_flags")
+}
+
+/// Brand brief document linked to a deal
+model Brief {
+  id         String   @id @default(cuid())
+  dealId     String   @unique
+  deal       Deal     @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  fileUrl    String?
+  fileKey    String?
+  parsedData Json?    // JSON structure: { deliverables: [], deadlines: [], dos: [], donts: [], ftcFlags: [] }
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("briefs")
+}
+
+/// Invoice for a deal or standalone
+model Invoice {
+  id        String @id @default(cuid())
+  creatorId String
+  creator   User   @relation(fields: [creatorId], references: [id])
+  dealId    String?
+  deal      Deal?  @relation(fields: [dealId], references: [id])
+
+  invoiceNumber            String        @unique
+  brandName                String
+  brandEmail               String
+  brandAddress             String?
+  status                   InvoiceStatus @default(DRAFT)
+  paymentTerms             PaymentTerms  @default(NET_30)
+  subtotal                 Decimal       @db.Decimal(12, 2)
+  taxRate                  Float?
+  taxAmount                Decimal?      @db.Decimal(12, 2)
+  totalAmount              Decimal       @db.Decimal(12, 2)
+  currency                 String        @default("USD") @db.Char(3)
+  issuedAt                 DateTime?
+  dueDate                  DateTime?
+  paidAt                   DateTime?
+  paidAmount               Decimal?      @db.Decimal(12, 2)
+  stripePaymentIntentId    String?
+  notes                    String?
+  termsAndConditions       String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  lineItems InvoiceLineItem[]
+
+  @@index([creatorId])
+  @@index([creatorId, status])
+  @@index([status])
+  @@map("invoices")
+}
+
+/// Line items on an invoice
+model InvoiceLineItem {
+  id          String  @id @default(cuid())
+  invoiceId   String
+  invoice     Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  deliverableId String?
+  deliverable   Deliverable? @relation(fields: [deliverableId], references: [id])
+
+  description String
+  quantity    Float
+  unitPrice   Decimal @db.Decimal(12, 2)
+  totalPrice  Decimal @db.Decimal(12, 2)
+
+  @@index([invoiceId])
+  @@map("invoice_line_items")
+}
+
+/// Performance metrics for a deal / deliverable
+model PerformanceLog {
+  id            String @id @default(cuid())
+  dealId        String?
+  deal          Deal?  @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  deliverableId String?
+  deliverable   Deliverable? @relation(fields: [deliverableId], references: [id])
+  creatorId     String
+  creator       User   @relation(fields: [creatorId], references: [id])
+
+  recordedAt DateTime
+  /// JSON blob with { views, impressions, reach, likes, comments, shares, saves, clicks, conversions, revenue, engagementRate, ctr, conversionRate }
+  metrics    Json
+  source     PerformanceSource @default(MANUAL)
+  platform   String?
+  contentUrl String?
+  notes      String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([dealId])
+  @@index([creatorId])
+  @@index([creatorId, recordedAt])
+  @@index([recordedAt])
+  @@map("performance_logs")
+}
+
+/// Secure access token granting a brand access to the creator portal
+model BrandPortalToken {
+  id        String @id @default(cuid())
+  creatorId String
+  creator   User   @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  dealId    String?
+  deal      Deal?  @relation(fields: [dealId], references: [id])
+
+  token          String            @unique
+  brandName      String
+  brandEmail     String
+  brandNote      String?
+  permissions    PortalPermission[]
+  expiresAt      DateTime
+  lastAccessedAt DateTime?
+  accessCount    Int               @default(0)
+  isRevoked      Boolean           @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  submissions PortalSubmission[]
+  comments    PortalComment[]
+
+  @@index([creatorId])
+  @@index([token])
+  @@map("brand_portal_tokens")
+}
+
+/// Brand's submission via the portal (brief upload + approval status)
+model PortalSubmission {
+  id      String           @id @default(cuid())
+  tokenId String
+  token   BrandPortalToken @relation(fields: [tokenId], references: [id], onDelete: Cascade)
+
+  approvalStatus    PortalApprovalStatus @default(PENDING_REVIEW)
+  revisionNotes     String?
+  briefFileUrl      String?
+  briefFileKey      String?
+  briefGoogleDocUrl String?
+
+  submittedAt DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([tokenId])
+  @@map("portal_submissions")
+}
+
+/// Comment thread item on the brand portal
+model PortalComment {
+  id      String           @id @default(cuid())
+  tokenId String
+  token   BrandPortalToken @relation(fields: [tokenId], references: [id], onDelete: Cascade)
+
+  author PortalCommentAuthor
+  body   String
+
+  createdAt DateTime @default(now())
+
+  @@index([tokenId])
+  @@map("portal_comments")
+}
+
+/// Market-rate reference data for comparable creator deals (seed data)
+model ComparableDeal {
+  id            String         @id @default(cuid())
+  platform      SocialPlatform
+  contentFormat ContentFormat
+  /// Follower range bucket e.g. "1K-10K", "10K-50K", "50K-200K", "200K-1M", "1M+"
+  followerRange String
+  niche         String
+  dealType      DealType
+  brandTier     BrandTier
+  /// e.g. ["ORGANIC_ONLY", "PAID_ADS", "WHITELISTING", "EXCLUSIVITY"]
+  usageRights   String[]
+  exclusivityDays Int          @default(0)
+  baseRate      Decimal        @db.Decimal(12, 2)
+  currency      String         @default("USD") @db.Char(3)
+  engagementRate Float?
+  country       String         @default("US")
+  year          Int
+  isVerified    Boolean        @default(false)
+  source        String?
+
+  createdAt DateTime @default(now())
+
+  @@index([platform, niche])
+  @@index([followerRange, brandTier])
+  @@map("comparable_deals")
+}
+
+/// Persisted rate intelligence requests + AI responses per user
+model RateIntelligenceRequest {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// Full validated input JSON
+  input  Json
+  /// Full AI result JSON (quote range, email copy, talking points)
+  result Json
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("rate_intelligence_requests")
+}
+
+/// Per-creator financial settings for runway calculations
+model FinancialSettings {
+  id                String  @id @default(cuid())
+  creatorId         String  @unique
+  creator           User    @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  monthlyFixedCosts Decimal @default(0) @db.Decimal(12, 2)
+  currency          String  @default("USD") @db.Char(3)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("financial_settings")
+}
