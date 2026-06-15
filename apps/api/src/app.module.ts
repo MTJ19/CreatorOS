@@ -15,13 +15,13 @@ import { DealsModule } from './deals/deals.module';
 import { FinancialRunwayModule } from './financial-runway/financial-runway.module';
 import { GeminiModule } from './gemini/gemini.module';
 import { HealthModule } from './health/health.module';
-import { PrismaModule } from './prisma/prisma.module';
+import { InvisibleTaxModule } from './invisible-tax/invisible-tax.module';
 import { InvoicesModule } from './invoices/invoices.module';
 import { PerformanceModule } from './performance/performance.module';
+import { PrismaModule } from './prisma/prisma.module';
 import { RateIntelligenceModule } from './rate-intelligence/rate-intelligence.module';
 import { RedisModule } from './redis/redis.module';
 import { StorageModule } from './storage/storage.module';
-import { InvisibleTaxModule } from './invisible-tax/invisible-tax.module';
 
 @Module({
   imports: [

@@ -9,7 +9,6 @@ import {
   Copy,
   Check,
   Building2,
-  Calendar,
   ExternalLink,
   MessageSquare,
   Clock,
@@ -17,7 +16,6 @@ import {
   Send,
   X,
   User,
-  ShieldCheck,
   FileText,
   AlertCircle,
   Activity,
@@ -33,14 +31,80 @@ import { useToast } from '@/components/ui/toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
 
+interface PortalDeal {
+  id: string;
+  title: string;
+  brandName: string;
+  stage?: string;
+}
+
+interface PortalSubmission {
+  id: string;
+  tokenId: string;
+  approvalStatus: 'PENDING_REVIEW' | 'APPROVED' | 'APPROVED_WITH_CHANGES' | 'REJECTED';
+  revisionNotes: string | null;
+  briefFileUrl: string | null;
+  briefGoogleDocUrl: string | null;
+  submittedAt: string | null;
+  updatedAt: string | null;
+}
+
+interface PortalComment {
+  id: string;
+  tokenId: string;
+  author: 'CREATOR' | 'BRAND';
+  body: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+interface BrandPortalToken {
+  id: string;
+  creatorId: string;
+  dealId?: string | null;
+  token: string;
+  brandName: string;
+  brandEmail: string;
+  permissions: string[];
+  expiresAt: string;
+  lastAccessedAt?: string | null;
+  accessCount: number;
+  isRevoked: boolean;
+  createdAt: string;
+  updatedAt: string;
+  deal?: PortalDeal | null;
+  submissions?: PortalSubmission[];
+}
+
+interface TokenActivity {
+  id: string;
+  brandName: string;
+  brandEmail: string;
+  deal?: PortalDeal | null;
+  submissions: PortalSubmission[];
+  comments: PortalComment[];
+}
+
+interface GeneratedTokenResponse {
+  id: string;
+  token: string;
+  brandName: string;
+  brandEmail: string;
+  brandNote: string | null;
+  permissions: string[];
+  expiresAt: string;
+  deal?: PortalDeal | null;
+  portalUrl?: string;
+}
+
 export default function BrandPortalDashboard() {
   const { data: session } = useSession();
-  const accessToken = (session as any)?.accessToken;
+  const accessToken = session?.accessToken;
   const { toast } = useToast();
 
   // Data states
-  const [tokens, setTokens] = React.useState<any[]>([]);
-  const [deals, setDeals] = React.useState<any[]>([]);
+  const [tokens, setTokens] = React.useState<BrandPortalToken[]>([]);
+  const [deals, setDeals] = React.useState<PortalDeal[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
 
@@ -58,8 +122,8 @@ export default function BrandPortalDashboard() {
   const [showGenerateForm, setShowGenerateForm] = React.useState(false);
 
   // Drawer / Detail states
-  const [selectedToken, setSelectedToken] = React.useState<any | null>(null);
-  const [selectedTokenActivity, setSelectedTokenActivity] = React.useState<any | null>(null);
+  const [selectedToken, setSelectedToken] = React.useState<BrandPortalToken | null>(null);
+  const [selectedTokenActivity, setSelectedTokenActivity] = React.useState<TokenActivity | null>(null);
   const [activityLoading, setActivityLoading] = React.useState(false);
   const [commentBody, setCommentBody] = React.useState('');
   const [submittingComment, setSubmittingComment] = React.useState(false);
@@ -73,21 +137,22 @@ export default function BrandPortalDashboard() {
       setLoading(true);
       setError(null);
       const [tokensList, dealsList] = await Promise.all([
-        brandPortalApi.listTokens(accessToken),
-        dealsApi.getAll(accessToken),
+        brandPortalApi.listTokens(accessToken) as Promise<BrandPortalToken[]>,
+        dealsApi.getAll(accessToken) as Promise<PortalDeal[]>,
       ]);
       setTokens(tokensList);
       setDeals(dealsList);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to load brand portal tokens', err);
-      setError(err.message || 'Error loading dashboard data');
+      const errMsg = err instanceof Error ? err.message : 'Error loading dashboard data';
+      setError(errMsg);
     } finally {
       setLoading(false);
     }
   }, [accessToken]);
 
   React.useEffect(() => {
-    fetchDashboardData();
+    void fetchDashboardData();
   }, [fetchDashboardData]);
 
   // Handle Token Generation
@@ -110,12 +175,12 @@ export default function BrandPortalDashboard() {
         brandNote: brandNote.trim() || undefined,
       };
 
-      const result = await brandPortalApi.generateToken(accessToken, payload);
+      const result = await brandPortalApi.generateToken(accessToken, payload) as GeneratedTokenResponse;
       toast('Brand portal link generated successfully!', 'success');
       
       // Auto copy to clipboard
       if (result.portalUrl) {
-        navigator.clipboard.writeText(result.portalUrl);
+        void navigator.clipboard.writeText(result.portalUrl);
         toast('Portal URL copied to clipboard!', 'info');
       }
 
@@ -127,10 +192,11 @@ export default function BrandPortalDashboard() {
       setShowGenerateForm(false);
 
       // Re-fetch tokens
-      const updatedTokens = await brandPortalApi.listTokens(accessToken);
+      const updatedTokens = await brandPortalApi.listTokens(accessToken) as BrandPortalToken[];
       setTokens(updatedTokens);
-    } catch (err: any) {
-      toast(err.message || 'Failed to generate link', 'error');
+    } catch (err) {
+      const errMsg = err instanceof Error ? err.message : 'Failed to generate link';
+      toast(errMsg, 'error');
     } finally {
       setIsGenerating(false);
     }
@@ -149,8 +215,9 @@ export default function BrandPortalDashboard() {
       if (selectedToken?.id === tokenId) {
         setSelectedToken(null);
       }
-    } catch (err: any) {
-      toast(err.message || 'Failed to revoke token', 'error');
+    } catch (err) {
+      const errMsg = err instanceof Error ? err.message : 'Failed to revoke token';
+      toast(errMsg, 'error');
     }
   };
 
@@ -163,21 +230,21 @@ export default function BrandPortalDashboard() {
 
   // Copy URL action
   const handleCopyLink = (tokenId: string, url: string) => {
-    navigator.clipboard.writeText(url);
+    void navigator.clipboard.writeText(url);
     setCopiedTokenId(tokenId);
     toast('Link copied!', 'success');
     setTimeout(() => setCopiedTokenId(null), 2000);
   };
 
   // Open drawer and load activity
-  const handleViewActivity = async (token: any) => {
+  const handleViewActivity = async (token: BrandPortalToken) => {
     if (!accessToken) return;
     setSelectedToken(token);
     try {
       setActivityLoading(true);
-      const activity = await brandPortalApi.getActivity(accessToken, token.id);
+      const activity = await brandPortalApi.getActivity(accessToken, token.id) as TokenActivity;
       setSelectedTokenActivity(activity);
-    } catch (err: any) {
+    } catch {
       toast('Failed to load portal activity', 'error');
     } finally {
       setActivityLoading(false);
@@ -190,19 +257,20 @@ export default function BrandPortalDashboard() {
     if (!accessToken || !selectedToken || !commentBody.trim()) return;
     try {
       setSubmittingComment(true);
-      const comment = await brandPortalApi.addCreatorComment(accessToken, selectedToken.id, commentBody.trim());
+      const comment = await brandPortalApi.addCreatorComment(accessToken, selectedToken.id, commentBody.trim()) as PortalComment;
       toast('Comment posted', 'success');
       setCommentBody('');
       // Update local activity state
-      setSelectedTokenActivity((prev: any) => {
+      setSelectedTokenActivity((prev) => {
         if (!prev) return prev;
         return {
           ...prev,
           comments: [...(prev.comments || []), comment],
         };
       });
-    } catch (err: any) {
-      toast(err.message || 'Failed to post reply', 'error');
+    } catch (err) {
+      const errMsg = err instanceof Error ? err.message : 'Failed to post reply';
+      toast(errMsg, 'error');
     } finally {
       setSubmittingComment(false);
     }
@@ -549,11 +617,11 @@ export default function BrandPortalDashboard() {
                           <div className="space-y-3 text-sm">
                             <div className="flex items-center justify-between">
                               <span className="text-foreground-muted">Approval Status:</span>
-                              <Badge variant={latestApprovalStatusVariant(sub.approvalStatus) as any}>
+                              <Badge variant={latestApprovalStatusVariant(sub.approvalStatus)}>
                                 {sub.approvalStatus.replace('_', ' ')}
                               </Badge>
                             </div>
-                            {(sub.briefGoogleDocUrl || sub.briefFileUrl) && (
+                            {(sub.briefGoogleDocUrl ?? sub.briefFileUrl) && (
                               <div className="space-y-1.5">
                                 <span className="text-xs text-foreground-muted block">Submitted Brief:</span>
                                 <div className="flex flex-wrap gap-2">
@@ -611,7 +679,7 @@ export default function BrandPortalDashboard() {
                       {(!selectedTokenActivity.comments || selectedTokenActivity.comments.length === 0) ? (
                         <p className="text-xs text-foreground-muted text-center py-6">No messages posted yet.</p>
                       ) : (
-                        selectedTokenActivity.comments.map((comment: any) => {
+                        selectedTokenActivity.comments.map((comment) => {
                           const isBrand = comment.author === 'BRAND';
                           return (
                             <div
@@ -675,7 +743,7 @@ export default function BrandPortalDashboard() {
 }
 
 // Quick status badge resolver
-function latestApprovalStatusVariant(status: string) {
+function latestApprovalStatusVariant(status: string): 'success' | 'warning' | 'danger' | 'info' {
   switch (status) {
     case 'APPROVED':
       return 'success';

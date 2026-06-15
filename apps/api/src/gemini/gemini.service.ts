@@ -6,7 +6,7 @@ import {
 } from '@google/generative-ai';
 import { Injectable, Logger, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { z, ZodSchema } from 'zod';
+import { ZodSchema } from 'zod';
 
 @Injectable()
 export class GeminiService {

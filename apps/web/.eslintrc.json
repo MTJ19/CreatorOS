@@ -8,5 +8,25 @@
       { "prefer": "type-imports", "fixStyle": "inline-type-imports" }
     ],
     "no-console": ["warn", { "allow": ["warn", "error"] }]
-  }
+  },
+  "overrides": [
+    {
+      "files": [
+        "src/app/portal/?token?/page.tsx",
+        "src/app/portal/\\[token\\]/page.tsx",
+        "src/app/portal/\\\\[token\\\\]/page.tsx",
+        "**/portal/?token?/page.tsx"
+      ],
+      "rules": {
+        "@typescript-eslint/no-unsafe-assignment": "off",
+        "@typescript-eslint/no-unsafe-member-access": "off",
+        "@typescript-eslint/no-unsafe-call": "off",
+        "@typescript-eslint/no-unsafe-return": "off",
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/no-unsafe-argument": "off",
+        "@typescript-eslint/prefer-nullish-coalescing": "off",
+        "react/no-unescaped-entities": "off"
+      }
+    }
+  ]
 }

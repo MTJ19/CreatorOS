@@ -9,7 +9,6 @@ import {
   Max,
   IsBoolean,
   IsDateString,
-  IsUrl,
 } from 'class-validator';
 
 export enum PerformancePlatformEnum {

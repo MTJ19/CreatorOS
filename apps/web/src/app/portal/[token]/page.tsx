@@ -11,7 +11,6 @@ import {
   Loader2,
   MessageSquare,
   Send,
-  Upload,
   Globe,
   ExternalLink,
   ShieldCheck,
@@ -33,7 +32,7 @@ export default function PublicBrandPortal() {
   const { toast } = useToast();
 
   // Data states
-  const [context, setContext] = React.useState<any | null>(null);
+  const [context, setContext] = React.useState<any>(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
 
@@ -66,7 +65,7 @@ export default function PublicBrandPortal() {
   }, [token]);
 
   React.useEffect(() => {
-    fetchData();
+    void fetchData();
   }, [fetchData]);
 
   // Handle Google Doc Brief submission

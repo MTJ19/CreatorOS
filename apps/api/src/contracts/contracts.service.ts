@@ -1,6 +1,6 @@
 import { ContractAnalysisResultSchema } from '@creator-os/shared';
-import { Injectable, NotFoundException, BadRequestException, InternalServerErrorException } from '@nestjs/common';
-import { Prisma, ContractStatus, RiskSeverity } from '@prisma/client';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { ContractStatus, RiskSeverity } from '@prisma/client';
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } from 'docx';
 
 import { GeminiService } from '../gemini/gemini.service';

@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { FileQuestion, Home, ArrowLeft } from 'lucide-react';
+import { FileQuestion, Home } from 'lucide-react';
 
 export default function NotFound() {
   return (
@@ -12,7 +12,7 @@ export default function NotFound() {
       <div className="space-y-2 max-w-md mx-auto">
         <h2 className="text-2xl font-semibold tracking-tight text-white">Page Not Found</h2>
         <p className="text-zinc-400 text-sm">
-          We couldn't find the page you're looking for. It might have been moved, deleted, or never existed in the first place.
+          We couldn&apos;t find the page you&apos;re looking for. It might have been moved, deleted, or never existed in the first place.
         </p>
       </div>
 
