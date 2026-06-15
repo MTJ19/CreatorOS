@@ -89,8 +89,8 @@ export class InvisibleTaxService {
     // Match deals to their most recent rate intelligence request
     const rateRequestMap = new Map<string, { recommendedMin: number; recommendedMax: number }>();
     for (const req of rateRequests) {
-      const input = req.input;
-      const result = req.result;
+      const input = req.input as { brandName?: string } | null;
+      const result = req.result as { recommendedMin?: number; recommendedMax?: number } | null;
       if (input?.brandName && result?.recommendedMin) {
         // key by brandName for loose matching
         if (!rateRequestMap.has(input.brandName)) {
@@ -142,7 +142,7 @@ export class InvisibleTaxService {
     const scopeCreepDeals: InvisibleTaxSummary['scopeCreep']['deals'] = [];
     for (const deal of deals) {
       const contract = deal.contract;
-      const revisionLimit = contract?.revisionLimit ?? 2;
+      const revisionLimit = (contract as unknown as { revisionLimit?: number })?.revisionLimit ?? 2;
       const revisionsUsed = deal.deliverables.filter(
         (d) => d.status === 'REVISION_REQUESTED',
       ).length;
