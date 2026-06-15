@@ -7,7 +7,9 @@ export async function extractTextFromFile(buffer: Buffer, mimetype: string): Pro
     const pdf = typeof pdfParse === 'function' ? pdfParse : (pdfParse as any).default;
     if (typeof pdf !== 'function') {
       // Fallback require if module import is weird
+      // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
       const reqPdf = require('pdf-parse');
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
       const data = await reqPdf(buffer);
       return data.text || '';
     }

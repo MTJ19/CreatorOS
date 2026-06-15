@@ -4,6 +4,7 @@ import {
   ExecutionContext,
   UnauthorizedException,
   ForbiddenException,
+  createParamDecorator,
 } from '@nestjs/common';
 import { Request } from 'express';
 
@@ -63,8 +64,6 @@ export class PortalTokenGuard implements CanActivate {
   }
 }
 
-/** Request-parameter decorator for the portal context */
-import { createParamDecorator } from '@nestjs/common';
 export const PortalContext = createParamDecorator(
   (_data: unknown, ctx: ExecutionContext) => {
     return ctx.switchToHttp().getRequest<any>().portalContext;

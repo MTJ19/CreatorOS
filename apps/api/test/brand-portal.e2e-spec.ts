@@ -1,13 +1,17 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe } from '@nestjs/common';
-import request from 'supertest';
-import { PrismaService } from '../src/prisma/prisma.service';
-import { AuditLogService } from '../src/audit-log/audit-log.service';
-import { StorageService } from '../src/storage/storage.service';
-import { JwtService } from '@nestjs/jwt';
+import { type INestApplication, ValidationPipe } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { BrandPortalModule } from '../src/brand-portal/brand-portal.module';
+import { JwtService } from '@nestjs/jwt';
+import { Test, type TestingModule } from '@nestjs/testing';
 import { PortalPermission } from '@prisma/client';
+import request from 'supertest';
+
+import { AuditLogService } from '../src/audit-log/audit-log.service';
+import { BrandPortalModule } from '../src/brand-portal/brand-portal.module';
+import { PrismaService } from '../src/prisma/prisma.service';
+import { StorageService } from '../src/storage/storage.service';
+
+
+
 
 describe('BrandPortal (e2e)', () => {
   let app: INestApplication;
@@ -51,7 +55,7 @@ describe('BrandPortal (e2e)', () => {
   const mockJwt = {
     signAsync: jest.fn().mockResolvedValue('mock-jwt-token'),
     verifyAsync: jest.fn().mockImplementation(async (token) => {
-      if (token && token.includes('expired')) {
+      if (token?.includes('expired')) {
         throw new Error('Expired token');
       }
       return { jti: 'test-uuid-token', brandEmail: 'brand@acme.com' };

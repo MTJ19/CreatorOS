@@ -13,7 +13,7 @@ interface InvoiceReminderJob {
 export class InvoiceReminderProcessor extends WorkerHost {
   private readonly logger = new Logger(InvoiceReminderProcessor.name);
 
-  async process(job: Job<InvoiceReminderJob>): Promise<void> {
+  process(job: Job<InvoiceReminderJob>): Promise<void> {
     const { invoiceId, brandEmail, invoiceNumber } = job.data;
 
     this.logger.log(
@@ -35,5 +35,6 @@ export class InvoiceReminderProcessor extends WorkerHost {
     this.logger.log(
       `[EMAIL STUB] Reminder sent for invoice ${invoiceId} to ${brandEmail}`,
     );
+    return Promise.resolve();
   }
 }

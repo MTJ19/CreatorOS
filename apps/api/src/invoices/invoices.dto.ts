@@ -11,7 +11,6 @@ import {
   Min,
   Max,
   ValidateNested,
-  IsBoolean,
 } from 'class-validator';
 
 export enum InvoiceStatusEnum {
