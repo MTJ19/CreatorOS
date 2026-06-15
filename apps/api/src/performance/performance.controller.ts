@@ -20,7 +20,6 @@ import { PerformanceService } from './performance.service';
 
 import type { JwtPayload } from '../auth/strategies/jwt.strategy';
 
-
 @ApiTags('performance')
 @ApiBearerAuth('JWT')
 @UseGuards(JwtAuthGuard)
@@ -65,10 +64,7 @@ export class PerformanceController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Log new post performance metrics' })
-  create(
-    @CurrentUser() user: JwtPayload,
-    @Body() dto: CreatePerformanceLogDto,
-  ) {
+  create(@CurrentUser() user: JwtPayload, @Body() dto: CreatePerformanceLogDto) {
     return this.performanceService.create(user.sub, dto);
   }
 

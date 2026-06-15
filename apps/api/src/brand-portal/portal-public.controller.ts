@@ -14,11 +14,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiConsumes, ApiBody, ApiSecurity } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 
-import {
-  SubmitBriefDto,
-  SetApprovalStatusDto,
-  AddBrandCommentDto,
-} from './brand-portal.dto';
+import { SubmitBriefDto, SetApprovalStatusDto, AddBrandCommentDto } from './brand-portal.dto';
 import { BrandPortalService } from './brand-portal.service';
 import { PortalTokenGuard, PortalContext, PortalTokenRecord } from './portal-token.guard';
 
@@ -54,10 +50,7 @@ export class PortalPublicController {
   @Post('submit-brief')
   @ApiOperation({ summary: 'Brand submits a Google Doc URL brief' })
   @HttpCode(HttpStatus.OK)
-  submitBriefUrl(
-    @PortalTokenRecord() tokenRecord: any,
-    @Body() dto: SubmitBriefDto,
-  ) {
+  submitBriefUrl(@PortalTokenRecord() tokenRecord: any, @Body() dto: SubmitBriefDto) {
     return this.brandPortalService.submitBrief(tokenRecord, dto);
   }
 
@@ -87,12 +80,11 @@ export class PortalPublicController {
   // ── Approval ─────────────────────────────────────────────────
 
   @Patch('approval')
-  @ApiOperation({ summary: 'Brand sets approval status (Pending/Approved/Approved with Changes/Rejected)' })
+  @ApiOperation({
+    summary: 'Brand sets approval status (Pending/Approved/Approved with Changes/Rejected)',
+  })
   @HttpCode(HttpStatus.OK)
-  setApproval(
-    @PortalTokenRecord() tokenRecord: any,
-    @Body() dto: SetApprovalStatusDto,
-  ) {
+  setApproval(@PortalTokenRecord() tokenRecord: any, @Body() dto: SetApprovalStatusDto) {
     return this.brandPortalService.setApprovalStatus(tokenRecord, dto);
   }
 
@@ -100,10 +92,7 @@ export class PortalPublicController {
 
   @Post('comments')
   @ApiOperation({ summary: 'Brand adds a comment in the portal thread' })
-  addComment(
-    @PortalTokenRecord() tokenRecord: any,
-    @Body() dto: AddBrandCommentDto,
-  ) {
+  addComment(@PortalTokenRecord() tokenRecord: any, @Body() dto: AddBrandCommentDto) {
     return this.brandPortalService.addBrandComment(tokenRecord, dto);
   }
 }

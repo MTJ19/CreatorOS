@@ -1,4 +1,17 @@
-import { Controller, Get, Param, Version, UseGuards, Post, Body, Patch, Delete, UseInterceptors, UploadedFile, Put } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  Version,
+  UseGuards,
+  Post,
+  Body,
+  Patch,
+  Delete,
+  UseInterceptors,
+  UploadedFile,
+  Put,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { DealStage } from '@prisma/client';
@@ -10,7 +23,6 @@ import { CreateDealDto, UpdateDealDto, UpdateDealStageDto } from './deals.dto';
 import { DealsService } from './deals.service';
 
 import type { JwtPayload } from '../auth/strategies/jwt.strategy';
-
 
 @ApiTags('deals')
 @ApiBearerAuth('JWT')
@@ -50,11 +62,7 @@ export class DealsController {
   @Patch(':id')
   @Version('1')
   @ApiOperation({ summary: 'Update a deal' })
-  update(
-    @Param('id') id: string,
-    @CurrentUser() user: JwtPayload,
-    @Body() dto: UpdateDealDto,
-  ) {
+  update(@Param('id') id: string, @CurrentUser() user: JwtPayload, @Body() dto: UpdateDealDto) {
     return this.dealsService.update(id, user.sub, dto);
   }
 
@@ -89,11 +97,7 @@ export class DealsController {
   @Version('1')
   @UseInterceptors(FileInterceptor('file'))
   @ApiOperation({ summary: 'Upload and parse brief for a deal' })
-  uploadBrief(
-    @Param('id') id: string,
-    @CurrentUser() user: JwtPayload,
-    @UploadedFile() file: any,
-  ) {
+  uploadBrief(@Param('id') id: string, @CurrentUser() user: JwtPayload, @UploadedFile() file: any) {
     return this.dealsService.uploadBrief(id, user.sub, file);
   }
 
@@ -108,5 +112,3 @@ export class DealsController {
     return this.dealsService.updateBriefParsedData(id, user.sub, parsedData);
   }
 }
-
-

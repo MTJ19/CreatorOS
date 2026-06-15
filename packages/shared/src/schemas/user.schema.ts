@@ -95,13 +95,19 @@ export const UserSchema = z.object({
   updatedAt: z.coerce.date(),
 });
 
-export const CreateUserSchema = UserSchema.omit({ id: true, createdAt: true, updatedAt: true }).extend({
+export const CreateUserSchema = UserSchema.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
   password: z.string().min(8).max(128),
 });
 
-export const UpdateUserSchema = UserSchema
-  .omit({ id: true, createdAt: true, updatedAt: true })
-  .partial();
+export const UpdateUserSchema = UserSchema.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).partial();
 
 // ─── Onboarding Step Schemas ──────────────────────────────────
 
@@ -116,9 +122,7 @@ export const OnboardingStep1Schema = z.object({
 /** Step 2: Content & Niche */
 export const OnboardingStep2Schema = z.object({
   niche: z.array(z.string().min(1)).min(1, 'Select at least one niche').max(5, 'Maximum 5 niches'),
-  contentFormats: z
-    .array(ContentFormatSchema)
-    .min(1, 'Select at least one content format'),
+  contentFormats: z.array(ContentFormatSchema).min(1, 'Select at least one content format'),
   postingFrequency: PostingFrequencySchema,
 });
 
@@ -126,12 +130,7 @@ export const OnboardingStep2Schema = z.object({
 export const OnboardingStep3Schema = z.object({
   audienceGeography: z.array(z.string().min(2).max(2)).min(1, 'Add at least one country'),
   audienceAgeRange: z.array(AudienceAgeRangeSchema).min(1, 'Select at least one age range'),
-  avgEngagementRate: z
-    .number()
-    .min(0)
-    .max(100)
-    .optional()
-    .describe('Percentage (0–100)'),
+  avgEngagementRate: z.number().min(0).max(100).optional().describe('Percentage (0–100)'),
 });
 
 /** Step 4: Rates & Bio */
@@ -144,8 +143,7 @@ export const OnboardingStep4Schema = z.object({
 });
 
 /** Full onboarding form (all steps merged) */
-export const CreateCreatorProfileSchema = OnboardingStep1Schema
-  .merge(OnboardingStep2Schema)
+export const CreateCreatorProfileSchema = OnboardingStep1Schema.merge(OnboardingStep2Schema)
   .merge(OnboardingStep3Schema)
   .merge(OnboardingStep4Schema);
 

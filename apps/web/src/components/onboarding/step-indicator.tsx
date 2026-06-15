@@ -30,17 +30,16 @@ export function StepIndicator({ steps, currentStep, className }: StepIndicatorPr
           return (
             <li key={step.number} className="flex flex-1 items-center">
               {/* Step node */}
-              <div className="flex flex-col items-center gap-1.5 flex-shrink-0">
+              <div className="flex flex-shrink-0 flex-col items-center gap-1.5">
                 <div
                   className={cn(
                     'flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold',
                     'ring-2 transition-all duration-300',
-                    status === 'complete' &&
-                      'bg-primary ring-primary text-white shadow-glow-sm',
+                    status === 'complete' && 'bg-primary text-white shadow-glow-sm ring-primary',
                     status === 'active' &&
-                      'bg-primary/20 ring-primary text-primary animate-[glow-pulse_3s_ease-in-out_infinite]',
+                      'animate-[glow-pulse_3s_ease-in-out_infinite] bg-primary/20 text-primary ring-primary',
                     status === 'upcoming' &&
-                      'bg-background-elevated ring-border text-foreground-subtle',
+                      'bg-background-elevated text-foreground-subtle ring-border',
                   )}
                   aria-current={status === 'active' ? 'step' : undefined}
                   aria-label={`Step ${step.number}: ${step.label} — ${status}`}
@@ -55,7 +54,7 @@ export function StepIndicator({ steps, currentStep, className }: StepIndicatorPr
                 {/* Label — only visible on sm+ */}
                 <span
                   className={cn(
-                    'hidden sm:block text-xs font-medium whitespace-nowrap transition-colors',
+                    'hidden whitespace-nowrap text-xs font-medium transition-colors sm:block',
                     status === 'active' ? 'text-primary' : 'text-foreground-subtle',
                   )}
                 >
@@ -67,7 +66,7 @@ export function StepIndicator({ steps, currentStep, className }: StepIndicatorPr
               {idx < steps.length - 1 && (
                 <div
                   className={cn(
-                    'flex-1 h-0.5 mx-2 mb-5 sm:mb-6 rounded-full transition-all duration-500',
+                    'mx-2 mb-5 h-0.5 flex-1 rounded-full transition-all duration-500 sm:mb-6',
                     currentStep > step.number
                       ? 'bg-gradient-to-r from-primary to-accent'
                       : 'bg-border',

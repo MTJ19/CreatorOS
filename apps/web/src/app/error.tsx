@@ -20,33 +20,33 @@ export default function Error({
   }, [error]);
 
   return (
-    <div className="min-h-[80vh] flex flex-col items-center justify-center p-6 text-center space-y-6">
-      <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center">
-        <AlertCircle className="w-8 h-8 text-red-500" />
+    <div className="flex min-h-[80vh] flex-col items-center justify-center space-y-6 p-6 text-center">
+      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-500/10">
+        <AlertCircle className="h-8 w-8 text-red-500" />
       </div>
-      
-      <div className="space-y-2 max-w-md mx-auto">
+
+      <div className="mx-auto max-w-md space-y-2">
         <h2 className="text-2xl font-semibold tracking-tight text-white">Something went wrong!</h2>
-        <p className="text-zinc-400 text-sm">
-          We experienced an unexpected error. Our team has been notified. 
-          Please try again or return to the dashboard.
+        <p className="text-sm text-zinc-400">
+          We experienced an unexpected error. Our team has been notified. Please try again or return
+          to the dashboard.
         </p>
       </div>
 
-      <div className="flex flex-col sm:flex-row items-center gap-4 pt-4">
-        <Button 
+      <div className="flex flex-col items-center gap-4 pt-4 sm:flex-row">
+        <Button
           onClick={() => reset()}
-          className="bg-white text-black hover:bg-zinc-200 w-full sm:w-auto"
+          className="w-full bg-white text-black hover:bg-zinc-200 sm:w-auto"
         >
-          <RefreshCcw className="w-4 h-4 mr-2" />
+          <RefreshCcw className="mr-2 h-4 w-4" />
           Try again
         </Button>
-        <Button 
+        <Button
           onClick={() => router.push('/dashboard')}
           variant="outline"
-          className="w-full sm:w-auto border-white/10 hover:bg-white/5"
+          className="w-full border-white/10 hover:bg-white/5 sm:w-auto"
         >
-          <Home className="w-4 h-4 mr-2" />
+          <Home className="mr-2 h-4 w-4" />
           Go to Dashboard
         </Button>
       </div>

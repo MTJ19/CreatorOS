@@ -47,16 +47,23 @@ export const ContractSchema = z.object({
   updatedAt: z.coerce.date(),
 });
 
-export const UpdateContractSchema = ContractSchema
-  .omit({ id: true, dealId: true, creatorId: true, createdAt: true, updatedAt: true, riskFlags: true })
-  .partial();
+export const UpdateContractSchema = ContractSchema.omit({
+  id: true,
+  dealId: true,
+  creatorId: true,
+  createdAt: true,
+  updatedAt: true,
+  riskFlags: true,
+}).partial();
 
 // Form schema for programmatically generating a DOCX contract
 export const CreateContractGenerationSchema = z.object({
   brandName: z.string().min(1),
   creatorName: z.string().min(1),
   dealId: z.string().cuid().optional(),
-  contractType: z.enum(['SPONSORED_POST', 'UGC', 'AMBASSADOR', 'AFFILIATE', 'OTHER']).default('SPONSORED_POST'),
+  contractType: z
+    .enum(['SPONSORED_POST', 'UGC', 'AMBASSADOR', 'AFFILIATE', 'OTHER'])
+    .default('SPONSORED_POST'),
   exclusivityDays: z.number().int().min(0).default(0),
   exclusivityScope: z.string().max(1000).optional(),
   usageRightsScope: z.string().max(1000).default('Organic only'),
@@ -75,20 +82,20 @@ export const ContractAnalysisResultSchema = z.object({
   parties: z.array(z.string()).default([]),
   jurisdiction: z.string().nullable().optional(),
   governingLaw: z.string().nullable().optional(),
-  riskFlags: z.array(
-    z.object({
-      clause: z.string(),
-      clauseText: z.string().nullable().optional(),
-      severity: RiskSeveritySchema,
-      description: z.string(),
-      recommendation: z.string().nullable().optional(),
-      scenario: z.string().nullable().optional(),
-      suggestedClause: z.string().nullable().optional(),
-    }),
-  ).default([]),
+  riskFlags: z
+    .array(
+      z.object({
+        clause: z.string(),
+        clauseText: z.string().nullable().optional(),
+        severity: RiskSeveritySchema,
+        description: z.string(),
+        recommendation: z.string().nullable().optional(),
+        scenario: z.string().nullable().optional(),
+        suggestedClause: z.string().nullable().optional(),
+      }),
+    )
+    .default([]),
 });
 
 export type CreateContractGenerationInput = z.infer<typeof CreateContractGenerationSchema>;
 export type ContractAnalysisResult = z.infer<typeof ContractAnalysisResultSchema>;
-
-

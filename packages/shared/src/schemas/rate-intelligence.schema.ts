@@ -2,19 +2,27 @@ import { z } from 'zod';
 
 // ─── Enums ───────────────────────────────────────────────────
 
-export const BrandTierEnum = z.enum([
-  'NANO', 'MICRO', 'MID', 'MACRO', 'MEGA', 'ENTERPRISE',
-]);
+export const BrandTierEnum = z.enum(['NANO', 'MICRO', 'MID', 'MACRO', 'MEGA', 'ENTERPRISE']);
 export type BrandTier = z.infer<typeof BrandTierEnum>;
 
 export const DealTypeEnum = z.enum([
-  'SPONSORED_POST', 'UGC', 'AMBASSADOR', 'AFFILIATE', 'PRODUCT_GIFTING', 'EVENT',
+  'SPONSORED_POST',
+  'UGC',
+  'AMBASSADOR',
+  'AFFILIATE',
+  'PRODUCT_GIFTING',
+  'EVENT',
 ]);
 export type DealType = z.infer<typeof DealTypeEnum>;
 
 export const UsageRightEnum = z.enum([
-  'ORGANIC_ONLY', 'PAID_ADS', 'WHITELISTING', 'EXCLUSIVITY', 'IN_PERPETUITY',
-  'GEO_RESTRICTED', 'REPURPOSE_ALLOWED',
+  'ORGANIC_ONLY',
+  'PAID_ADS',
+  'WHITELISTING',
+  'EXCLUSIVITY',
+  'IN_PERPETUITY',
+  'GEO_RESTRICTED',
+  'REPURPOSE_ALLOWED',
 ]);
 export type UsageRight = z.infer<typeof UsageRightEnum>;
 
@@ -23,9 +31,16 @@ export type UsageRight = z.infer<typeof UsageRightEnum>;
 export const RateIntelligenceInputSchema = z.object({
   /** Content format being priced */
   contentFormat: z.enum([
-    'SHORT_FORM_VIDEO', 'LONG_FORM_VIDEO', 'STATIC_IMAGE',
-    'CAROUSEL', 'STORIES', 'LIVE_STREAM', 'PODCAST',
-    'BLOG_ARTICLE', 'NEWSLETTER', 'UGC_RAW_FOOTAGE',
+    'SHORT_FORM_VIDEO',
+    'LONG_FORM_VIDEO',
+    'STATIC_IMAGE',
+    'CAROUSEL',
+    'STORIES',
+    'LIVE_STREAM',
+    'PODCAST',
+    'BLOG_ARTICLE',
+    'NEWSLETTER',
+    'UGC_RAW_FOOTAGE',
   ]),
   /** Usage rights requested by brand (multi-select) */
   usageRights: z.array(UsageRightEnum).min(1, 'Select at least one usage right'),

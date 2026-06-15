@@ -55,7 +55,9 @@ export const UploadZone: React.FC<UploadZoneProps> = ({
     const isDoc = ['docx', 'doc', 'pdf'].includes(extension || '');
 
     if (!allowedTypes.includes(file.type) && !isDoc) {
-      setValidationError('Unsupported file format. Please upload a PDF or Word document (.doc, .docx).');
+      setValidationError(
+        'Unsupported file format. Please upload a PDF or Word document (.doc, .docx).',
+      );
       return;
     }
 
@@ -110,7 +112,7 @@ export const UploadZone: React.FC<UploadZoneProps> = ({
         }}
         transition={{ duration: 0.2 }}
         className={cn(
-          'relative border-2 border-dashed rounded-xl p-10 text-center cursor-pointer transition-colors duration-200 backdrop-blur-md',
+          'relative cursor-pointer rounded-xl border-2 border-dashed p-10 text-center backdrop-blur-md transition-colors duration-200',
           isLoading && 'cursor-not-allowed opacity-80',
         )}
       >
@@ -123,9 +125,9 @@ export const UploadZone: React.FC<UploadZoneProps> = ({
               exit={{ opacity: 0, y: -10 }}
               className="flex flex-col items-center justify-center space-y-4"
             >
-              <Loader2 className="w-12 h-12 text-purple-500 animate-spin" />
-              <p className="text-zinc-300 text-sm font-medium">{loadingText}</p>
-              <div className="w-48 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+              <Loader2 className="h-12 w-12 animate-spin text-purple-500" />
+              <p className="text-sm font-medium text-zinc-300">{loadingText}</p>
+              <div className="h-1.5 w-48 overflow-hidden rounded-full bg-zinc-800">
                 <motion.div
                   initial={{ width: '0%' }}
                   animate={{ width: '90%' }}
@@ -142,16 +144,16 @@ export const UploadZone: React.FC<UploadZoneProps> = ({
               exit={{ opacity: 0, y: -10 }}
               className="flex flex-col items-center justify-center space-y-3"
             >
-              <CheckCircle2 className="w-12 h-12 text-emerald-500" />
+              <CheckCircle2 className="h-12 w-12 text-emerald-500" />
               <div className="text-center">
-                <p className="text-zinc-100 font-medium text-sm max-w-md truncate mx-auto">
+                <p className="mx-auto max-w-md truncate text-sm font-medium text-zinc-100">
                   {selectedFile.name}
                 </p>
-                <p className="text-zinc-400 text-xs mt-1">
+                <p className="mt-1 text-xs text-zinc-400">
                   {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB • Ready to analyze
                 </p>
               </div>
-              <p className="text-purple-400 text-xs hover:text-purple-300 font-semibold underline mt-2">
+              <p className="mt-2 text-xs font-semibold text-purple-400 underline hover:text-purple-300">
                 Click or drag to replace file
               </p>
             </motion.div>
@@ -163,16 +165,14 @@ export const UploadZone: React.FC<UploadZoneProps> = ({
               exit={{ opacity: 0, y: -10 }}
               className="flex flex-col items-center justify-center space-y-4"
             >
-              <div className="p-4 bg-zinc-800/60 rounded-full text-zinc-400 group-hover:text-purple-400 transition-colors">
-                <Upload className="w-8 h-8" />
+              <div className="rounded-full bg-zinc-800/60 p-4 text-zinc-400 transition-colors group-hover:text-purple-400">
+                <Upload className="h-8 w-8" />
               </div>
               <div>
-                <p className="text-zinc-200 font-semibold text-sm">
+                <p className="text-sm font-semibold text-zinc-200">
                   Drag & drop file here, or <span className="text-purple-400">browse</span>
                 </p>
-                <p className="text-zinc-500 text-xs mt-1">
-                  Supports PDF, DOCX or DOC (Max 10MB)
-                </p>
+                <p className="mt-1 text-xs text-zinc-500">Supports PDF, DOCX or DOC (Max 10MB)</p>
               </div>
             </motion.div>
           )}
@@ -182,9 +182,9 @@ export const UploadZone: React.FC<UploadZoneProps> = ({
           <motion.div
             initial={{ opacity: 0, y: 5 }}
             animate={{ opacity: 1, y: 0 }}
-            className="absolute bottom-4 left-4 right-4 flex items-center justify-center gap-2 text-red-400 text-xs font-medium bg-red-950/20 py-1.5 px-3 rounded-lg border border-red-500/20"
+            className="absolute bottom-4 left-4 right-4 flex items-center justify-center gap-2 rounded-lg border border-red-500/20 bg-red-950/20 px-3 py-1.5 text-xs font-medium text-red-400"
           >
-            <AlertCircle className="w-4 h-4 shrink-0" />
+            <AlertCircle className="h-4 w-4 shrink-0" />
             <span className="truncate">{activeError}</span>
           </motion.div>
         )}

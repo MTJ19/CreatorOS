@@ -157,9 +157,9 @@ export default function PublicBrandPortal() {
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
-        <div className="text-center space-y-4">
-          <Loader2 className="h-10 w-10 animate-spin text-primary mx-auto" />
-          <p className="text-foreground-muted text-sm font-medium">Loading Brand Portal...</p>
+        <div className="space-y-4 text-center">
+          <Loader2 className="mx-auto h-10 w-10 animate-spin text-primary" />
+          <p className="text-sm font-medium text-foreground-muted">Loading Brand Portal...</p>
         </div>
       </div>
     );
@@ -167,11 +167,13 @@ export default function PublicBrandPortal() {
 
   if (error || !context) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background px-4">
-        <div className="space-y-4 text-center max-w-md w-full bg-background-surface border border-border p-8 rounded-2xl shadow-float">
-          <AlertCircle className="w-12 h-12 text-danger mx-auto animate-pulse" />
+      <div className="flex min-h-screen items-center justify-center bg-background px-4">
+        <div className="w-full max-w-md space-y-4 rounded-2xl border border-border bg-background-surface p-8 text-center shadow-float">
+          <AlertCircle className="mx-auto h-12 w-12 animate-pulse text-danger" />
           <h2 className="text-xl font-bold text-foreground">Access Restricted</h2>
-          <p className="text-foreground-muted text-sm">{error || 'This brand portal link is inactive or incorrect.'}</p>
+          <p className="text-sm text-foreground-muted">
+            {error || 'This brand portal link is inactive or incorrect.'}
+          </p>
         </div>
       </div>
     );
@@ -221,40 +223,48 @@ export default function PublicBrandPortal() {
   };
 
   return (
-    <div className="relative min-h-screen bg-background text-foreground pb-12 transition-colors duration-200">
+    <div className="relative min-h-screen bg-background pb-12 text-foreground transition-colors duration-200">
       <GlowBackground className="opacity-30" />
 
       {/* Top Banner / Header */}
-      <header className="border-b border-border/60 bg-background-surface/80 backdrop-blur-md sticky top-0 z-40 px-6 py-4">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <header className="sticky top-0 z-40 border-b border-border/60 bg-background-surface/80 px-6 py-4 backdrop-blur-md">
+        <div className="mx-auto flex max-w-7xl flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-primary-muted flex items-center justify-center border border-primary/20 text-primary">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-primary/20 bg-primary-muted text-primary">
               <Building2 className="h-5 w-5" />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-white tracking-tight flex items-center gap-2">
+              <h1 className="flex items-center gap-2 text-lg font-bold tracking-tight text-white">
                 Brand Review Portal
-                <span className="text-foreground-muted font-normal text-sm">for {brandName}</span>
+                <span className="text-sm font-normal text-foreground-muted">for {brandName}</span>
               </h1>
-              <p className="text-foreground-muted text-xs">
-                Deal: <span className="font-semibold text-foreground">{dealTitle || 'Deliverables & Brief'}</span> • Managed by {creatorDisplayName || 'Creator'}
+              <p className="text-xs text-foreground-muted">
+                Deal:{' '}
+                <span className="font-semibold text-foreground">
+                  {dealTitle || 'Deliverables & Brief'}
+                </span>{' '}
+                • Managed by {creatorDisplayName || 'Creator'}
               </p>
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <div className="text-right hidden sm:block">
-              <span className="text-[10px] text-foreground-muted block font-semibold uppercase tracking-wider">Approval Status</span>
-              <span className="inline-block mt-0.5">
+            <div className="hidden text-right sm:block">
+              <span className="block text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
+                Approval Status
+              </span>
+              <span className="mt-0.5 inline-block">
                 <Badge variant={getStatusBadgeVariant(currentStatus) as any} dot>
                   {getStatusLabel(currentStatus)}
                 </Badge>
               </span>
             </div>
-            <div className="h-10 w-px bg-border hidden sm:block" />
+            <div className="hidden h-10 w-px bg-border sm:block" />
             <div className="text-right">
-              <span className="text-[10px] text-foreground-muted block font-semibold uppercase tracking-wider">Access Expires</span>
-              <span className="text-xs font-semibold text-white flex items-center gap-1 mt-0.5">
-                <Clock className="w-3.5 h-3.5 text-warning" />
+              <span className="block text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
+                Access Expires
+              </span>
+              <span className="mt-0.5 flex items-center gap-1 text-xs font-semibold text-white">
+                <Clock className="h-3.5 w-3.5 text-warning" />
                 {new Date(expiresAt).toLocaleDateString()}
               </span>
             </div>
@@ -263,17 +273,17 @@ export default function PublicBrandPortal() {
       </header>
 
       {/* Main Grid Content */}
-      <main className="max-w-7xl mx-auto px-4 md:px-6 mt-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
-        
+      <main className="mx-auto mt-8 grid max-w-7xl grid-cols-1 gap-8 px-4 md:px-6 lg:grid-cols-12">
         {/* Left Column - Deliverables checklist & Brief submission */}
-        <div className="lg:col-span-7 space-y-8">
-          
+        <div className="space-y-8 lg:col-span-7">
           {/* Brand Welcome Note if present */}
           {brandNote && (
             <Card variant="glass" className="border-primary/20 bg-primary-muted/5">
               <CardContent className="p-5">
-                <h3 className="text-sm font-bold text-white mb-1">Creator's Note</h3>
-                <p className="text-foreground-muted text-sm leading-relaxed italic">"{brandNote}"</p>
+                <h3 className="mb-1 text-sm font-bold text-white">Creator's Note</h3>
+                <p className="text-sm italic leading-relaxed text-foreground-muted">
+                  "{brandNote}"
+                </p>
               </CardContent>
             </Card>
           )}
@@ -281,35 +291,43 @@ export default function PublicBrandPortal() {
           {/* Deliverables Checklist */}
           <Card variant="glass">
             <CardHeader className="border-b border-border/50 pb-4">
-              <CardTitle className="text-base flex items-center gap-2">
-                <ShieldCheck className="w-5 h-5 text-primary" />
+              <CardTitle className="flex items-center gap-2 text-base">
+                <ShieldCheck className="h-5 w-5 text-primary" />
                 Deliverables Checklist
               </CardTitle>
-              <CardDescription>Review status of deliverables proposed for this campaign.</CardDescription>
+              <CardDescription>
+                Review status of deliverables proposed for this campaign.
+              </CardDescription>
             </CardHeader>
             <CardContent className="p-0">
               {deliverables.length === 0 ? (
-                <div className="p-8 text-center text-foreground-muted text-sm">
+                <div className="p-8 text-center text-sm text-foreground-muted">
                   No deliverables specified for this deal.
                 </div>
               ) : (
                 <div className="divide-y divide-border/40">
                   {deliverables.map((item: any) => (
-                    <div key={item.id} className="p-5 flex items-start justify-between gap-4">
+                    <div key={item.id} className="flex items-start justify-between gap-4 p-5">
                       <div className="space-y-1">
                         <span className="text-xs font-semibold uppercase tracking-wider text-primary">
                           {item.type.replace('_', ' ')}
                         </span>
                         {item.description && (
-                          <p className="text-sm text-foreground font-medium leading-relaxed">{item.description}</p>
+                          <p className="text-sm font-medium leading-relaxed text-foreground">
+                            {item.description}
+                          </p>
                         )}
                         <div className="flex items-center gap-3 text-xs text-foreground-muted">
                           <span className="flex items-center gap-1">
-                            <Calendar className="w-3.5 h-3.5" /> Due {new Date(item.dueDate).toLocaleDateString()}
+                            <Calendar className="h-3.5 w-3.5" /> Due{' '}
+                            {new Date(item.dueDate).toLocaleDateString()}
                           </span>
                         </div>
                       </div>
-                      <Badge variant={item.status === 'COMPLETED' ? 'success' : 'warning'} size="sm">
+                      <Badge
+                        variant={item.status === 'COMPLETED' ? 'success' : 'warning'}
+                        size="sm"
+                      >
                         {item.status.replace('_', ' ')}
                       </Badge>
                     </div>
@@ -322,33 +340,32 @@ export default function PublicBrandPortal() {
           {/* Brief Upload & Submission */}
           <Card variant="glass">
             <CardHeader className="border-b border-border/50 pb-4">
-              <CardTitle className="text-base flex items-center gap-2">
-                <FileText className="w-5 h-5 text-primary" />
+              <CardTitle className="flex items-center gap-2 text-base">
+                <FileText className="h-5 w-5 text-primary" />
                 Campaign Brief
               </CardTitle>
               <CardDescription>
                 Provide or update details of the campaign brief (PDF, DOCX, or Google Doc Link).
               </CardDescription>
             </CardHeader>
-            <CardContent className="p-6 space-y-6">
-              
+            <CardContent className="space-y-6 p-6">
               {/* Existing Submission status */}
               {(briefDoc || briefFile) && (
-                <div className="p-4 bg-background-elevated/50 border border-border/80 rounded-xl space-y-3">
-                  <span className="text-[10px] text-foreground-muted block font-semibold uppercase tracking-wider">
+                <div className="space-y-3 rounded-xl border border-border/80 bg-background-elevated/50 p-4">
+                  <span className="block text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
                     Current Submitted Brief
                   </span>
-                  <div className="flex flex-wrap gap-4 items-center justify-between">
+                  <div className="flex flex-wrap items-center justify-between gap-4">
                     {briefDoc && (
                       <a
                         href={briefDoc}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-2 text-sm text-primary hover:underline font-semibold"
+                        className="flex items-center gap-2 text-sm font-semibold text-primary hover:underline"
                       >
-                        <Globe className="w-4 h-4 shrink-0" />
+                        <Globe className="h-4 w-4 shrink-0" />
                         Google Doc Brief
-                        <ExternalLink className="w-3.5 h-3.5 shrink-0" />
+                        <ExternalLink className="h-3.5 w-3.5 shrink-0" />
                       </a>
                     )}
                     {briefFile && (
@@ -356,11 +373,11 @@ export default function PublicBrandPortal() {
                         href={briefFile}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-2 text-sm text-primary hover:underline font-semibold"
+                        className="flex items-center gap-2 text-sm font-semibold text-primary hover:underline"
                       >
-                        <FileText className="w-4 h-4 shrink-0" />
+                        <FileText className="h-4 w-4 shrink-0" />
                         Uploaded File Brief
-                        <ExternalLink className="w-3.5 h-3.5 shrink-0" />
+                        <ExternalLink className="h-3.5 w-3.5 shrink-0" />
                       </a>
                     )}
                     {submission.submittedAt && (
@@ -370,9 +387,13 @@ export default function PublicBrandPortal() {
                     )}
                   </div>
                   {submission.revisionNotes && (
-                    <div className="pt-2 border-t border-border/40 text-xs">
-                      <span className="text-foreground-muted font-bold block mb-1">Brief Notes:</span>
-                      <p className="text-foreground leading-relaxed whitespace-pre-wrap">{submission.revisionNotes}</p>
+                    <div className="border-t border-border/40 pt-2 text-xs">
+                      <span className="mb-1 block font-bold text-foreground-muted">
+                        Brief Notes:
+                      </span>
+                      <p className="whitespace-pre-wrap leading-relaxed text-foreground">
+                        {submission.revisionNotes}
+                      </p>
                     </div>
                   )}
                 </div>
@@ -381,7 +402,7 @@ export default function PublicBrandPortal() {
               {/* Upload Form */}
               <div className="space-y-4">
                 <h4 className="text-sm font-bold text-white">Upload New Brief Version</h4>
-                
+
                 {/* File Upload Zone */}
                 <UploadZone
                   onFileSelect={handleFileUpload}
@@ -393,13 +414,18 @@ export default function PublicBrandPortal() {
                   <div className="absolute inset-0 flex items-center">
                     <span className="w-full border-t border-border/60" />
                   </div>
-                  <span className="relative bg-background px-3 text-xs text-foreground-muted uppercase font-bold">OR</span>
+                  <span className="relative bg-background px-3 text-xs font-bold uppercase text-foreground-muted">
+                    OR
+                  </span>
                 </div>
 
                 {/* Google Doc form */}
                 <form onSubmit={handleBriefSubmit} className="space-y-4">
                   <div className="space-y-1.5">
-                    <label htmlFor="google-doc-url" className="text-xs font-bold text-foreground-muted uppercase tracking-wider block">
+                    <label
+                      htmlFor="google-doc-url"
+                      className="block text-xs font-bold uppercase tracking-wider text-foreground-muted"
+                    >
                       Google Doc Link
                     </label>
                     <input
@@ -412,7 +438,10 @@ export default function PublicBrandPortal() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label htmlFor="notes" className="text-xs font-bold text-foreground-muted uppercase tracking-wider block">
+                    <label
+                      htmlFor="notes"
+                      className="block text-xs font-bold uppercase tracking-wider text-foreground-muted"
+                    >
                       Add Brief Notes / Instructions
                     </label>
                     <textarea
@@ -421,7 +450,7 @@ export default function PublicBrandPortal() {
                       onChange={(e) => setRevisionNotes(e.target.value)}
                       placeholder="Provide any context, key requirements, or notes about this brief version..."
                       rows={3}
-                      className="w-full rounded-md border border-border bg-input px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none"
+                      className="w-full resize-none rounded-md border border-border bg-input px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                     />
                   </div>
                   <div className="flex justify-end">
@@ -431,15 +460,12 @@ export default function PublicBrandPortal() {
                   </div>
                 </form>
               </div>
-
             </CardContent>
           </Card>
-
         </div>
 
         {/* Right Column - Status Approval & Discussion Thread */}
-        <div className="lg:col-span-5 space-y-8">
-          
+        <div className="space-y-8 lg:col-span-5">
           {/* Approval Decision Card */}
           <Card variant="glass" className="border-primary/20">
             <CardHeader className="border-b border-border/50 pb-4">
@@ -448,26 +474,25 @@ export default function PublicBrandPortal() {
                 Set the status of this campaign. Setting a state notifies the creator.
               </CardDescription>
             </CardHeader>
-            <CardContent className="p-6 space-y-5">
-              
+            <CardContent className="space-y-5 p-6">
               <div className="flex flex-col gap-2">
                 <Button
                   onClick={() => handleApprovalChange('APPROVED')}
                   variant={currentStatus === 'APPROVED' ? 'primary' : 'secondary'}
                   disabled={updatingApproval}
-                  className="w-full justify-start h-11 px-4 text-left font-bold"
+                  className="h-11 w-full justify-start px-4 text-left font-bold"
                 >
-                  <CheckCircle2 className="w-5 h-5 mr-2 shrink-0 text-emerald-400" />
+                  <CheckCircle2 className="mr-2 h-5 w-5 shrink-0 text-emerald-400" />
                   Approve Deliverables
                 </Button>
-                
+
                 <Button
                   onClick={() => handleApprovalChange('APPROVED_WITH_CHANGES')}
                   variant={currentStatus === 'APPROVED_WITH_CHANGES' ? 'primary' : 'secondary'}
                   disabled={updatingApproval}
-                  className="w-full justify-start h-11 px-4 text-left font-bold"
+                  className="h-11 w-full justify-start px-4 text-left font-bold"
                 >
-                  <CheckCircle2 className="w-5 h-5 mr-2 shrink-0 text-amber-400" />
+                  <CheckCircle2 className="mr-2 h-5 w-5 shrink-0 text-amber-400" />
                   Approve with Changes
                 </Button>
 
@@ -475,43 +500,43 @@ export default function PublicBrandPortal() {
                   onClick={() => handleApprovalChange('REJECTED')}
                   variant={currentStatus === 'REJECTED' ? 'destructive' : 'secondary'}
                   disabled={updatingApproval}
-                  className="w-full justify-start h-11 px-4 text-left font-bold"
+                  className="h-11 w-full justify-start px-4 text-left font-bold"
                 >
-                  <AlertCircle className="w-5 h-5 mr-2 shrink-0 text-red-400" />
+                  <AlertCircle className="mr-2 h-5 w-5 shrink-0 text-red-400" />
                   Request Revisions / Changes
                 </Button>
               </div>
 
               {currentStatus !== 'PENDING_REVIEW' && (
-                <div className="text-xs text-foreground-muted bg-background-elevated/40 border border-border/60 rounded-xl p-3 flex gap-2">
-                  <Clock className="w-4 h-4 shrink-0 text-primary" />
+                <div className="flex gap-2 rounded-xl border border-border/60 bg-background-elevated/40 p-3 text-xs text-foreground-muted">
+                  <Clock className="h-4 w-4 shrink-0 text-primary" />
                   <span>
-                    Status is currently <span className="font-bold text-white">{getStatusLabel(currentStatus)}</span>.
+                    Status is currently{' '}
+                    <span className="font-bold text-white">{getStatusLabel(currentStatus)}</span>.
                     You can change the status at any time.
                   </span>
                 </div>
               )}
-
             </CardContent>
           </Card>
 
           {/* Feedback & Comments Feed */}
-          <Card variant="glass" className="flex flex-col h-[500px]">
-            <CardHeader className="border-b border-border/50 pb-4 flex-shrink-0">
-              <CardTitle className="text-base flex items-center gap-2">
-                <MessageSquare className="w-5 h-5 text-primary" />
+          <Card variant="glass" className="flex h-[500px] flex-col">
+            <CardHeader className="flex-shrink-0 border-b border-border/50 pb-4">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <MessageSquare className="h-5 w-5 text-primary" />
                 Collaboration Feed
               </CardTitle>
               <CardDescription>Discuss requirements directly with the creator.</CardDescription>
             </CardHeader>
-            
+
             {/* Scrollable feed */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-hide">
+            <div className="scrollbar-hide flex-1 space-y-4 overflow-y-auto p-4">
               {comments.length === 0 ? (
-                <div className="h-full flex flex-col items-center justify-center text-center text-foreground-muted p-8">
-                  <MessageSquare className="w-8 h-8 mb-2 text-border-strong" />
+                <div className="flex h-full flex-col items-center justify-center p-8 text-center text-foreground-muted">
+                  <MessageSquare className="mb-2 h-8 w-8 text-border-strong" />
                   <p className="text-sm font-semibold">No comments yet</p>
-                  <p className="text-xs mt-1">Start the conversation by posting a comment below.</p>
+                  <p className="mt-1 text-xs">Start the conversation by posting a comment below.</p>
                 </div>
               ) : (
                 comments.map((comment: any) => {
@@ -520,28 +545,35 @@ export default function PublicBrandPortal() {
                     <div
                       key={comment.id}
                       className={cn(
-                        'flex flex-col max-w-[85%] rounded-2xl p-3 border text-sm',
+                        'flex max-w-[85%] flex-col rounded-2xl border p-3 text-sm',
                         isBrand
-                          ? 'bg-primary-muted/15 border-primary/20 self-end ml-auto'
-                          : 'bg-background-elevated/50 border-border/60 self-start mr-auto'
+                          ? 'ml-auto self-end border-primary/20 bg-primary-muted/15'
+                          : 'mr-auto self-start border-border/60 bg-background-elevated/50',
                       )}
                     >
-                      <div className="flex items-center gap-1.5 text-[10px] font-bold text-foreground-muted mb-1">
+                      <div className="mb-1 flex items-center gap-1.5 text-[10px] font-bold text-foreground-muted">
                         {isBrand ? (
                           <>
-                            <Building2 className="w-3 h-3 text-primary" />
+                            <Building2 className="h-3 w-3 text-primary" />
                             <span>Brand Feedback</span>
                           </>
                         ) : (
                           <>
-                            <User className="w-3 h-3 text-accent" />
+                            <User className="h-3 w-3 text-accent" />
                             <span>{creatorDisplayName || 'Creator'}</span>
                           </>
                         )}
                         <span>•</span>
-                        <span>{new Date(comment.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                        <span>
+                          {new Date(comment.createdAt).toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </span>
                       </div>
-                      <p className="text-foreground leading-normal whitespace-pre-wrap">{comment.body}</p>
+                      <p className="whitespace-pre-wrap leading-normal text-foreground">
+                        {comment.body}
+                      </p>
                     </div>
                   );
                 })
@@ -549,7 +581,7 @@ export default function PublicBrandPortal() {
             </div>
 
             {/* Input form */}
-            <div className="p-4 border-t border-border/50 flex-shrink-0 bg-background-surface/40">
+            <div className="flex-shrink-0 border-t border-border/50 bg-background-surface/40 p-4">
               <form onSubmit={handleCommentSubmit} className="flex gap-2">
                 <input
                   type="text"
@@ -559,18 +591,14 @@ export default function PublicBrandPortal() {
                   className="flex-1 rounded-md border border-border bg-input px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 />
                 <Button type="submit" loading={submittingComment} size="icon" className="shrink-0">
-                  <Send className="w-4 h-4" />
+                  <Send className="h-4 w-4" />
                   <span className="sr-only">Send message</span>
                 </Button>
               </form>
             </div>
-
           </Card>
-
         </div>
-
       </main>
-
     </div>
   );
 }

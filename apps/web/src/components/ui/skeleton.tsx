@@ -10,9 +10,9 @@ export function Skeleton({ className, variant = 'default', ...props }: SkeletonP
       className={cn(
         'animate-pulse bg-muted-foreground/10',
         variant === 'circle' && 'rounded-full',
-        variant === 'card' && 'rounded-xl h-36',
-        variant === 'default' && 'rounded-md h-4',
-        className
+        variant === 'card' && 'h-36 rounded-xl',
+        variant === 'default' && 'h-4 rounded-md',
+        className,
       )}
       {...props}
     />

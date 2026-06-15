@@ -188,7 +188,14 @@ export class AuthService {
   }
 
   private buildAuthResponse(
-    user: { id: string; email: string; name: string; role: string; avatarUrl: string | null; createdAt: Date },
+    user: {
+      id: string;
+      email: string;
+      name: string;
+      role: string;
+      avatarUrl: string | null;
+      createdAt: Date;
+    },
     tokens: { accessToken: string; refreshToken: string; expiresIn: number },
   ): AuthResponseDto {
     return {

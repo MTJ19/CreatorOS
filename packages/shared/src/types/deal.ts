@@ -33,7 +33,12 @@ export type DeliverableType =
   | 'UGC_CONTENT'
   | 'OTHER';
 
-export type DeliverableStatus = 'PENDING' | 'IN_PROGRESS' | 'SUBMITTED' | 'APPROVED' | 'REVISION_REQUESTED';
+export type DeliverableStatus =
+  | 'PENDING'
+  | 'IN_PROGRESS'
+  | 'SUBMITTED'
+  | 'APPROVED'
+  | 'REVISION_REQUESTED';
 
 export interface Deliverable {
   id: string;

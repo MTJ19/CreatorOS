@@ -9,12 +9,7 @@ import {
   Req,
   Request,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 
 import { AuthService } from './auth.service';
@@ -50,10 +45,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Register a new creator account' })
   @ApiResponse({ status: 201, type: AuthResponseDto })
   @ApiResponse({ status: 409, description: 'Email already registered' })
-  async register(
-    @Body() dto: RegisterDto,
-    @Req() req: ExpressRequest,
-  ): Promise<AuthResponseDto> {
+  async register(@Body() dto: RegisterDto, @Req() req: ExpressRequest): Promise<AuthResponseDto> {
     return this.authService.register(dto, this.getMeta(req));
   }
 
@@ -64,10 +56,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Login with email + password' })
   @ApiResponse({ status: 200, type: AuthResponseDto })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
-  async login(
-    @Body() dto: LoginDto,
-    @Req() req: ExpressRequest,
-  ): Promise<AuthResponseDto> {
+  async login(@Body() dto: LoginDto, @Req() req: ExpressRequest): Promise<AuthResponseDto> {
     const user = await this.authService.validateUser(dto.email, dto.password);
     if (!user) {
       throw new Error('Invalid credentials'); // Will be caught by UnauthorizedException in service
@@ -103,10 +92,7 @@ export class AuthController {
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Get current authenticated user' })
   @ApiResponse({ status: 200 })
-  async getMe(
-    @CurrentUser() user: JwtPayload,
-    @Request() _req: AuthenticatedRequest,
-  ) {
+  async getMe(@CurrentUser() user: JwtPayload, @Request() _req: AuthenticatedRequest) {
     return this.authService.getMe(user.sub);
   }
 }

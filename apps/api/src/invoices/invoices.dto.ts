@@ -88,7 +88,11 @@ export class CreateInvoiceDto {
   @IsOptional()
   paymentTerms?: PaymentTermsEnum = PaymentTermsEnum.NET_30;
 
-  @ApiPropertyOptional({ minimum: 0, maximum: 100, description: 'Tax rate as a percentage (e.g. 8.5 for 8.5%)' })
+  @ApiPropertyOptional({
+    minimum: 0,
+    maximum: 100,
+    description: 'Tax rate as a percentage (e.g. 8.5 for 8.5%)',
+  })
   @IsNumber()
   @Min(0)
   @Max(100)
@@ -199,13 +203,17 @@ export class UpdateInvoiceDto {
 }
 
 export class MarkPaidDto {
-  @ApiPropertyOptional({ description: 'Amount received. If omitted, marks fully paid (totalAmount).' })
+  @ApiPropertyOptional({
+    description: 'Amount received. If omitted, marks fully paid (totalAmount).',
+  })
   @IsNumber()
   @Min(0)
   @IsOptional()
   paidAmount?: number;
 
-  @ApiPropertyOptional({ description: 'ISO date string for when payment was received (defaults to now)' })
+  @ApiPropertyOptional({
+    description: 'ISO date string for when payment was received (defaults to now)',
+  })
   @IsDateString()
   @IsOptional()
   paidAt?: string;

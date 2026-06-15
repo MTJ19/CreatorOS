@@ -134,10 +134,10 @@ export default function ContractReviewPage() {
 
   if (error || !contract) {
     return (
-      <div className="space-y-4 text-center max-w-md mx-auto py-24">
-        <AlertCircle className="w-12 h-12 text-rose-500 mx-auto" />
+      <div className="mx-auto max-w-md space-y-4 py-24 text-center">
+        <AlertCircle className="mx-auto h-12 w-12 text-rose-500" />
         <h2 className="text-xl font-bold text-zinc-100">Audit Not Found</h2>
-        <p className="text-zinc-400 text-sm">{error || 'This contract review is not available.'}</p>
+        <p className="text-sm text-zinc-400">{error || 'This contract review is not available.'}</p>
         <Link href="/contracts">
           <Button className="mt-4">Back to Contracts</Button>
         </Link>
@@ -155,7 +155,7 @@ export default function ContractReviewPage() {
       <div className="flex items-center justify-between">
         <Link
           href="/contracts"
-          className="inline-flex items-center text-sm text-zinc-400 hover:text-zinc-100 transition-colors"
+          className="inline-flex items-center text-sm text-zinc-400 transition-colors hover:text-zinc-100"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Contracts
@@ -163,7 +163,10 @@ export default function ContractReviewPage() {
 
         {contract.fileUrl && (
           <a href={contract.fileUrl} target="_blank" rel="noopener noreferrer">
-            <Button variant="outline" className="border-zinc-700 bg-zinc-900/60 hover:bg-zinc-800 text-zinc-100">
+            <Button
+              variant="outline"
+              className="border-zinc-700 bg-zinc-900/60 text-zinc-100 hover:bg-zinc-800"
+            >
               <FileDown className="mr-2 h-4.5 w-4.5 text-purple-400" />
               Download Original File
             </Button>
@@ -172,31 +175,41 @@ export default function ContractReviewPage() {
       </div>
 
       {/* Header Summary Stats */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between bg-zinc-950/20 border border-zinc-900 p-6 rounded-2xl backdrop-blur-md">
+      <div className="flex flex-col gap-4 rounded-2xl border border-zinc-900 bg-zinc-950/20 p-6 backdrop-blur-md md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-2xl font-extrabold text-zinc-50">{contract.title}</h1>
-          <p className="text-zinc-400 text-xs mt-1">
-            Associated with deal: <span className="font-semibold text-zinc-300">{contract.deal?.brandName || 'N/A'}</span>
+          <p className="mt-1 text-xs text-zinc-400">
+            Associated with deal:{' '}
+            <span className="font-semibold text-zinc-300">{contract.deal?.brandName || 'N/A'}</span>
           </p>
         </div>
         <div className="flex items-center gap-4">
           <div className="text-right">
-            <span className="text-zinc-500 text-xxs block font-semibold uppercase tracking-wider">Overall Risk</span>
-            <span className={cn('text-lg font-black px-3 py-0.5 rounded-lg border block mt-1.5', getRiskScoreColor(contract.overallRiskScore || 0))}>
+            <span className="text-xxs block font-semibold uppercase tracking-wider text-zinc-500">
+              Overall Risk
+            </span>
+            <span
+              className={cn(
+                'mt-1.5 block rounded-lg border px-3 py-0.5 text-lg font-black',
+                getRiskScoreColor(contract.overallRiskScore || 0),
+              )}
+            >
               {contract.overallRiskScore || 0}%
             </span>
           </div>
           <div className="text-right">
-            <span className="text-zinc-500 text-xxs block font-semibold uppercase tracking-wider">Status</span>
-            <span className="text-zinc-100 text-sm font-bold bg-zinc-900 border border-zinc-800 px-3 py-1 rounded-lg block mt-1.5">
+            <span className="text-xxs block font-semibold uppercase tracking-wider text-zinc-500">
+              Status
+            </span>
+            <span className="mt-1.5 block rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1 text-sm font-bold text-zinc-100">
               {unacknowledgedFlags.length > 0 ? (
-                <span className="text-amber-400 flex items-center gap-1.5">
-                  <ShieldAlert className="w-4 h-4 shrink-0" />
+                <span className="flex items-center gap-1.5 text-amber-400">
+                  <ShieldAlert className="h-4 w-4 shrink-0" />
                   {unacknowledgedFlags.length} Flags to Review
                 </span>
               ) : (
-                <span className="text-emerald-400 flex items-center gap-1.5">
-                  <ShieldCheck className="w-4 h-4 shrink-0" />
+                <span className="flex items-center gap-1.5 text-emerald-400">
+                  <ShieldCheck className="h-4 w-4 shrink-0" />
                   All Cleared
                 </span>
               )}
@@ -206,19 +219,19 @@ export default function ContractReviewPage() {
       </div>
 
       {/* Split Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-12">
         {/* Left Side: Summary & Details */}
-        <div className="lg:col-span-6 space-y-6">
+        <div className="space-y-6 lg:col-span-6">
           {/* Summary Card */}
           <Card variant="glass" className="border-zinc-800/80 bg-zinc-950/20">
             <CardHeader className="border-b border-zinc-900/50">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <FileText className="w-5 h-5 text-purple-400" />
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <FileText className="h-5 w-5 text-purple-400" />
                 AI Executive Summary
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-6 space-y-4">
-              <p className="text-zinc-300 text-sm leading-relaxed whitespace-pre-line">
+            <CardContent className="space-y-4 p-6">
+              <p className="whitespace-pre-line text-sm leading-relaxed text-zinc-300">
                 {contract.aiSummary || 'No AI summary generated.'}
               </p>
             </CardContent>
@@ -229,26 +242,26 @@ export default function ContractReviewPage() {
             <CardHeader className="border-b border-zinc-900/50">
               <CardTitle className="text-lg">Contract Metadata</CardTitle>
             </CardHeader>
-            <CardContent className="p-6 space-y-4">
+            <CardContent className="space-y-4 p-6">
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <span className="text-zinc-500 text-xs block">Parties Involved</span>
-                  <span className="text-zinc-200 font-medium block mt-1 flex items-center gap-2">
-                    <Building2 className="w-4 h-4 text-purple-400 shrink-0" />
+                  <span className="block text-xs text-zinc-500">Parties Involved</span>
+                  <span className="mt-1 block flex items-center gap-2 font-medium text-zinc-200">
+                    <Building2 className="h-4 w-4 shrink-0 text-purple-400" />
                     {contract.parties?.join(' vs ') || 'Unknown'}
                   </span>
                 </div>
                 <div>
-                  <span className="text-zinc-500 text-xs block">Governing Law</span>
-                  <span className="text-zinc-200 font-medium block mt-1 flex items-center gap-2">
-                    <Gavel className="w-4 h-4 text-purple-400 shrink-0" />
+                  <span className="block text-xs text-zinc-500">Governing Law</span>
+                  <span className="mt-1 block flex items-center gap-2 font-medium text-zinc-200">
+                    <Gavel className="h-4 w-4 shrink-0 text-purple-400" />
                     {contract.governingLaw || 'Not specified'}
                   </span>
                 </div>
                 {contract.jurisdiction && (
                   <div className="col-span-2">
-                    <span className="text-zinc-500 text-xs block">Dispute Jurisdiction</span>
-                    <span className="text-zinc-200 font-medium block mt-1">
+                    <span className="block text-xs text-zinc-500">Dispute Jurisdiction</span>
+                    <span className="mt-1 block font-medium text-zinc-200">
                       {contract.jurisdiction}
                     </span>
                   </div>
@@ -259,18 +272,19 @@ export default function ContractReviewPage() {
         </div>
 
         {/* Right Side: Risk Flag Cards */}
-        <div className="lg:col-span-6 space-y-4">
-          <h2 className="text-lg font-bold text-zinc-100 flex items-center gap-2">
-            <ShieldAlert className="w-5 h-5 text-purple-400" />
+        <div className="space-y-4 lg:col-span-6">
+          <h2 className="flex items-center gap-2 text-lg font-bold text-zinc-100">
+            <ShieldAlert className="h-5 w-5 text-purple-400" />
             Audited Clauses ({contract.riskFlags?.length || 0})
           </h2>
 
           {contract.riskFlags?.length === 0 ? (
-            <div className="p-8 border border-zinc-900 rounded-2xl bg-zinc-950/20 text-center space-y-3">
-              <ShieldCheck className="w-12 h-12 text-emerald-500 mx-auto" />
-              <h3 className="text-zinc-200 font-bold">No Risk Flags Found</h3>
-              <p className="text-zinc-500 text-xs max-w-xs mx-auto">
-                Excellent! The AI audit did not detect any of the standard risk flags in this agreement.
+            <div className="space-y-3 rounded-2xl border border-zinc-900 bg-zinc-950/20 p-8 text-center">
+              <ShieldCheck className="mx-auto h-12 w-12 text-emerald-500" />
+              <h3 className="font-bold text-zinc-200">No Risk Flags Found</h3>
+              <p className="mx-auto max-w-xs text-xs text-zinc-500">
+                Excellent! The AI audit did not detect any of the standard risk flags in this
+                agreement.
               </p>
             </div>
           ) : (
@@ -284,42 +298,56 @@ export default function ContractReviewPage() {
                     key={flag.id}
                     variant="glass"
                     className={cn(
-                      'border transition-all duration-200 overflow-hidden',
+                      'overflow-hidden border transition-all duration-200',
                       isAcknowledged
                         ? 'border-zinc-900 bg-zinc-950/10 opacity-70'
                         : isExpanded
-                        ? 'border-purple-500/40 bg-zinc-950/25 shadow-glow-sm'
-                        : 'border-zinc-800/60 bg-zinc-950/15 hover:bg-zinc-950/25'
+                          ? 'border-purple-500/40 bg-zinc-950/25 shadow-glow-sm'
+                          : 'border-zinc-800/60 bg-zinc-950/15 hover:bg-zinc-950/25',
                     )}
                   >
                     {/* Card Header (Click to toggle) */}
                     <div
                       onClick={() => setExpandedFlagId(isExpanded ? null : flag.id)}
-                      className="p-5 flex items-center justify-between cursor-pointer select-none"
+                      className="flex cursor-pointer select-none items-center justify-between p-5"
                     >
                       <div className="flex items-center gap-3">
-                        <span className={cn('text-xxs font-black px-2 py-0.5 rounded border uppercase', getSeverityColor(flag.severity))}>
+                        <span
+                          className={cn(
+                            'text-xxs rounded border px-2 py-0.5 font-black uppercase',
+                            getSeverityColor(flag.severity),
+                          )}
+                        >
                           {getSeverityBadge(flag.severity)}
                         </span>
-                        <h4 className={cn('text-sm font-bold', isAcknowledged ? 'text-zinc-500 line-through' : 'text-zinc-200')}>
+                        <h4
+                          className={cn(
+                            'text-sm font-bold',
+                            isAcknowledged ? 'text-zinc-500 line-through' : 'text-zinc-200',
+                          )}
+                        >
                           {flag.clause}
                         </h4>
                       </div>
                       <div className="flex items-center gap-3">
                         {isAcknowledged && (
-                          <Badge variant="success" className="text-xxs px-2 py-0">Cleared</Badge>
+                          <Badge variant="success" className="text-xxs px-2 py-0">
+                            Cleared
+                          </Badge>
                         )}
                       </div>
                     </div>
 
                     {/* Expanded details */}
                     {isExpanded && (
-                      <div className="px-5 pb-5 border-t border-zinc-900/50 pt-4 space-y-4 text-xs">
+                      <div className="space-y-4 border-t border-zinc-900/50 px-5 pb-5 pt-4 text-xs">
                         {/* Clause Text Segment */}
                         {flag.clauseText && (
-                          <div className="space-y-1 bg-zinc-950/50 border border-zinc-900 p-3.5 rounded-xl">
-                            <span className="text-zinc-500 text-[10px] font-bold uppercase tracking-wider block">Found Clause Snippet</span>
-                            <blockquote className="text-zinc-300 italic pl-3 border-l-2 border-purple-500 leading-normal">
+                          <div className="space-y-1 rounded-xl border border-zinc-900 bg-zinc-950/50 p-3.5">
+                            <span className="block text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+                              Found Clause Snippet
+                            </span>
+                            <blockquote className="border-l-2 border-purple-500 pl-3 italic leading-normal text-zinc-300">
                               "{flag.clauseText}"
                             </blockquote>
                           </div>
@@ -327,15 +355,18 @@ export default function ContractReviewPage() {
 
                         {/* Description */}
                         <div className="space-y-1">
-                          <span className="text-zinc-500 text-[10px] font-bold uppercase tracking-wider block">Risk Description</span>
-                          <p className="text-zinc-300 leading-normal">{flag.description}</p>
+                          <span className="block text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+                            Risk Description
+                          </span>
+                          <p className="leading-normal text-zinc-300">{flag.description}</p>
                         </div>
 
                         {/* Scenario */}
                         {flag.scenario && (
-                          <div className="space-y-1 bg-rose-950/5 border border-rose-900/10 p-3 rounded-xl text-rose-300">
-                            <span className="text-rose-400 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5">
-                              <AlertTriangle className="w-3.5 h-3.5" /> What could go wrong (Scenario)
+                          <div className="space-y-1 rounded-xl border border-rose-900/10 bg-rose-950/5 p-3 text-rose-300">
+                            <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-rose-400">
+                              <AlertTriangle className="h-3.5 w-3.5" /> What could go wrong
+                              (Scenario)
                             </span>
                             <p className="leading-normal">{flag.scenario}</p>
                           </div>
@@ -344,34 +375,40 @@ export default function ContractReviewPage() {
                         {/* Recommendation */}
                         {flag.recommendation && (
                           <div className="space-y-1">
-                            <span className="text-zinc-500 text-[10px] font-bold uppercase tracking-wider block">AI Recommendation</span>
-                            <p className="text-emerald-400 leading-normal font-semibold">{flag.recommendation}</p>
+                            <span className="block text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+                              AI Recommendation
+                            </span>
+                            <p className="font-semibold leading-normal text-emerald-400">
+                              {flag.recommendation}
+                            </p>
                           </div>
                         )}
 
                         {/* Suggested Alternative Clause */}
                         {flag.suggestedClause && (
-                          <div className="space-y-2.5 bg-zinc-900/40 border border-zinc-800/80 p-4 rounded-xl">
+                          <div className="space-y-2.5 rounded-xl border border-zinc-800/80 bg-zinc-900/40 p-4">
                             <div className="flex items-center justify-between">
-                              <span className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider">Suggested Counter-Clause</span>
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                                Suggested Counter-Clause
+                              </span>
                               <Button
                                 size="xs"
                                 variant="ghost"
-                                className="text-zinc-400 hover:text-purple-400 text-[10px] h-6 px-2.5 hover:bg-purple-950/20 border border-transparent hover:border-purple-500/20"
+                                className="h-6 border border-transparent px-2.5 text-[10px] text-zinc-400 hover:border-purple-500/20 hover:bg-purple-950/20 hover:text-purple-400"
                                 onClick={() => handleCopyClause(flag.id, flag.suggestedClause)}
                               >
                                 {copiedFlagId === flag.id ? (
                                   <>
-                                    <Check className="w-3.5 h-3.5 mr-1" /> Copied!
+                                    <Check className="mr-1 h-3.5 w-3.5" /> Copied!
                                   </>
                                 ) : (
                                   <>
-                                    <Copy className="w-3.5 h-3.5 mr-1" /> Copy Clause
+                                    <Copy className="mr-1 h-3.5 w-3.5" /> Copy Clause
                                   </>
                                 )}
                               </Button>
                             </div>
-                            <pre className="text-zinc-300 font-mono text-xxs whitespace-pre-wrap leading-normal bg-zinc-950 p-3 rounded-lg border border-zinc-900">
+                            <pre className="text-xxs whitespace-pre-wrap rounded-lg border border-zinc-900 bg-zinc-950 p-3 font-mono leading-normal text-zinc-300">
                               {flag.suggestedClause}
                             </pre>
                           </div>
@@ -379,13 +416,13 @@ export default function ContractReviewPage() {
 
                         {/* Action buttons */}
                         {!isAcknowledged && (
-                          <div className="flex justify-end pt-2 border-t border-zinc-900/30">
+                          <div className="flex justify-end border-t border-zinc-900/30 pt-2">
                             <Button
                               size="sm"
                               onClick={() => handleAcknowledge(flag.id)}
-                              className="bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-200"
+                              className="border border-zinc-700 bg-zinc-900 text-zinc-200 hover:bg-zinc-800"
                             >
-                              <CheckCircle2 className="w-4 h-4 mr-1.5 text-emerald-500" />
+                              <CheckCircle2 className="mr-1.5 h-4 w-4 text-emerald-500" />
                               Acknowledge Risk
                             </Button>
                           </div>

@@ -16,16 +16,22 @@ const CURRENCIES = [
 ];
 
 export function Step4Rates() {
-  const { register, watch, setValue, formState: { errors } } = useFormContext();
-  const selectedCurrency = watch('currency') as string ?? 'USD';
-  const currencySymbol = CURRENCIES.find(c => c.code === selectedCurrency)?.symbol ?? '$';
+  const {
+    register,
+    watch,
+    setValue,
+    formState: { errors },
+  } = useFormContext();
+  const selectedCurrency = (watch('currency') as string) ?? 'USD';
+  const currencySymbol = CURRENCIES.find((c) => c.code === selectedCurrency)?.symbol ?? '$';
 
   return (
     <div className="space-y-6">
       {/* Base rate + currency */}
       <div className="space-y-3">
         <label className="text-sm font-medium text-foreground">
-          Base rate per post <span className="text-foreground-subtle text-xs font-normal">(optional)</span>
+          Base rate per post{' '}
+          <span className="text-xs font-normal text-foreground-subtle">(optional)</span>
         </label>
         <div className="flex gap-3">
           {/* Currency selector */}
@@ -36,9 +42,9 @@ export function Step4Rates() {
               id="currency-select"
               aria-label="Select currency"
               className={cn(
-                'w-full px-3 py-2.5 rounded-lg text-sm bg-input border border-border text-foreground',
-                'focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent',
-                'transition-all duration-150 cursor-pointer',
+                'w-full rounded-lg border border-border bg-input px-3 py-2.5 text-sm text-foreground',
+                'focus:border-transparent focus:outline-none focus:ring-2 focus:ring-ring',
+                'cursor-pointer transition-all duration-150',
               )}
             >
               {CURRENCIES.map(({ code, symbol, label }) => (
@@ -51,7 +57,7 @@ export function Step4Rates() {
 
           {/* Rate input */}
           <div className="relative flex-1">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground-muted text-sm select-none">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 select-none text-sm text-foreground-muted">
               {currencySymbol}
             </span>
             <input
@@ -62,9 +68,9 @@ export function Step4Rates() {
               step="0.01"
               placeholder="1,500"
               className={cn(
-                'w-full pl-8 pr-4 py-2.5 rounded-lg text-sm bg-input border text-foreground',
+                'w-full rounded-lg border bg-input py-2.5 pl-8 pr-4 text-sm text-foreground',
                 'placeholder:text-foreground-subtle focus:outline-none focus:ring-2 focus:ring-ring',
-                'focus:border-transparent transition-all duration-150',
+                'transition-all duration-150 focus:border-transparent',
                 errors.baseRate ? 'border-danger' : 'border-border',
               )}
             />
@@ -78,8 +84,8 @@ export function Step4Rates() {
       {/* Bio */}
       <div className="space-y-1.5">
         <label htmlFor="creator-bio" className="text-sm font-medium text-foreground">
-          <FileText className="inline h-3.5 w-3.5 mr-1.5 text-foreground-muted" aria-hidden />
-          Creator bio <span className="text-foreground-subtle text-xs font-normal">(optional)</span>
+          <FileText className="mr-1.5 inline h-3.5 w-3.5 text-foreground-muted" aria-hidden />
+          Creator bio <span className="text-xs font-normal text-foreground-subtle">(optional)</span>
         </label>
         <textarea
           {...register('bio')}
@@ -88,13 +94,13 @@ export function Step4Rates() {
           maxLength={2000}
           placeholder="Tell brands about yourself, your content style, and what makes your audience unique…"
           className={cn(
-            'w-full px-3 py-2.5 rounded-lg text-sm bg-input border text-foreground resize-none',
+            'w-full resize-none rounded-lg border bg-input px-3 py-2.5 text-sm text-foreground',
             'placeholder:text-foreground-subtle focus:outline-none focus:ring-2 focus:ring-ring',
-            'focus:border-transparent transition-all duration-150',
+            'transition-all duration-150 focus:border-transparent',
             errors.bio ? 'border-danger' : 'border-border',
           )}
         />
-        <p className="text-xs text-foreground-subtle text-right">
+        <p className="text-right text-xs text-foreground-subtle">
           {(watch('bio') as string | undefined)?.length ?? 0}/2000
         </p>
       </div>
@@ -103,8 +109,8 @@ export function Step4Rates() {
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1.5">
           <label htmlFor="creator-location" className="text-sm font-medium text-foreground">
-            <MapPin className="inline h-3.5 w-3.5 mr-1.5 text-foreground-muted" aria-hidden />
-            Location <span className="text-foreground-subtle text-xs font-normal">(optional)</span>
+            <MapPin className="mr-1.5 inline h-3.5 w-3.5 text-foreground-muted" aria-hidden />
+            Location <span className="text-xs font-normal text-foreground-subtle">(optional)</span>
           </label>
           <input
             {...register('location')}
@@ -112,17 +118,17 @@ export function Step4Rates() {
             type="text"
             placeholder="New York, USA"
             className={cn(
-              'w-full px-3 py-2.5 rounded-lg text-sm bg-input border border-border text-foreground',
+              'w-full rounded-lg border border-border bg-input px-3 py-2.5 text-sm text-foreground',
               'placeholder:text-foreground-subtle focus:outline-none focus:ring-2 focus:ring-ring',
-              'focus:border-transparent transition-all duration-150',
+              'transition-all duration-150 focus:border-transparent',
             )}
           />
         </div>
 
         <div className="space-y-1.5">
           <label htmlFor="creator-website" className="text-sm font-medium text-foreground">
-            <Globe className="inline h-3.5 w-3.5 mr-1.5 text-foreground-muted" aria-hidden />
-            Website <span className="text-foreground-subtle text-xs font-normal">(optional)</span>
+            <Globe className="mr-1.5 inline h-3.5 w-3.5 text-foreground-muted" aria-hidden />
+            Website <span className="text-xs font-normal text-foreground-subtle">(optional)</span>
           </label>
           <input
             {...register('website')}
@@ -130,23 +136,25 @@ export function Step4Rates() {
             type="url"
             placeholder="https://yoursite.com"
             className={cn(
-              'w-full px-3 py-2.5 rounded-lg text-sm bg-input border text-foreground',
+              'w-full rounded-lg border bg-input px-3 py-2.5 text-sm text-foreground',
               'placeholder:text-foreground-subtle focus:outline-none focus:ring-2 focus:ring-ring',
-              'focus:border-transparent transition-all duration-150',
+              'transition-all duration-150 focus:border-transparent',
               errors.website ? 'border-danger' : 'border-border',
             )}
           />
-          {errors.website && <p className="text-xs text-danger">{String(errors.website.message)}</p>}
+          {errors.website && (
+            <p className="text-xs text-danger">{String(errors.website.message)}</p>
+          )}
         </div>
       </div>
 
       {/* Preview banner */}
       <div className="rounded-lg border border-primary/20 bg-primary-muted/30 p-4">
         <div className="flex items-start gap-3">
-          <DollarSign className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" aria-hidden />
+          <DollarSign className="mt-0.5 h-5 w-5 flex-shrink-0 text-primary" aria-hidden />
           <div>
             <p className="text-sm font-medium text-foreground">You&apos;re almost done! 🎉</p>
-            <p className="text-xs text-foreground-muted mt-0.5">
+            <p className="mt-0.5 text-xs text-foreground-muted">
               After setup, you can always update your rates, manage active deals, track performance,
               and send invoices from your dashboard.
             </p>

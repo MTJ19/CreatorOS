@@ -18,7 +18,9 @@ export function formatCurrency(amount: number, currency = 'USD', locale = 'en-US
 
 /** Format large numbers compactly: 12500 → 12.5K */
 export function formatCompact(n: number) {
-  return new Intl.NumberFormat('en', { notation: 'compact', maximumSignificantDigits: 3 }).format(n);
+  return new Intl.NumberFormat('en', { notation: 'compact', maximumSignificantDigits: 3 }).format(
+    n,
+  );
 }
 
 /** Format percentage */
@@ -33,5 +35,8 @@ export function capitalize(s: string) {
 
 /** Convert enum-style string to display label: PENDING_CONTRACT → Pending Contract */
 export function enumToLabel(s: string) {
-  return s.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
+  return s
+    .replace(/_/g, ' ')
+    .toLowerCase()
+    .replace(/\b\w/g, (c) => c.toUpperCase());
 }

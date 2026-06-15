@@ -5,7 +5,7 @@ import { Request, Response, NextFunction } from 'express';
 // For production, replace with Redis-backed rate limiting via @nestjs/throttler store.
 
 const WINDOW_MS = 60_000; // 1 minute
-const MAX_REQUESTS = 30;  // per IP per window
+const MAX_REQUESTS = 30; // per IP per window
 
 interface RateLimitEntry {
   count: number;
@@ -44,7 +44,10 @@ export class PortalRateLimitMiddleware implements NestMiddleware {
     entry.count += 1;
 
     if (entry.count > MAX_REQUESTS) {
-      res.setHeader('Retry-After', Math.ceil((entry.windowStart + WINDOW_MS - now) / 1000).toString());
+      res.setHeader(
+        'Retry-After',
+        Math.ceil((entry.windowStart + WINDOW_MS - now) / 1000).toString(),
+      );
       return res.status(429).json({
         statusCode: 429,
         message: 'Too many requests to the portal. Please try again in a moment.',

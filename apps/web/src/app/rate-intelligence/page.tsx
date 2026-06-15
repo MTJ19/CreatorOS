@@ -91,18 +91,19 @@ export default function RateIntelligencePage() {
   // Fetch History on Load
   React.useEffect(() => {
     if (accessToken) {
-      rateIntelligenceApi.getHistory(accessToken)
-        .then(data => setHistory(data))
+      rateIntelligenceApi
+        .getHistory(accessToken)
+        .then((data) => setHistory(data))
         .catch(() => null);
     }
   }, [accessToken]);
 
   // Handle Usage Rights Toggle
   const toggleUsageRight = (val: string) => {
-    setUsageRights(prev => {
+    setUsageRights((prev) => {
       if (prev.includes(val)) {
         if (prev.length === 1) return prev; // Keep at least one
-        return prev.filter(v => v !== val);
+        return prev.filter((v) => v !== val);
       }
       return [...prev, val];
     });
@@ -167,16 +168,16 @@ export default function RateIntelligencePage() {
   };
 
   return (
-    <div className="relative space-y-8 animate-fade-in pb-16">
+    <div className="relative animate-fade-in space-y-8 pb-16">
       {/* Radial glow background */}
       <GlowBackground glowPosition="top-right" intensity="subtle" animated />
 
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/40 pb-6">
+      <div className="flex flex-col justify-between gap-4 border-b border-border/40 pb-6 md:flex-row md:items-center">
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-white flex items-center gap-2.5">
-            <span className="p-2 rounded-xl bg-primary-muted inline-flex shadow-glow-sm">
-              <BarChart3 className="h-6 w-6 text-primary animate-glow-pulse" />
+          <h1 className="flex items-center gap-2.5 text-3xl font-extrabold tracking-tight text-white">
+            <span className="inline-flex rounded-xl bg-primary-muted p-2 shadow-glow-sm">
+              <BarChart3 className="h-6 w-6 animate-glow-pulse text-primary" />
             </span>
             Rate Intelligence
           </h1>
@@ -186,12 +187,12 @@ export default function RateIntelligencePage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start relative z-10">
+      <div className="relative z-10 grid grid-cols-1 items-start gap-8 lg:grid-cols-12">
         {/* Left Column: Form & History */}
-        <div className="lg:col-span-5 space-y-6">
+        <div className="space-y-6 lg:col-span-5">
           <Card variant="glass" className="border-border/60">
             <CardHeader className="pb-4">
-              <CardTitle className="text-lg font-semibold text-white flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 text-lg font-semibold text-white">
                 <Briefcase className="h-4 w-4 text-primary" /> Pricing Parameters
               </CardTitle>
               <CardDescription>Input the deal specifics to run analysis.</CardDescription>
@@ -200,41 +201,54 @@ export default function RateIntelligencePage() {
               <form onSubmit={handleSubmit} className="space-y-5">
                 {/* Content Format */}
                 <div className="space-y-1.5">
-                  <label htmlFor="format-select" className="text-xs font-semibold text-foreground uppercase tracking-wider">
+                  <label
+                    htmlFor="format-select"
+                    className="text-xs font-semibold uppercase tracking-wider text-foreground"
+                  >
                     Content Format
                   </label>
                   <select
                     id="format-select"
                     value={contentFormat}
                     onChange={(e) => setContentFormat(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-lg text-sm bg-input border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-ring cursor-pointer transition-all duration-150"
+                    className="w-full cursor-pointer rounded-lg border border-border bg-input px-3 py-2.5 text-sm text-foreground transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-ring"
                   >
-                    {CONTENT_FORMATS.map(f => (
-                      <option key={f.value} value={f.value}>{f.label}</option>
+                    {CONTENT_FORMATS.map((f) => (
+                      <option key={f.value} value={f.value}>
+                        {f.label}
+                      </option>
                     ))}
                   </select>
                 </div>
 
                 {/* Deal Type */}
                 <div className="space-y-1.5">
-                  <label htmlFor="deal-type-select" className="text-xs font-semibold text-foreground uppercase tracking-wider">
+                  <label
+                    htmlFor="deal-type-select"
+                    className="text-xs font-semibold uppercase tracking-wider text-foreground"
+                  >
                     Deal Type
                   </label>
                   <select
                     id="deal-type-select"
                     value={dealType}
                     onChange={(e) => setDealType(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-lg text-sm bg-input border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-ring cursor-pointer transition-all duration-150"
+                    className="w-full cursor-pointer rounded-lg border border-border bg-input px-3 py-2.5 text-sm text-foreground transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-ring"
                   >
-                    {DEAL_TYPES.map(d => (
-                      <option key={d.value} value={d.value}>{d.label}</option>
+                    {DEAL_TYPES.map((d) => (
+                      <option key={d.value} value={d.value}>
+                        {d.label}
+                      </option>
                     ))}
                   </select>
                 </div>
 
                 {/* Brand Category */}
                 <div className="space-y-1.5">
-                  <label htmlFor="category-input" className="text-xs font-semibold text-foreground uppercase tracking-wider">
+                  <label
+                    htmlFor="category-input"
+                    className="text-xs font-semibold uppercase tracking-wider text-foreground"
+                  >
                     Brand Category
                   </label>
                   <input
@@ -243,34 +257,39 @@ export default function RateIntelligencePage() {
                     placeholder="e.g. FinTech, Cosmetics, SaaS"
                     value={brandCategory}
                     onChange={(e) => setBrandCategory(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-lg text-sm bg-input border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-ring placeholder:text-foreground-subtle transition-all duration-150"
+                    className="w-full rounded-lg border border-border bg-input px-3 py-2.5 text-sm text-foreground transition-all duration-150 placeholder:text-foreground-subtle focus:outline-none focus:ring-2 focus:ring-ring"
                   />
                 </div>
 
                 {/* Brand Tier */}
                 <div className="space-y-1.5">
-                  <label htmlFor="brand-tier-select" className="text-xs font-semibold text-foreground uppercase tracking-wider">
+                  <label
+                    htmlFor="brand-tier-select"
+                    className="text-xs font-semibold uppercase tracking-wider text-foreground"
+                  >
                     Brand Tier
                   </label>
                   <select
                     id="brand-tier-select"
                     value={brandTier}
                     onChange={(e) => setBrandTier(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-lg text-sm bg-input border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-ring cursor-pointer transition-all duration-150"
+                    className="w-full cursor-pointer rounded-lg border border-border bg-input px-3 py-2.5 text-sm text-foreground transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-ring"
                   >
-                    {BRAND_TIERS.map(b => (
-                      <option key={b.value} value={b.value}>{b.label}</option>
+                    {BRAND_TIERS.map((b) => (
+                      <option key={b.value} value={b.value}>
+                        {b.label}
+                      </option>
                     ))}
                   </select>
                 </div>
 
                 {/* Usage Rights Multi-Toggle */}
                 <div className="space-y-2">
-                  <span className="text-xs font-semibold text-foreground uppercase tracking-wider block">
+                  <span className="block text-xs font-semibold uppercase tracking-wider text-foreground">
                     Usage Rights
                   </span>
                   <div className="flex flex-wrap gap-2">
-                    {USAGE_RIGHTS.map(u => {
+                    {USAGE_RIGHTS.map((u) => {
                       const isSelected = usageRights.includes(u.value);
                       return (
                         <button
@@ -278,10 +297,10 @@ export default function RateIntelligencePage() {
                           type="button"
                           onClick={() => toggleUsageRight(u.value)}
                           className={cn(
-                            "px-3 py-1.5 rounded-full text-xs font-medium border transition-all duration-150",
+                            'rounded-full border px-3 py-1.5 text-xs font-medium transition-all duration-150',
                             isSelected
-                              ? "bg-primary-muted border-primary text-primary shadow-glow-sm"
-                              : "bg-input border-border text-foreground-muted hover:border-foreground-subtle"
+                              ? 'border-primary bg-primary-muted text-primary shadow-glow-sm'
+                              : 'border-border bg-input text-foreground-muted hover:border-foreground-subtle',
                           )}
                         >
                           {u.label}
@@ -294,7 +313,10 @@ export default function RateIntelligencePage() {
                 {/* Exclusivity, Revision, Rush in Grid */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label htmlFor="exclusivity-input" className="text-xs font-semibold text-foreground uppercase tracking-wider">
+                    <label
+                      htmlFor="exclusivity-input"
+                      className="text-xs font-semibold uppercase tracking-wider text-foreground"
+                    >
                       Exclusivity (Days)
                     </label>
                     <input
@@ -304,12 +326,15 @@ export default function RateIntelligencePage() {
                       max="730"
                       value={exclusivityDays}
                       onChange={(e) => setExclusivityDays(parseInt(e.target.value, 10) || 0)}
-                      className="w-full px-3 py-2 text-sm bg-input border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-all duration-150"
+                      className="w-full border border-border bg-input px-3 py-2 text-sm text-foreground transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-ring"
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <label htmlFor="revisions-input" className="text-xs font-semibold text-foreground uppercase tracking-wider">
+                    <label
+                      htmlFor="revisions-input"
+                      className="text-xs font-semibold uppercase tracking-wider text-foreground"
+                    >
                       Revision Rounds
                     </label>
                     <input
@@ -319,15 +344,15 @@ export default function RateIntelligencePage() {
                       max="10"
                       value={revisionRounds}
                       onChange={(e) => setRevisionRounds(parseInt(e.target.value, 10) || 0)}
-                      className="w-full px-3 py-2 text-sm bg-input border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-all duration-150"
+                      className="w-full border border-border bg-input px-3 py-2 text-sm text-foreground transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-ring"
                     />
                   </div>
                 </div>
 
                 {/* Rush toggle */}
-                <div className="flex items-center justify-between p-3 rounded-lg border border-border/50 bg-background/40">
+                <div className="flex items-center justify-between rounded-lg border border-border/50 bg-background/40 p-3">
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-semibold text-foreground uppercase tracking-wider">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-foreground">
                       Rush Delivery (&lt; 72h)
                     </span>
                   </div>
@@ -335,21 +360,21 @@ export default function RateIntelligencePage() {
                     type="button"
                     onClick={() => setIsRush(!isRush)}
                     className={cn(
-                      "relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
-                      isRush ? "bg-primary" : "bg-border"
+                      'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none',
+                      isRush ? 'bg-primary' : 'bg-border',
                     )}
                   >
                     <span
                       className={cn(
-                        "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out",
-                        isRush ? "translate-x-5" : "translate-x-0"
+                        'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
+                        isRush ? 'translate-x-5' : 'translate-x-0',
                       )}
                     />
                   </button>
                 </div>
 
                 {formError && (
-                  <div className="text-xs text-danger font-medium p-2.5 rounded bg-danger-muted border border-danger/20">
+                  <div className="rounded border border-danger/20 bg-danger-muted p-2.5 text-xs font-medium text-danger">
                     {formError}
                   </div>
                 )}
@@ -357,7 +382,7 @@ export default function RateIntelligencePage() {
                 <Button
                   type="submit"
                   variant="primary"
-                  className="w-full py-3 gap-2 flex items-center justify-center font-semibold text-sm rounded-lg"
+                  className="flex w-full items-center justify-center gap-2 rounded-lg py-3 text-sm font-semibold"
                   disabled={loading}
                 >
                   {loading ? (
@@ -378,11 +403,11 @@ export default function RateIntelligencePage() {
           {history.length > 0 && (
             <Card variant="glass" className="border-border/60">
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-semibold text-white flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-sm font-semibold text-white">
                   <History className="h-4 w-4 text-foreground-muted" /> Recent Requests
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-2 max-h-[220px] overflow-y-auto">
+              <CardContent className="max-h-[220px] space-y-2 overflow-y-auto">
                 {history.map((h, idx) => {
                   const input = h.input;
                   const res = h.result;
@@ -390,16 +415,16 @@ export default function RateIntelligencePage() {
                     <button
                       key={h.id || idx}
                       onClick={() => selectHistoryItem(h)}
-                      className="w-full text-left p-2.5 rounded-lg border border-border/30 bg-background-surface/30 hover:bg-background-elevated hover:border-primary/40 transition-all duration-150 flex items-center justify-between text-xs text-foreground-muted group"
+                      className="group flex w-full items-center justify-between rounded-lg border border-border/30 bg-background-surface/30 p-2.5 text-left text-xs text-foreground-muted transition-all duration-150 hover:border-primary/40 hover:bg-background-elevated"
                     >
                       <div className="truncate pr-4">
-                        <span className="font-semibold text-white group-hover:text-primary transition-colors">
+                        <span className="font-semibold text-white transition-colors group-hover:text-primary">
                           {input.brandCategory}
                         </span>
                         <span className="mx-1.5">•</span>
                         <span>{input.contentFormat.replace(/_/g, ' ')}</span>
                       </div>
-                      <div className="font-mono text-white flex-shrink-0">
+                      <div className="flex-shrink-0 font-mono text-white">
                         ${res.recommendedMin} - ${res.recommendedMax}
                       </div>
                     </button>
@@ -411,41 +436,47 @@ export default function RateIntelligencePage() {
         </div>
 
         {/* Right Column: Results page */}
-        <div className="lg:col-span-7 space-y-6">
+        <div className="space-y-6 lg:col-span-7">
           {result ? (
-            <div className="space-y-6 animate-scale-in">
+            <div className="animate-scale-in space-y-6">
               {/* Highlight hero number range */}
-              <div className="relative rounded-2xl border border-primary/30 bg-gradient-to-br from-primary-muted/40 via-background-surface/80 to-accent-muted/10 p-8 shadow-glow overflow-hidden text-center">
+              <div className="to-accent-muted/10 relative overflow-hidden rounded-2xl border border-primary/30 bg-gradient-to-br from-primary-muted/40 via-background-surface/80 p-8 text-center shadow-glow">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(139,92,246,0.15)_0%,transparent_100%)]" />
                 <div className="relative z-10 space-y-3">
                   <span className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-widest text-primary">
-                    <Sparkles className="h-3 w-3 text-primary animate-glow-pulse" /> Recommended Quote Range
+                    <Sparkles className="h-3 w-3 animate-glow-pulse text-primary" /> Recommended
+                    Quote Range
                   </span>
-                  <div className="text-4xl md:text-5xl font-extrabold text-white font-mono tracking-tight">
-                    ${result.result.recommendedMin.toLocaleString()} – ${result.result.recommendedMax.toLocaleString()}
+                  <div className="font-mono text-4xl font-extrabold tracking-tight text-white md:text-5xl">
+                    ${result.result.recommendedMin.toLocaleString()} – $
+                    {result.result.recommendedMax.toLocaleString()}
                   </div>
-                  <p className="text-sm text-foreground-muted max-w-lg mx-auto leading-relaxed">
+                  <p className="mx-auto max-w-lg text-sm leading-relaxed text-foreground-muted">
                     {result.result.rationale}
                   </p>
                 </div>
               </div>
 
               {/* Side-by-side comparative cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 {/* Peer comparison */}
                 <Card variant="glass" className="border-border/40">
-                  <CardContent className="pt-6 space-y-3">
+                  <CardContent className="space-y-3 pt-6">
                     <div className="flex items-center gap-2">
-                      <div className="p-1.5 rounded-lg bg-primary-muted">
+                      <div className="rounded-lg bg-primary-muted p-1.5">
                         <Users className="h-4.5 w-4.5 text-primary" />
                       </div>
-                      <h3 className="font-semibold text-white text-sm">Peer Benchmark</h3>
+                      <h3 className="text-sm font-semibold text-white">Peer Benchmark</h3>
                     </div>
                     <div className="space-y-1">
-                      <div className="text-2xl font-bold text-white font-mono">{result.result.peerComparison.percentile}th Percentile</div>
-                      <div className="text-xs text-foreground-muted">{result.result.peerComparison.label}</div>
+                      <div className="font-mono text-2xl font-bold text-white">
+                        {result.result.peerComparison.percentile}th Percentile
+                      </div>
+                      <div className="text-xs text-foreground-muted">
+                        {result.result.peerComparison.label}
+                      </div>
                     </div>
-                    <p className="text-xs text-foreground-subtle leading-relaxed">
+                    <p className="text-xs leading-relaxed text-foreground-subtle">
                       {result.result.peerComparison.insight}
                     </p>
                   </CardContent>
@@ -453,18 +484,22 @@ export default function RateIntelligencePage() {
 
                 {/* Brand comparison */}
                 <Card variant="glass" className="border-border/40">
-                  <CardContent className="pt-6 space-y-3">
+                  <CardContent className="space-y-3 pt-6">
                     <div className="flex items-center gap-2">
-                      <div className="p-1.5 rounded-lg bg-accent-muted">
+                      <div className="bg-accent-muted rounded-lg p-1.5">
                         <Building2 className="h-4.5 w-4.5 text-accent" />
                       </div>
-                      <h3 className="font-semibold text-white text-sm">Brand Tier Budget</h3>
+                      <h3 className="text-sm font-semibold text-white">Brand Tier Budget</h3>
                     </div>
                     <div className="space-y-1">
-                      <div className="text-2xl font-bold text-white font-mono">${result.result.brandComparison.averageRate.toLocaleString()}</div>
-                      <div className="text-xs text-foreground-muted">{result.result.brandComparison.label} Average</div>
+                      <div className="font-mono text-2xl font-bold text-white">
+                        ${result.result.brandComparison.averageRate.toLocaleString()}
+                      </div>
+                      <div className="text-xs text-foreground-muted">
+                        {result.result.brandComparison.label} Average
+                      </div>
                     </div>
-                    <p className="text-xs text-foreground-subtle leading-relaxed">
+                    <p className="text-xs leading-relaxed text-foreground-subtle">
                       {result.result.brandComparison.insight}
                     </p>
                   </CardContent>
@@ -476,16 +511,20 @@ export default function RateIntelligencePage() {
                 <button
                   type="button"
                   onClick={() => setIsEmailExpanded(!isEmailExpanded)}
-                  className="w-full flex items-center justify-between p-5 text-left border-b border-border/40 hover:bg-background-surface/30 transition-colors"
+                  className="flex w-full items-center justify-between border-b border-border/40 p-5 text-left transition-colors hover:bg-background-surface/30"
                 >
-                  <span className="font-semibold text-white text-sm flex items-center gap-2">
+                  <span className="flex items-center gap-2 text-sm font-semibold text-white">
                     <Sparkles className="h-4 w-4 text-primary" /> AI Counteroffer Email Template
                   </span>
-                  {isEmailExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  {isEmailExpanded ? (
+                    <ChevronUp className="h-4 w-4" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4" />
+                  )}
                 </button>
                 {isEmailExpanded && (
-                  <CardContent className="p-5 space-y-4">
-                    <div className="p-4 rounded-lg bg-input/50 border border-border text-sm text-foreground leading-relaxed font-mono whitespace-pre-wrap select-all max-h-[300px] overflow-y-auto">
+                  <CardContent className="space-y-4 p-5">
+                    <div className="max-h-[300px] select-all overflow-y-auto whitespace-pre-wrap rounded-lg border border-border bg-input/50 p-4 font-mono text-sm leading-relaxed text-foreground">
                       {result.result.counterofferEmail}
                     </div>
                     <div className="flex gap-3">
@@ -494,7 +533,7 @@ export default function RateIntelligencePage() {
                         variant="ghost"
                         size="sm"
                         onClick={copyToClipboard}
-                        className="flex-1 py-2 text-xs font-semibold gap-1.5 bg-input hover:bg-background-elevated"
+                        className="flex-1 gap-1.5 bg-input py-2 text-xs font-semibold hover:bg-background-elevated"
                       >
                         {copied ? (
                           <>
@@ -512,7 +551,7 @@ export default function RateIntelligencePage() {
                         size="sm"
                         onClick={handleSubmit}
                         disabled={loading}
-                        className="flex-1 py-2 text-xs font-semibold gap-1.5"
+                        className="flex-1 gap-1.5 py-2 text-xs font-semibold"
                       >
                         <RotateCw className="h-3.5 w-3.5 text-white" /> Regenerate
                       </Button>
@@ -524,7 +563,7 @@ export default function RateIntelligencePage() {
               {/* Negotiation talking points as checklist */}
               <Card variant="glass" className="border-border/40">
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-semibold text-white flex items-center gap-2">
+                  <CardTitle className="flex items-center gap-2 text-sm font-semibold text-white">
                     <Info className="h-4 w-4 text-primary" /> Negotiation Talking Points
                   </CardTitle>
                 </CardHeader>
@@ -535,18 +574,20 @@ export default function RateIntelligencePage() {
                       <button
                         key={idx}
                         type="button"
-                        onClick={() => setCheckedPoints(prev => ({ ...prev, [idx]: !prev[idx] }))}
+                        onClick={() => setCheckedPoints((prev) => ({ ...prev, [idx]: !prev[idx] }))}
                         className={cn(
-                          "w-full flex items-start gap-3 p-3 rounded-lg border text-left text-xs transition-all duration-150 cursor-pointer",
+                          'flex w-full cursor-pointer items-start gap-3 rounded-lg border p-3 text-left text-xs transition-all duration-150',
                           isChecked
-                            ? "bg-primary-muted/20 border-primary/30 text-foreground-muted line-through"
-                            : "bg-input/30 border-border/50 text-foreground hover:bg-background-surface/50"
+                            ? 'border-primary/30 bg-primary-muted/20 text-foreground-muted line-through'
+                            : 'border-border/50 bg-input/30 text-foreground hover:bg-background-surface/50',
                         )}
                       >
-                        <span className={cn(
-                          "h-4 w-4 rounded border flex-shrink-0 flex items-center justify-center transition-colors",
-                          isChecked ? "bg-primary border-primary" : "border-border bg-background"
-                        )}>
+                        <span
+                          className={cn(
+                            'flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border transition-colors',
+                            isChecked ? 'border-primary bg-primary' : 'border-border bg-background',
+                          )}
+                        >
                           {isChecked && <Check className="h-3 w-3 text-white" />}
                         </span>
                         <span>{point}</span>
@@ -557,13 +598,17 @@ export default function RateIntelligencePage() {
               </Card>
             </div>
           ) : (
-            <Card variant="glass" className="p-12 text-center border-border/40 flex flex-col items-center justify-center min-h-[450px]">
-              <div className="h-16 w-16 items-center justify-center rounded-2xl bg-primary-muted flex text-primary shadow-glow-sm mb-4">
-                <Sparkles className="h-8 w-8 text-primary animate-glow-pulse" />
+            <Card
+              variant="glass"
+              className="flex min-h-[450px] flex-col items-center justify-center border-border/40 p-12 text-center"
+            >
+              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary-muted text-primary shadow-glow-sm">
+                <Sparkles className="h-8 w-8 animate-glow-pulse text-primary" />
               </div>
               <CardTitle className="text-xl text-white">Pricing Insights Await</CardTitle>
-              <CardDescription className="max-w-xs mx-auto mt-2">
-                Input your deal parameters on the left to compute recommendation ranges and generate negotiation strategies.
+              <CardDescription className="mx-auto mt-2 max-w-xs">
+                Input your deal parameters on the left to compute recommendation ranges and generate
+                negotiation strategies.
               </CardDescription>
             </Card>
           )}

@@ -114,24 +114,25 @@ export default function ContractsPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-zinc-50 via-zinc-200 to-purple-400 bg-clip-text text-transparent">
+          <h1 className="bg-gradient-to-r from-zinc-50 via-zinc-200 to-purple-400 bg-clip-text text-4xl font-extrabold tracking-tight text-transparent">
             Contracts & AI Audit
           </h1>
           <p className="mt-2 text-zinc-400">
-            Generate custom collaboration agreements or upload agency contracts for automated AI risk audits.
+            Generate custom collaboration agreements or upload agency contracts for automated AI
+            risk audits.
           </p>
         </div>
         <div className="flex items-center gap-3">
           <Button
             variant="outline"
-            className="border-zinc-700 bg-zinc-900/60 hover:bg-zinc-800 text-zinc-100 backdrop-blur-sm"
+            className="border-zinc-700 bg-zinc-900/60 text-zinc-100 backdrop-blur-sm hover:bg-zinc-800"
             onClick={() => setUploadOpen(true)}
           >
             <Upload className="mr-2 h-4.5 w-4.5 text-purple-400" />
             Upload Contract
           </Button>
           <Link href="/contracts/new">
-            <Button className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-medium shadow-glow-sm">
+            <Button className="bg-gradient-to-r from-purple-600 to-indigo-600 font-medium text-white shadow-glow-sm hover:from-purple-500 hover:to-indigo-500">
               <Plus className="mr-2 h-4.5 w-4.5" />
               Generate Agreement
             </Button>
@@ -144,26 +145,27 @@ export default function ContractsPage() {
           <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
         </div>
       ) : contracts.length === 0 ? (
-        <Card variant="glass" className="py-16 text-center border-zinc-800/80 bg-zinc-950/25">
+        <Card variant="glass" className="border-zinc-800/80 bg-zinc-950/25 py-16 text-center">
           <CardContent className="flex flex-col items-center justify-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-purple-500/10 border border-purple-500/20 mb-6">
+            <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl border border-purple-500/20 bg-purple-500/10">
               <FileText className="h-8 w-8 text-purple-400" />
             </div>
             <CardTitle className="text-2xl font-bold text-zinc-100">No Contracts Yet</CardTitle>
-            <p className="mt-2 text-zinc-400 max-w-md mx-auto text-sm">
-              Get started by uploading an agency agreement for a risk audit, or generate a custom contract using our builder.
+            <p className="mx-auto mt-2 max-w-md text-sm text-zinc-400">
+              Get started by uploading an agency agreement for a risk audit, or generate a custom
+              contract using our builder.
             </p>
-            <div className="flex items-center justify-center gap-4 mt-8">
+            <div className="mt-8 flex items-center justify-center gap-4">
               <Button
                 variant="outline"
-                className="border-zinc-700 bg-zinc-900/60 hover:bg-zinc-800 text-zinc-100"
+                className="border-zinc-700 bg-zinc-900/60 text-zinc-100 hover:bg-zinc-800"
                 onClick={() => setUploadOpen(true)}
               >
                 <Upload className="mr-2 h-4.5 w-4.5 text-purple-400" />
                 Upload Contract
               </Button>
               <Link href="/contracts/new">
-                <Button className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white">
+                <Button className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-500 hover:to-indigo-500">
                   <Plus className="mr-2 h-4.5 w-4.5" />
                   Generate Custom DOCX
                 </Button>
@@ -175,76 +177,83 @@ export default function ContractsPage() {
         <div className="grid gap-6">
           {contracts.map((contract) => {
             const hasFlags = contract.riskFlags && contract.riskFlags.length > 0;
-            const unacknowledgedCount = contract.riskFlags?.filter((f: any) => !f.isAcknowledged).length || 0;
+            const unacknowledgedCount =
+              contract.riskFlags?.filter((f: any) => !f.isAcknowledged).length || 0;
 
             return (
               <Card
                 key={contract.id}
                 variant="glass"
-                className="border-zinc-800/60 bg-zinc-950/20 hover:bg-zinc-950/30 transition-all duration-200"
+                className="border-zinc-800/60 bg-zinc-950/20 transition-all duration-200 hover:bg-zinc-950/30"
               >
-                <CardContent className="p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <CardContent className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-start gap-4">
-                    <div className="p-3 bg-zinc-900/80 border border-zinc-800 rounded-xl text-zinc-400 mt-1 shrink-0">
+                    <div className="mt-1 shrink-0 rounded-xl border border-zinc-800 bg-zinc-900/80 p-3 text-zinc-400">
                       <FileText className="h-6 w-6 text-purple-400" />
                     </div>
                     <div>
-                      <div className="flex items-center gap-2.5 flex-wrap">
-                        <h3 className="text-lg font-bold text-zinc-100 leading-tight">
+                      <div className="flex flex-wrap items-center gap-2.5">
+                        <h3 className="text-lg font-bold leading-tight text-zinc-100">
                           {contract.title}
                         </h3>
                         <Badge variant={getStatusBadgeVariant(contract.status)}>
                           {contract.status.replace('_', ' ')}
                         </Badge>
                       </div>
-                      <p className="text-zinc-400 text-sm mt-1.5 flex items-center gap-2">
+                      <p className="mt-1.5 flex items-center gap-2 text-sm text-zinc-400">
                         {contract.deal?.brandName && (
                           <>
-                            <span className="font-semibold text-zinc-300">{contract.deal.brandName}</span>
+                            <span className="font-semibold text-zinc-300">
+                              {contract.deal.brandName}
+                            </span>
                             <span className="text-zinc-600">•</span>
                           </>
                         )}
                         <span>Created {new Date(contract.createdAt).toLocaleDateString()}</span>
                       </p>
                       {contract.governingLaw && (
-                        <p className="text-zinc-500 text-xs mt-1">
+                        <p className="mt-1 text-xs text-zinc-500">
                           Governed by the laws of {contract.governingLaw}
                         </p>
                       )}
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-6 sm:justify-end shrink-0">
+                  <div className="flex shrink-0 items-center gap-6 sm:justify-end">
                     {/* Risk Audit Stats */}
                     {contract.status !== 'DRAFT' && contract.overallRiskScore !== null && (
                       <div className="flex items-center gap-4 border-l border-zinc-800/80 pl-6">
                         <div className="text-center">
-                          <span className="text-zinc-500 text-xs block font-medium">Risk Score</span>
+                          <span className="block text-xs font-medium text-zinc-500">
+                            Risk Score
+                          </span>
                           <span
                             className={cn(
-                              'text-xl font-black px-2.5 py-0.5 rounded-lg border block mt-1',
-                              getRiskScoreColor(contract.overallRiskScore)
+                              'mt-1 block rounded-lg border px-2.5 py-0.5 text-xl font-black',
+                              getRiskScoreColor(contract.overallRiskScore),
                             )}
                           >
                             {contract.overallRiskScore}%
                           </span>
                         </div>
 
-                        <div className="text-left hidden md:block">
-                          <span className="text-zinc-400 text-sm font-semibold flex items-center gap-1.5">
+                        <div className="hidden text-left md:block">
+                          <span className="flex items-center gap-1.5 text-sm font-semibold text-zinc-400">
                             {unacknowledgedCount > 0 ? (
                               <>
-                                <ShieldAlert className="w-4 h-4 text-amber-500" />
-                                <span className="text-amber-500">{unacknowledgedCount} Action Flags</span>
+                                <ShieldAlert className="h-4 w-4 text-amber-500" />
+                                <span className="text-amber-500">
+                                  {unacknowledgedCount} Action Flags
+                                </span>
                               </>
                             ) : (
                               <>
-                                <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                                <CheckCircle2 className="h-4 w-4 text-emerald-500" />
                                 <span className="text-emerald-400">All Cleared</span>
                               </>
                             )}
                           </span>
-                          <span className="text-zinc-500 text-xs mt-0.5 block">
+                          <span className="mt-0.5 block text-xs text-zinc-500">
                             {contract.riskFlags?.length || 0} total clauses audited
                           </span>
                         </div>
@@ -254,7 +263,7 @@ export default function ContractsPage() {
                     <Link href={`/contracts/${contract.id}`}>
                       <Button
                         variant="ghost"
-                        className="text-zinc-300 hover:text-purple-400 hover:bg-purple-950/20 border border-transparent hover:border-purple-500/20"
+                        className="border border-transparent text-zinc-300 hover:border-purple-500/20 hover:bg-purple-950/20 hover:text-purple-400"
                       >
                         {contract.status === 'DRAFT' ? 'View Details' : 'View Audit'}
                         <ChevronRight className="ml-1 h-4 w-4" />
@@ -270,43 +279,43 @@ export default function ContractsPage() {
 
       {/* Upload & Review Contract Dialog */}
       {uploadOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
+        <div className="fixed inset-0 z-50 flex animate-fade-in items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="w-full max-w-xl bg-zinc-950 border border-zinc-800 rounded-2xl overflow-hidden shadow-2xl"
+            className="w-full max-w-xl overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950 shadow-2xl"
           >
-            <div className="flex items-center justify-between p-6 border-b border-zinc-900 bg-zinc-900/30">
+            <div className="flex items-center justify-between border-b border-zinc-900 bg-zinc-900/30 p-6">
               <div className="flex items-center gap-2.5">
-                <Sparkles className="w-5 h-5 text-purple-400" />
+                <Sparkles className="h-5 w-5 text-purple-400" />
                 <h2 className="text-xl font-bold text-zinc-100">AI Contract Risk Audit</h2>
               </div>
               <button
                 onClick={() => setUploadOpen(false)}
-                className="text-zinc-400 hover:text-zinc-100 p-1.5 hover:bg-zinc-900 rounded-lg transition-colors"
+                className="rounded-lg p-1.5 text-zinc-400 transition-colors hover:bg-zinc-900 hover:text-zinc-100"
                 disabled={uploadLoading}
               >
-                <X className="w-5 h-5" />
+                <X className="h-5 w-5" />
               </button>
             </div>
 
-            <div className="p-6 space-y-6">
+            <div className="space-y-6 p-6">
               {/* Deal Picker */}
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-zinc-300">
                   Select Associated Brand Deal
                 </label>
                 {deals.length === 0 ? (
-                  <div className="p-3 bg-zinc-900/60 border border-zinc-800 rounded-lg text-amber-500 text-xs flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4" />
+                  <div className="flex items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-900/60 p-3 text-xs text-amber-500">
+                    <AlertTriangle className="h-4 w-4" />
                     You need to create a Brand Deal before uploading a contract for audit.
                   </div>
                 ) : (
                   <select
                     value={selectedDealId}
                     onChange={(e) => setSelectedDealId(e.target.value)}
-                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-3 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 text-sm transition-all"
+                    className="w-full rounded-xl border border-zinc-800 bg-zinc-900 p-3 text-sm text-zinc-100 transition-all focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
                     disabled={uploadLoading}
                   >
                     {deals.map((deal) => (
@@ -316,8 +325,9 @@ export default function ContractsPage() {
                     ))}
                   </select>
                 )}
-                <p className="text-zinc-500 text-xs">
-                  We will link the risk audit to this deal, and update the CRM pipeline stage to Negotiating automatically.
+                <p className="text-xs text-zinc-500">
+                  We will link the risk audit to this deal, and update the CRM pipeline stage to
+                  Negotiating automatically.
                 </p>
               </div>
 
@@ -333,11 +343,11 @@ export default function ContractsPage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-3 p-6 border-t border-zinc-900 bg-zinc-900/20">
+            <div className="flex items-center justify-end gap-3 border-t border-zinc-900 bg-zinc-900/20 p-6">
               <Button
                 variant="ghost"
                 onClick={() => setUploadOpen(false)}
-                className="text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900"
+                className="text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100"
                 disabled={uploadLoading}
               >
                 Cancel

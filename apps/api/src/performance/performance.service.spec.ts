@@ -5,7 +5,6 @@ import { PrismaService } from '../prisma/prisma.service';
 
 import { PerformanceService } from './performance.service';
 
-
 const mockPrisma = {
   performanceLog: {
     findMany: jest.fn(),
@@ -24,10 +23,7 @@ describe('PerformanceService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        PerformanceService,
-        { provide: PrismaService, useValue: mockPrisma },
-      ],
+      providers: [PerformanceService, { provide: PrismaService, useValue: mockPrisma }],
     }).compile();
 
     service = module.get<PerformanceService>(PerformanceService);
@@ -55,7 +51,7 @@ describe('PerformanceService', () => {
       mockPrisma.deal.findUnique.mockResolvedValue({
         id: dealId,
         creatorId,
-        amount: 500.00, // $500 deal
+        amount: 500.0, // $500 deal
       });
 
       mockPrisma.performanceLog.create.mockImplementation(({ data }) => data);
@@ -64,7 +60,12 @@ describe('PerformanceService', () => {
 
       // engagementRate = ((400 + 100 + 50 + 50) / 10000) * 100 = 6%
       // cpv = 500 / 10000 = 0.05
-      const metrics = result.metrics as unknown as { engagementRate: number; cpv: number | null; isPaid: boolean; brandCategory?: string };
+      const metrics = result.metrics as unknown as {
+        engagementRate: number;
+        cpv: number | null;
+        isPaid: boolean;
+        brandCategory?: string;
+      };
       expect(metrics.engagementRate).toBe(6);
       expect(metrics.cpv).toBe(0.05);
       expect(metrics.isPaid).toBe(true);
@@ -91,7 +92,12 @@ describe('PerformanceService', () => {
 
       // engagementRate = ((150 + 50 + 25 + 25) / 5000) * 100 = 5%
       // cpv = null (organic)
-      const metrics = result.metrics as unknown as { engagementRate: number; cpv: number | null; isPaid: boolean; brandCategory?: string };
+      const metrics = result.metrics as unknown as {
+        engagementRate: number;
+        cpv: number | null;
+        isPaid: boolean;
+        brandCategory?: string;
+      };
       expect(metrics.engagementRate).toBe(5);
       expect(metrics.cpv).toBeNull();
       expect(metrics.isPaid).toBe(false);

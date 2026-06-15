@@ -1,4 +1,16 @@
-import { Controller, Get, Param, Post, Body, Res, UseGuards, UseInterceptors, UploadedFile, Patch, Version } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  Post,
+  Body,
+  Res,
+  UseGuards,
+  UseInterceptors,
+  UploadedFile,
+  Patch,
+  Version,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { Response } from 'express';
@@ -41,7 +53,10 @@ export class ContractsController {
     @Res() res: Response,
   ) {
     const { buffer, filename } = await this.contractsService.generateContract(dto, user.sub);
-    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    );
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.send(buffer);
   }
@@ -61,11 +76,7 @@ export class ContractsController {
   @Patch('flags/:flagId/acknowledge')
   @Version('1')
   @ApiOperation({ summary: 'Acknowledge a contract risk flag' })
-  acknowledgeFlag(
-    @Param('flagId') flagId: string,
-    @CurrentUser() user: JwtPayload,
-  ) {
+  acknowledgeFlag(@Param('flagId') flagId: string, @CurrentUser() user: JwtPayload) {
     return this.contractsService.acknowledgeFlag(flagId, user.sub);
   }
 }
-

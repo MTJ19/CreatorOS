@@ -51,8 +51,6 @@ export class HealthController {
   @HealthCheck()
   @ApiOperation({ summary: 'Readiness probe — is the app ready to accept traffic?' })
   readiness() {
-    return this.health.check([
-      () => this.prismaHealth.pingCheck('database', this.prisma),
-    ]);
+    return this.health.check([() => this.prismaHealth.pingCheck('database', this.prisma)]);
   }
 }

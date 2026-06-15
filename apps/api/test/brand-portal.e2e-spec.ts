@@ -10,12 +10,9 @@ import { BrandPortalModule } from '../src/brand-portal/brand-portal.module';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { StorageService } from '../src/storage/storage.service';
 
-
-
-
 describe('BrandPortal (e2e)', () => {
   let app: INestApplication;
-  
+
   // Mock implementations
   const mockConfig = {
     get: jest.fn((key: string, def?: any) => def ?? 'http://localhost:3000'),
@@ -96,10 +93,7 @@ describe('BrandPortal (e2e)', () => {
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [
-        ConfigModule.forRoot({ isGlobal: true }),
-        BrandPortalModule,
-      ],
+      imports: [ConfigModule.forRoot({ isGlobal: true }), BrandPortalModule],
     })
       .overrideProvider(PrismaService)
       .useValue(mockPrisma)
@@ -131,9 +125,7 @@ describe('BrandPortal (e2e)', () => {
     const validJwt = 'valid.portal.jwt';
 
     it('GET /portal/context - returns Forbidden when no token header is present', async () => {
-      await request(app.getHttpServer())
-        .get('/portal/context')
-        .expect(401);
+      await request(app.getHttpServer()).get('/portal/context').expect(401);
     });
 
     it('GET /portal/context - returns portal context when valid token is supplied', async () => {

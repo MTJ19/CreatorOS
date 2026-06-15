@@ -10,8 +10,6 @@ import { extractTextFromFile } from '../storage/text-extractor';
 
 import { CreateContractGenerationDto } from './contracts.dto';
 
-
-
 @Injectable()
 export class ContractsService {
   constructor(
@@ -44,7 +42,10 @@ export class ContractsService {
   /**
    * Programmatically generate a DOCX contract based on creator input
    */
-  async generateContract(dto: CreateContractGenerationDto, creatorId: string): Promise<{ buffer: Buffer; filename: string }> {
+  async generateContract(
+    dto: CreateContractGenerationDto,
+    creatorId: string,
+  ): Promise<{ buffer: Buffer; filename: string }> {
     const doc = new Document({
       sections: [
         {
@@ -153,7 +154,7 @@ export class ContractsService {
             }),
             (dto.exclusivityDays ?? 0) > 0
               ? new Paragraph({
-                  text: `3.1 Exclusivity: For a period of ${dto.exclusivityDays} days following the final posting date, Creator agrees not to enter into similar promotional agreements or post sponsored content representing competitors in the following scope: ${dto.exclusivityScope || 'direct competitors in Brand\'s product category'}.`,
+                  text: `3.1 Exclusivity: For a period of ${dto.exclusivityDays} days following the final posting date, Creator agrees not to enter into similar promotional agreements or post sponsored content representing competitors in the following scope: ${dto.exclusivityScope || "direct competitors in Brand's product category"}.`,
                   spacing: { after: 200 },
                 })
               : new Paragraph({
