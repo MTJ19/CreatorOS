@@ -105,7 +105,9 @@ export class CreatePerformanceLogDto {
   @Min(0)
   @Max(100)
   @IsOptional()
-  @Transform(({ value }) => (value !== undefined && value !== null ? parseInt(value, 10) : undefined))
+  @Transform(({ value }) =>
+    value !== undefined && value !== null ? parseInt(value, 10) : undefined,
+  )
   watchTimePercent?: number;
 
   @ApiPropertyOptional({ default: false })
@@ -196,7 +198,9 @@ export class UpdatePerformanceLogDto {
   @Min(0)
   @Max(100)
   @IsOptional()
-  @Transform(({ value }) => (value !== undefined && value !== null ? parseInt(value, 10) : undefined))
+  @Transform(({ value }) =>
+    value !== undefined && value !== null ? parseInt(value, 10) : undefined,
+  )
   watchTimePercent?: number;
 
   @ApiPropertyOptional()

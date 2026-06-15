@@ -8,7 +8,6 @@ import { InvoiceReminderProcessor } from './invoice-reminder.processor';
 import { InvoicesController } from './invoices.controller';
 import { InvoicesService } from './invoices.service';
 
-
 @Module({
   imports: [
     PrismaModule,

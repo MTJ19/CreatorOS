@@ -25,10 +25,12 @@ export class PortalTokenGuard implements CanActivate {
   constructor(private readonly brandPortalService: BrandPortalService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest<Request & {
-      portalContext: any;
-      portalTokenRecord: any;
-    }>();
+    const request = context.switchToHttp().getRequest<
+      Request & {
+        portalContext: any;
+        portalTokenRecord: any;
+      }
+    >();
 
     // Extract token from header — support both auth bearer and explicit header
     const authHeader = request.headers.authorization;
@@ -47,16 +49,14 @@ export class PortalTokenGuard implements CanActivate {
     }
 
     try {
-      const { tokenRecord, context: portalCtx } = await this.brandPortalService.verifyToken(rawToken);
+      const { tokenRecord, context: portalCtx } =
+        await this.brandPortalService.verifyToken(rawToken);
       request.portalContext = portalCtx;
       request.portalTokenRecord = tokenRecord;
       return true;
     } catch (err: any) {
       // Re-throw typed errors as-is; wrap unknown errors as ForbiddenException
-      if (
-        err instanceof UnauthorizedException ||
-        err instanceof ForbiddenException
-      ) {
+      if (err instanceof UnauthorizedException || err instanceof ForbiddenException) {
         throw err;
       }
       throw new ForbiddenException('Invalid or expired portal token');
@@ -64,14 +64,10 @@ export class PortalTokenGuard implements CanActivate {
   }
 }
 
-export const PortalContext = createParamDecorator(
-  (_data: unknown, ctx: ExecutionContext) => {
-    return ctx.switchToHttp().getRequest<any>().portalContext;
-  },
-);
+export const PortalContext = createParamDecorator((_data: unknown, ctx: ExecutionContext) => {
+  return ctx.switchToHttp().getRequest<any>().portalContext;
+});
 
-export const PortalTokenRecord = createParamDecorator(
-  (_data: unknown, ctx: ExecutionContext) => {
-    return ctx.switchToHttp().getRequest<any>().portalTokenRecord;
-  },
-);
+export const PortalTokenRecord = createParamDecorator((_data: unknown, ctx: ExecutionContext) => {
+  return ctx.switchToHttp().getRequest<any>().portalTokenRecord;
+});

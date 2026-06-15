@@ -219,34 +219,50 @@ export default function PerformancePage() {
     ];
 
     return (
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {cards.map(c => {
-          const data = averages[c.key] || { avgViews: 0, avgEngagementRate: 0, avgCpv: null, totalPosts: 0 };
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+        {cards.map((c) => {
+          const data = averages[c.key] || {
+            avgViews: 0,
+            avgEngagementRate: 0,
+            avgCpv: null,
+            totalPosts: 0,
+          };
           return (
-            <Card key={c.key} variant="glass" className="border-border/40 relative overflow-hidden group">
-              <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
+            <Card
+              key={c.key}
+              variant="glass"
+              className="group relative overflow-hidden border-border/40"
+            >
+              <div className="absolute right-0 top-0 p-3 opacity-10 transition-opacity group-hover:opacity-20">
                 <TrendingUp className="h-14 w-14 text-primary" />
               </div>
               <CardHeader className="pb-2">
-                <span className="text-xs font-semibold text-primary uppercase tracking-widest">{c.label}</span>
-                <CardTitle className="text-2xl font-extrabold text-white font-mono mt-1">
-                  {Math.round(data.avgViews).toLocaleString()} <span className="text-xs font-medium text-foreground-muted font-sans">avg views</span>
+                <span className="text-xs font-semibold uppercase tracking-widest text-primary">
+                  {c.label}
+                </span>
+                <CardTitle className="mt-1 font-mono text-2xl font-extrabold text-white">
+                  {Math.round(data.avgViews).toLocaleString()}{' '}
+                  <span className="font-sans text-xs font-medium text-foreground-muted">
+                    avg views
+                  </span>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="pt-0 space-y-2 text-xs">
+              <CardContent className="space-y-2 pt-0 text-xs">
                 <div className="flex justify-between border-t border-border/20 pt-2 text-foreground-muted">
                   <span>Engagement Rate:</span>
-                  <span className="font-semibold text-white font-mono">{data.avgEngagementRate.toFixed(2)}%</span>
+                  <span className="font-mono font-semibold text-white">
+                    {data.avgEngagementRate.toFixed(2)}%
+                  </span>
                 </div>
                 <div className="flex justify-between text-foreground-muted">
                   <span>Avg CPV:</span>
-                  <span className="font-semibold text-white font-mono">
+                  <span className="font-mono font-semibold text-white">
                     {data.avgCpv !== null ? `$${data.avgCpv.toFixed(3)}` : 'N/A'}
                   </span>
                 </div>
                 <div className="flex justify-between text-foreground-muted">
                   <span>Total Posts:</span>
-                  <span className="font-semibold text-white font-mono">{data.totalPosts}</span>
+                  <span className="font-mono font-semibold text-white">{data.totalPosts}</span>
                 </div>
               </CardContent>
             </Card>
@@ -257,45 +273,44 @@ export default function PerformancePage() {
   };
 
   return (
-    <div className="relative space-y-8 animate-fade-in pb-16">
+    <div className="relative animate-fade-in space-y-8 pb-16">
       <GlowBackground glowPosition="top-left" intensity="subtle" animated />
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/40 pb-6 relative z-10">
+      <div className="relative z-10 flex flex-col justify-between gap-4 border-b border-border/40 pb-6 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-white flex items-center gap-2.5">
-            <span className="p-2 rounded-xl bg-primary-muted inline-flex shadow-glow-sm">
+          <h1 className="flex items-center gap-2.5 text-3xl font-extrabold tracking-tight text-white">
+            <span className="inline-flex rounded-xl bg-primary-muted p-2 shadow-glow-sm">
               <LineChart className="h-6 w-6 text-primary" />
             </span>
             Performance Logs
           </h1>
           <p className="mt-2 text-foreground-muted">
-            Log your post performance metrics to compute engagement rates, CPV, and rolling averages.
+            Log your post performance metrics to compute engagement rates, CPV, and rolling
+            averages.
           </p>
         </div>
         <Button
           onClick={handleOpenAdd}
           variant="primary"
-          className="gap-1.5 font-semibold text-sm shadow-glow-sm self-start sm:self-center"
+          className="gap-1.5 self-start text-sm font-semibold shadow-glow-sm sm:self-center"
         >
           <Plus className="h-4 w-4" /> Add Post Log
         </Button>
       </div>
 
       {/* Rolling averages */}
-      <div className="relative z-10">
-        {renderAverages()}
-      </div>
+      <div className="relative z-10">{renderAverages()}</div>
 
       {/* Performance Log Table */}
       <div className="relative z-10">
-        <Card variant="glass" className="border-border/40 overflow-hidden">
+        <Card variant="glass" className="overflow-hidden border-border/40">
           <CardContent className="p-0">
             {logs.length > 0 ? (
               <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse text-sm">
+                <table className="w-full border-collapse text-left text-sm">
                   <thead>
-                    <tr className="border-b border-border/40 bg-background-surface/40 text-foreground-muted font-semibold">
+                    <tr className="border-b border-border/40 bg-background-surface/40 font-semibold text-foreground-muted">
                       <th className="p-4">Date / Post</th>
                       <th className="p-4">Platform & Format</th>
                       <th className="p-4 text-right">Views</th>
@@ -306,23 +321,23 @@ export default function PerformancePage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/20">
-                    {logs.map(log => {
+                    {logs.map((log) => {
                       const metrics = log.metrics || {};
                       const postDate = new Date(log.recordedAt).toLocaleDateString(undefined, {
                         month: 'short',
                         day: 'numeric',
-                        year: 'numeric'
+                        year: 'numeric',
                       });
-                      const deal = deals.find(d => d.id === log.dealId);
+                      const deal = deals.find((d) => d.id === log.dealId);
 
                       return (
                         <tr
                           key={log.id}
-                          className="hover:bg-background-elevated/40 transition-colors duration-150 group"
+                          className="group transition-colors duration-150 hover:bg-background-elevated/40"
                         >
                           <td className="p-4">
-                            <div className="space-y-1 max-w-[200px]">
-                              <div className="flex items-center gap-1.5 text-white font-medium">
+                            <div className="max-w-[200px] space-y-1">
+                              <div className="flex items-center gap-1.5 font-medium text-white">
                                 <Calendar className="h-3.5 w-3.5 text-foreground-muted" />
                                 {postDate}
                               </div>
@@ -331,29 +346,32 @@ export default function PerformancePage() {
                                   href={log.contentUrl}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="text-xs text-primary hover:underline flex items-center gap-0.5 truncate"
+                                  className="flex items-center gap-0.5 truncate text-xs text-primary hover:underline"
                                 >
-                                  Visit post <ExternalLink className="h-3 w-3 inline" />
+                                  Visit post <ExternalLink className="inline h-3 w-3" />
                                 </a>
                               )}
                             </div>
                           </td>
                           <td className="p-4">
                             <div className="space-y-0.5">
-                              <div className="text-white text-xs font-semibold uppercase tracking-wider">
+                              <div className="text-xs font-semibold uppercase tracking-wider text-white">
                                 {log.platform}
                               </div>
                               <div className="text-xs text-foreground-muted">
-                                {(metrics.contentFormat || log.contentFormat || '').replace(/_/g, ' ')}
+                                {(metrics.contentFormat || log.contentFormat || '').replace(
+                                  /_/g,
+                                  ' ',
+                                )}
                               </div>
                             </div>
                           </td>
-                          <td className="p-4 text-right font-mono text-white font-semibold">
+                          <td className="p-4 text-right font-mono font-semibold text-white">
                             {(metrics.views ?? 0).toLocaleString()}
                           </td>
                           <td className="p-4 text-right">
                             <div className="space-y-0.5">
-                              <div className="font-mono text-white font-semibold">
+                              <div className="font-mono font-semibold text-white">
                                 {(metrics.engagementRate ?? 0).toFixed(2)}%
                               </div>
                               <div className="text-[10px] text-foreground-muted">
@@ -361,7 +379,7 @@ export default function PerformancePage() {
                               </div>
                             </div>
                           </td>
-                          <td className="p-4 text-right font-mono text-white font-semibold">
+                          <td className="p-4 text-right font-mono font-semibold text-white">
                             {metrics.cpv !== null ? `$${metrics.cpv.toFixed(3)}` : '—'}
                           </td>
                           <td className="p-4">
@@ -371,7 +389,7 @@ export default function PerformancePage() {
                                   Paid Sponsored
                                 </Badge>
                                 {deal && (
-                                  <div className="text-[10px] text-foreground-muted flex items-center gap-0.5">
+                                  <div className="flex items-center gap-0.5 text-[10px] text-foreground-muted">
                                     <Link2 className="h-2.5 w-2.5" /> {deal.brandName}
                                   </div>
                                 )}
@@ -383,17 +401,17 @@ export default function PerformancePage() {
                             )}
                           </td>
                           <td className="p-4 text-center">
-                            <div className="inline-flex gap-1.5 opacity-80 group-hover:opacity-100 transition-opacity">
+                            <div className="inline-flex gap-1.5 opacity-80 transition-opacity group-hover:opacity-100">
                               <button
                                 onClick={() => handleOpenEdit(log)}
-                                className="p-1.5 rounded-lg border border-border bg-input/40 hover:bg-background-elevated hover:border-primary/40 text-foreground-muted hover:text-white transition-all"
+                                className="rounded-lg border border-border bg-input/40 p-1.5 text-foreground-muted transition-all hover:border-primary/40 hover:bg-background-elevated hover:text-white"
                                 aria-label="Edit post log"
                               >
                                 <Edit2 className="h-3.5 w-3.5" />
                               </button>
                               <button
                                 onClick={() => handleDelete(log.id)}
-                                className="p-1.5 rounded-lg border border-border bg-input/40 hover:bg-danger-muted/20 hover:border-danger/40 text-foreground-muted hover:text-danger transition-all"
+                                className="rounded-lg border border-border bg-input/40 p-1.5 text-foreground-muted transition-all hover:border-danger/40 hover:bg-danger-muted/20 hover:text-danger"
                                 aria-label="Delete post log"
                               >
                                 <Trash2 className="h-3.5 w-3.5" />
@@ -408,10 +426,11 @@ export default function PerformancePage() {
               </div>
             ) : (
               <div className="p-12 text-center text-foreground-muted">
-                <BarChart3 className="h-10 w-10 text-foreground-subtle mx-auto mb-3" />
+                <BarChart3 className="mx-auto mb-3 h-10 w-10 text-foreground-subtle" />
                 <p className="text-base font-semibold text-white">No performance logs found</p>
-                <p className="text-xs max-w-xs mx-auto mt-1">
-                  Add your first post performance metrics to start tracking benchmarks and engagement rates.
+                <p className="mx-auto mt-1 max-w-xs text-xs">
+                  Add your first post performance metrics to start tracking benchmarks and
+                  engagement rates.
                 </p>
               </div>
             )}
@@ -421,7 +440,7 @@ export default function PerformancePage() {
 
       {/* Slide-over Form Panel */}
       {panelOpen && (
-        <div className="fixed inset-0 z-50 overflow-hidden flex justify-end">
+        <div className="fixed inset-0 z-50 flex justify-end overflow-hidden">
           {/* Backdrop */}
           <div
             className="absolute inset-0 bg-background/60 backdrop-blur-sm transition-opacity"
@@ -429,57 +448,69 @@ export default function PerformancePage() {
           />
 
           {/* Form Container */}
-          <div className="relative w-full max-w-md bg-background-overlay border-l border-border/60 shadow-float-lg h-full flex flex-col z-10 animate-slide-in-right">
+          <div className="relative z-10 flex h-full w-full max-w-md animate-slide-in-right flex-col border-l border-border/60 bg-background-overlay shadow-float-lg">
             {/* Header */}
-            <div className="p-5 border-b border-border/40 flex items-center justify-between">
+            <div className="flex items-center justify-between border-b border-border/40 p-5">
               <div>
                 <h3 className="text-lg font-bold text-white">
                   {editingLog ? 'Edit Performance Log' : 'New Performance Log'}
                 </h3>
-                <p className="text-xs text-foreground-muted mt-0.5">
-                  {editingLog ? 'Update the details for this post.' : 'Add views and engagement metrics.'}
+                <p className="mt-0.5 text-xs text-foreground-muted">
+                  {editingLog
+                    ? 'Update the details for this post.'
+                    : 'Add views and engagement metrics.'}
                 </p>
               </div>
               <button
                 onClick={() => setPanelOpen(false)}
-                className="p-1.5 rounded-lg hover:bg-background-elevated text-foreground-muted hover:text-white transition-all"
+                className="rounded-lg p-1.5 text-foreground-muted transition-all hover:bg-background-elevated hover:text-white"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
             {/* Scrollable Form */}
-            <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-5 space-y-5">
+            <form onSubmit={handleSubmit} className="flex-1 space-y-5 overflow-y-auto p-5">
               {/* Platform & Format in Grid */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label htmlFor="form-platform" className="text-xs font-semibold text-foreground uppercase tracking-wider">
+                  <label
+                    htmlFor="form-platform"
+                    className="text-xs font-semibold uppercase tracking-wider text-foreground"
+                  >
                     Platform
                   </label>
                   <select
                     id="form-platform"
                     value={platform}
                     onChange={(e) => setPlatform(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg text-sm bg-input border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-ring cursor-pointer"
+                    className="w-full cursor-pointer rounded-lg border border-border bg-input px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                   >
-                    {PLATFORMS.map(p => (
-                      <option key={p.value} value={p.value}>{p.label}</option>
+                    {PLATFORMS.map((p) => (
+                      <option key={p.value} value={p.value}>
+                        {p.label}
+                      </option>
                     ))}
                   </select>
                 </div>
 
                 <div className="space-y-1.5">
-                  <label htmlFor="form-format" className="text-xs font-semibold text-foreground uppercase tracking-wider">
+                  <label
+                    htmlFor="form-format"
+                    className="text-xs font-semibold uppercase tracking-wider text-foreground"
+                  >
                     Format
                   </label>
                   <select
                     id="form-format"
                     value={contentFormat}
                     onChange={(e) => setContentFormat(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg text-sm bg-input border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-ring cursor-pointer"
+                    className="w-full cursor-pointer rounded-lg border border-border bg-input px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                   >
-                    {FORMATS.map(f => (
-                      <option key={f.value} value={f.value}>{f.label}</option>
+                    {FORMATS.map((f) => (
+                      <option key={f.value} value={f.value}>
+                        {f.label}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -487,7 +518,10 @@ export default function PerformancePage() {
 
               {/* Recorded At Date */}
               <div className="space-y-1.5">
-                <label htmlFor="form-date" className="text-xs font-semibold text-foreground uppercase tracking-wider">
+                <label
+                  htmlFor="form-date"
+                  className="text-xs font-semibold uppercase tracking-wider text-foreground"
+                >
                   Post Date
                 </label>
                 <input
@@ -495,73 +529,103 @@ export default function PerformancePage() {
                   type="date"
                   value={recordedAt}
                   onChange={(e) => setRecordedAt(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg text-sm bg-input border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                  className="w-full rounded-lg border border-border bg-input px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 />
               </div>
 
               {/* Core Metrics Grid */}
-              <div className="space-y-3 p-4 rounded-xl border border-border/45 bg-background/30">
-                <span className="text-xs font-bold text-white uppercase tracking-wider block">
+              <div className="space-y-3 rounded-xl border border-border/45 bg-background/30 p-4">
+                <span className="block text-xs font-bold uppercase tracking-wider text-white">
                   Views & Engagements
                 </span>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <label htmlFor="form-views" className="text-[10px] font-semibold text-foreground-muted uppercase">Views</label>
+                    <label
+                      htmlFor="form-views"
+                      className="text-[10px] font-semibold uppercase text-foreground-muted"
+                    >
+                      Views
+                    </label>
                     <input
                       id="form-views"
                       type="number"
                       min="0"
                       value={views}
                       onChange={(e) => setViews(parseInt(e.target.value, 10) || 0)}
-                      className="w-full px-3 py-1.5 rounded bg-input border border-border text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                      className="w-full rounded border border-border bg-input px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
                     />
                   </div>
                   <div className="space-y-1">
-                    <label htmlFor="form-likes" className="text-[10px] font-semibold text-foreground-muted uppercase">Likes</label>
+                    <label
+                      htmlFor="form-likes"
+                      className="text-[10px] font-semibold uppercase text-foreground-muted"
+                    >
+                      Likes
+                    </label>
                     <input
                       id="form-likes"
                       type="number"
                       min="0"
                       value={likes}
                       onChange={(e) => setLikes(parseInt(e.target.value, 10) || 0)}
-                      className="w-full px-3 py-1.5 rounded bg-input border border-border text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                      className="w-full rounded border border-border bg-input px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
                     />
                   </div>
                   <div className="space-y-1">
-                    <label htmlFor="form-comments" className="text-[10px] font-semibold text-foreground-muted uppercase">Comments</label>
+                    <label
+                      htmlFor="form-comments"
+                      className="text-[10px] font-semibold uppercase text-foreground-muted"
+                    >
+                      Comments
+                    </label>
                     <input
                       id="form-comments"
                       type="number"
                       min="0"
                       value={comments}
                       onChange={(e) => setComments(parseInt(e.target.value, 10) || 0)}
-                      className="w-full px-3 py-1.5 rounded bg-input border border-border text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                      className="w-full rounded border border-border bg-input px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
                     />
                   </div>
                   <div className="space-y-1">
-                    <label htmlFor="form-saves" className="text-[10px] font-semibold text-foreground-muted uppercase">Saves</label>
+                    <label
+                      htmlFor="form-saves"
+                      className="text-[10px] font-semibold uppercase text-foreground-muted"
+                    >
+                      Saves
+                    </label>
                     <input
                       id="form-saves"
                       type="number"
                       min="0"
                       value={saves}
                       onChange={(e) => setSaves(parseInt(e.target.value, 10) || 0)}
-                      className="w-full px-3 py-1.5 rounded bg-input border border-border text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                      className="w-full rounded border border-border bg-input px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
                     />
                   </div>
                   <div className="space-y-1">
-                    <label htmlFor="form-shares" className="text-[10px] font-semibold text-foreground-muted uppercase">Shares</label>
+                    <label
+                      htmlFor="form-shares"
+                      className="text-[10px] font-semibold uppercase text-foreground-muted"
+                    >
+                      Shares
+                    </label>
                     <input
                       id="form-shares"
                       type="number"
                       min="0"
                       value={shares}
                       onChange={(e) => setShares(parseInt(e.target.value, 10) || 0)}
-                      className="w-full px-3 py-1.5 rounded bg-input border border-border text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                      className="w-full rounded border border-border bg-input px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
                     />
                   </div>
                   <div className="space-y-1">
-                    <label htmlFor="form-watchtime" className="text-[10px] font-semibold text-foreground-muted uppercase">Watch Time %</label>
+                    <label
+                      htmlFor="form-watchtime"
+                      className="text-[10px] font-semibold uppercase text-foreground-muted"
+                    >
+                      Watch Time %
+                    </label>
                     <input
                       id="form-watchtime"
                       type="number"
@@ -571,18 +635,20 @@ export default function PerformancePage() {
                       value={watchTimePercent}
                       onChange={(e) => {
                         const val = e.target.value;
-                        setWatchTimePercent(val === '' ? '' : Math.min(100, Math.max(0, parseInt(val, 10) || 0)));
+                        setWatchTimePercent(
+                          val === '' ? '' : Math.min(100, Math.max(0, parseInt(val, 10) || 0)),
+                        );
                       }}
-                      className="w-full px-3 py-1.5 rounded bg-input border border-border text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                      className="w-full rounded border border-border bg-input px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
                     />
                   </div>
                 </div>
               </div>
 
               {/* Paid sponsorship toggle */}
-              <div className="flex items-center justify-between p-3.5 rounded-lg border border-border/45 bg-background/30">
+              <div className="flex items-center justify-between rounded-lg border border-border/45 bg-background/30 p-3.5">
                 <div>
-                  <span className="text-xs font-semibold text-white uppercase tracking-wider block">
+                  <span className="block text-xs font-semibold uppercase tracking-wider text-white">
                     Paid Sponsorship
                   </span>
                   <span className="text-[10px] text-foreground-muted">
@@ -593,14 +659,14 @@ export default function PerformancePage() {
                   type="button"
                   onClick={() => setIsPaid(!isPaid)}
                   className={cn(
-                    "relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
-                    isPaid ? "bg-primary" : "bg-border"
+                    'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none',
+                    isPaid ? 'bg-primary' : 'bg-border',
                   )}
                 >
                   <span
                     className={cn(
-                      "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out",
-                      isPaid ? "translate-x-5" : "translate-x-0"
+                      'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
+                      isPaid ? 'translate-x-5' : 'translate-x-0',
                     )}
                   />
                 </button>
@@ -608,19 +674,22 @@ export default function PerformancePage() {
 
               {/* Paid Deal parameters */}
               {isPaid && (
-                <div className="space-y-4 p-4 rounded-xl border border-primary/20 bg-primary-muted/10 animate-fade-in">
+                <div className="animate-fade-in space-y-4 rounded-xl border border-primary/20 bg-primary-muted/10 p-4">
                   <div className="space-y-1.5">
-                    <label htmlFor="form-deal" className="text-xs font-semibold text-foreground uppercase tracking-wider">
+                    <label
+                      htmlFor="form-deal"
+                      className="text-xs font-semibold uppercase tracking-wider text-foreground"
+                    >
                       Link Brand Deal
                     </label>
                     <select
                       id="form-deal"
                       value={dealId}
                       onChange={(e) => setDealId(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg text-sm bg-input border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-ring cursor-pointer"
+                      className="w-full cursor-pointer rounded-lg border border-border bg-input px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                     >
                       <option value="">-- Select Deal --</option>
-                      {deals.map(d => (
+                      {deals.map((d) => (
                         <option key={d.id} value={d.id}>
                           {d.brandName} - {d.title} (${Number(d.amount).toLocaleString()})
                         </option>
@@ -629,7 +698,10 @@ export default function PerformancePage() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <label htmlFor="form-brand-category" className="text-xs font-semibold text-foreground uppercase tracking-wider">
+                    <label
+                      htmlFor="form-brand-category"
+                      className="text-xs font-semibold uppercase tracking-wider text-foreground"
+                    >
                       Brand Category
                     </label>
                     <input
@@ -638,7 +710,7 @@ export default function PerformancePage() {
                       placeholder="e.g. Finance, Gaming"
                       value={brandCategory}
                       onChange={(e) => setBrandCategory(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg text-sm bg-input border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                      className="w-full rounded-lg border border-border bg-input px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                     />
                   </div>
                 </div>
@@ -646,7 +718,10 @@ export default function PerformancePage() {
 
               {/* Content URL */}
               <div className="space-y-1.5">
-                <label htmlFor="form-url" className="text-xs font-semibold text-foreground uppercase tracking-wider">
+                <label
+                  htmlFor="form-url"
+                  className="text-xs font-semibold uppercase tracking-wider text-foreground"
+                >
                   Post Content URL
                 </label>
                 <input
@@ -655,13 +730,16 @@ export default function PerformancePage() {
                   placeholder="https://instagram.com/p/..."
                   value={contentUrl}
                   onChange={(e) => setContentUrl(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg text-sm bg-input border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-ring placeholder:text-foreground-subtle"
+                  className="w-full rounded-lg border border-border bg-input px-3 py-2 text-sm text-foreground placeholder:text-foreground-subtle focus:outline-none focus:ring-2 focus:ring-ring"
                 />
               </div>
 
               {/* Notes */}
               <div className="space-y-1.5">
-                <label htmlFor="form-notes" className="text-xs font-semibold text-foreground uppercase tracking-wider">
+                <label
+                  htmlFor="form-notes"
+                  className="text-xs font-semibold uppercase tracking-wider text-foreground"
+                >
                   Notes
                 </label>
                 <textarea
@@ -670,23 +748,23 @@ export default function PerformancePage() {
                   placeholder="Add any internal notes about targeting, pacing, or remarks..."
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg text-sm bg-input border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-ring placeholder:text-foreground-subtle resize-none"
+                  className="w-full resize-none rounded-lg border border-border bg-input px-3 py-2 text-sm text-foreground placeholder:text-foreground-subtle focus:outline-none focus:ring-2 focus:ring-ring"
                 />
               </div>
 
               {formError && (
-                <div className="text-xs text-danger font-medium p-2.5 rounded bg-danger-muted border border-danger/20">
+                <div className="rounded border border-danger/20 bg-danger-muted p-2.5 text-xs font-medium text-danger">
                   {formError}
                 </div>
               )}
 
               {/* Footer CTA */}
-              <div className="pt-4 border-t border-border/40 flex gap-3">
+              <div className="flex gap-3 border-t border-border/40 pt-4">
                 <Button
                   type="button"
                   variant="ghost"
                   onClick={() => setPanelOpen(false)}
-                  className="flex-1 py-2.5 text-sm bg-input hover:bg-background-elevated"
+                  className="flex-1 bg-input py-2.5 text-sm hover:bg-background-elevated"
                 >
                   Cancel
                 </Button>

@@ -32,9 +32,7 @@ export class InvoiceReminderProcessor extends WorkerHost {
      * });
      */
 
-    this.logger.log(
-      `[EMAIL STUB] Reminder sent for invoice ${invoiceId} to ${brandEmail}`,
-    );
+    this.logger.log(`[EMAIL STUB] Reminder sent for invoice ${invoiceId} to ${brandEmail}`);
     return Promise.resolve();
   }
 }

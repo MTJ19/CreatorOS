@@ -221,9 +221,27 @@ describe('InvoicesService', () => {
       const futureDue = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days ahead
 
       mockPrisma.invoice.findMany.mockResolvedValue([
-        { id: 'i1', totalAmount: new Prisma.Decimal(1000), paidAmount: null, dueDate: pastDue, status: 'SENT' },
-        { id: 'i2', totalAmount: new Prisma.Decimal(500), paidAmount: new Prisma.Decimal(200), dueDate: pastDue, status: 'PARTIALLY_PAID' },
-        { id: 'i3', totalAmount: new Prisma.Decimal(800), paidAmount: null, dueDate: futureDue, status: 'SENT' },
+        {
+          id: 'i1',
+          totalAmount: new Prisma.Decimal(1000),
+          paidAmount: null,
+          dueDate: pastDue,
+          status: 'SENT',
+        },
+        {
+          id: 'i2',
+          totalAmount: new Prisma.Decimal(500),
+          paidAmount: new Prisma.Decimal(200),
+          dueDate: pastDue,
+          status: 'PARTIALLY_PAID',
+        },
+        {
+          id: 'i3',
+          totalAmount: new Prisma.Decimal(800),
+          paidAmount: null,
+          dueDate: futureDue,
+          status: 'SENT',
+        },
       ]);
 
       const result = await service.getOverdueSummary('creator-1');

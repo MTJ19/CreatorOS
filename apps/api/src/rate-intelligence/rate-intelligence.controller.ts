@@ -38,10 +38,7 @@ export class RateIntelligenceController {
   @ApiResponse({ status: 422, description: 'Validation error' })
   @ApiResponse({ status: 429, description: 'Too many requests' })
   @ApiResponse({ status: 502, description: 'AI service error' })
-  async generateQuote(
-    @CurrentUser() user: JwtPayload,
-    @Body() dto: CreateRateIntelligenceDto,
-  ) {
+  async generateQuote(@CurrentUser() user: JwtPayload, @Body() dto: CreateRateIntelligenceDto) {
     return this.rateIntelligenceService.generateQuote(user.sub, dto);
   }
 
@@ -51,10 +48,7 @@ export class RateIntelligenceController {
    */
   @Get('history')
   @ApiOperation({ summary: 'Get rate intelligence history' })
-  async getHistory(
-    @CurrentUser() user: JwtPayload,
-    @Query() query: GetHistoryDto,
-  ) {
+  async getHistory(@CurrentUser() user: JwtPayload, @Query() query: GetHistoryDto) {
     return this.rateIntelligenceService.getHistory(user.sub, query.limit);
   }
 }

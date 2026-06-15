@@ -133,7 +133,11 @@ describe('BrandPortalService', () => {
 
     it('defaults to 30-day expiry when expiresInDays not specified', async () => {
       mockPrisma.deal.findUnique.mockResolvedValue({ id: 'deal-1', creatorId: 'creator-1' });
-      mockPrisma.brandPortalToken.create.mockImplementation(({ data }: any) => ({ ...makeToken(), expiresAt: data.expiresAt, token: data.token }));
+      mockPrisma.brandPortalToken.create.mockImplementation(({ data }: any) => ({
+        ...makeToken(),
+        expiresAt: data.expiresAt,
+        token: data.token,
+      }));
 
       await service.generateToken('creator-1', {
         brandName: 'Test',
@@ -259,7 +263,9 @@ describe('BrandPortalService', () => {
     it('throws ForbiddenException when token is revoked', async () => {
       mockPrisma.brandPortalToken.findUnique.mockResolvedValue(makeToken({ isRevoked: true }));
 
-      await expect(service.verifyToken('test-uuid-opaque-token')).rejects.toThrow(ForbiddenException);
+      await expect(service.verifyToken('test-uuid-opaque-token')).rejects.toThrow(
+        ForbiddenException,
+      );
     });
 
     it('throws ForbiddenException when token is expired', async () => {
@@ -267,7 +273,9 @@ describe('BrandPortalService', () => {
         makeToken({ expiresAt: new Date(Date.now() - 1000) }), // 1 second in the past
       );
 
-      await expect(service.verifyToken('test-uuid-opaque-token')).rejects.toThrow(ForbiddenException);
+      await expect(service.verifyToken('test-uuid-opaque-token')).rejects.toThrow(
+        ForbiddenException,
+      );
     });
 
     it('throws UnauthorizedException for empty token string', async () => {
@@ -298,7 +306,12 @@ describe('BrandPortalService', () => {
 
     it('updates existing submission when one already exists', async () => {
       const tokenRecord = makeToken();
-      const existingSub = { id: 'sub-1', tokenId: 'token-record-1', approvalStatus: PortalApprovalStatus.PENDING_REVIEW, revisionNotes: null };
+      const existingSub = {
+        id: 'sub-1',
+        tokenId: 'token-record-1',
+        approvalStatus: PortalApprovalStatus.PENDING_REVIEW,
+        revisionNotes: null,
+      };
       mockPrisma.portalSubmission.findFirst.mockResolvedValue(existingSub);
       mockPrisma.portalSubmission.update.mockResolvedValue({
         ...existingSub,
@@ -371,9 +384,9 @@ describe('BrandPortalService', () => {
         originalname: 'attack.html',
       } as any;
 
-      await expect(
-        service.submitBrief(tokenRecord, {}, maliciousFile),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.submitBrief(tokenRecord, {}, maliciousFile)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('throws BadRequestException when file exceeds 20MB', async () => {
@@ -385,9 +398,9 @@ describe('BrandPortalService', () => {
         originalname: 'large.pdf',
       } as any;
 
-      await expect(
-        service.submitBrief(tokenRecord, {}, oversizeFile),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.submitBrief(tokenRecord, {}, oversizeFile)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('throws BadRequestException when neither file nor googleDocUrl is provided', async () => {

@@ -73,17 +73,13 @@ describe('DealsService - Brief Reconciliation', () => {
     const mockDeal = {
       id: 'deal-1',
       creatorId: 'creator-1',
-      deliverables: [
-        { platform: 'Instagram', type: 'INSTAGRAM_REEL' },
-      ],
+      deliverables: [{ platform: 'Instagram', type: 'INSTAGRAM_REEL' }],
     };
     const mockBrief = {
       id: 'brief-1',
       dealId: 'deal-1',
       parsedData: {
-        deliverables: [
-          { platform: 'Instagram', type: 'INSTAGRAM_REEL', quantity: 2 },
-        ],
+        deliverables: [{ platform: 'Instagram', type: 'INSTAGRAM_REEL', quantity: 2 }],
       },
     };
 
@@ -93,16 +89,16 @@ describe('DealsService - Brief Reconciliation', () => {
     const result = await service.getBrief('deal-1', 'creator-1');
     expect(result.reconciliation.isMatched).toBe(false);
     expect(result.reconciliation.warnings).toHaveLength(1);
-    expect(result.reconciliation.warnings[0]).toContain('requests 2x instagram instagram_reel(s), but the deal only includes 1x');
+    expect(result.reconciliation.warnings[0]).toContain(
+      'requests 2x instagram instagram_reel(s), but the deal only includes 1x',
+    );
   });
 
   it('flags warning when brief requests a platform/type not present in deal deliverables', async () => {
     const mockDeal = {
       id: 'deal-1',
       creatorId: 'creator-1',
-      deliverables: [
-        { platform: 'Instagram', type: 'INSTAGRAM_REEL' },
-      ],
+      deliverables: [{ platform: 'Instagram', type: 'INSTAGRAM_REEL' }],
     };
     const mockBrief = {
       id: 'brief-1',
@@ -121,6 +117,8 @@ describe('DealsService - Brief Reconciliation', () => {
     const result = await service.getBrief('deal-1', 'creator-1');
     expect(result.reconciliation.isMatched).toBe(false);
     expect(result.reconciliation.warnings).toHaveLength(1);
-    expect(result.reconciliation.warnings[0]).toContain('requests 1x youtube youtube_video(s), but this is not included');
+    expect(result.reconciliation.warnings[0]).toContain(
+      'requests 1x youtube youtube_video(s), but this is not included',
+    );
   });
 });

@@ -98,7 +98,9 @@ export function OnboardingWizard() {
         router.push('/dashboard');
         router.refresh();
       } catch (err: unknown) {
-        setServerError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
+        setServerError(
+          err instanceof Error ? err.message : 'Something went wrong. Please try again.',
+        );
         setIsSubmitting(false);
       }
     }
@@ -113,7 +115,7 @@ export function OnboardingWizard() {
   };
 
   return (
-    <div className="relative min-h-screen bg-background overflow-hidden">
+    <div className="relative min-h-screen overflow-hidden bg-background">
       <GlowBackground glowPosition="top-left" intensity="medium" animated />
 
       <div className="relative z-10 mx-auto max-w-2xl px-4 py-12">
@@ -124,13 +126,14 @@ export function OnboardingWizard() {
           transition={{ duration: 0.5 }}
           className="mb-10 text-center"
         >
-          <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary-muted/50 px-4 py-1.5 mb-4">
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary-muted/50 px-4 py-1.5">
             <Sparkles className="h-3.5 w-3.5 text-primary" aria-hidden />
-            <span className="text-xs font-medium text-primary">Setting up your CreatorOS profile</span>
+            <span className="text-xs font-medium text-primary">
+              Setting up your CreatorOS profile
+            </span>
           </div>
-          <h1 className="text-4xl font-bold text-foreground mb-2">
-            Welcome to{' '}
-            <span className="gradient-text">DEALOS</span>
+          <h1 className="mb-2 text-4xl font-bold text-foreground">
+            Welcome to <span className="gradient-text">DEALOS</span>
           </h1>
           <p className="text-foreground-muted">
             Complete your profile to unlock AI-powered deal management
@@ -144,11 +147,11 @@ export function OnboardingWizard() {
         <div
           className={cn(
             'rounded-2xl border border-border/60 bg-background-surface/80',
-            'backdrop-blur-xl shadow-float-lg overflow-hidden',
+            'overflow-hidden shadow-float-lg backdrop-blur-xl',
           )}
         >
           {/* Step header */}
-          <div className="px-6 pt-6 pb-4 border-b border-border/40">
+          <div className="border-b border-border/40 px-6 pb-4 pt-6">
             <motion.div
               key={step}
               initial={{ opacity: 0 }}
@@ -159,7 +162,7 @@ export function OnboardingWizard() {
                 <span className="text-sm font-bold text-primary">{step}</span>
               </div>
               <div>
-                <p className="text-xs font-medium text-foreground-muted uppercase tracking-wider">
+                <p className="text-xs font-medium uppercase tracking-wider text-foreground-muted">
                   Step {step} of {STEPS.length}
                 </p>
                 <h2 className="text-lg font-semibold text-foreground">
@@ -172,7 +175,7 @@ export function OnboardingWizard() {
           {/* Step content with Framer Motion transitions */}
           <FormProvider {...methods}>
             <form onSubmit={goNext} noValidate>
-              <div className="px-6 py-6 min-h-[420px]">
+              <div className="min-h-[420px] px-6 py-6">
                 <AnimatePresence mode="wait" custom={direction}>
                   <motion.div
                     key={step}
@@ -192,7 +195,7 @@ export function OnboardingWizard() {
               </div>
 
               {serverError && (
-                <div className="mx-6 mb-4 rounded-lg bg-danger-muted border border-danger/30 px-4 py-3 text-sm text-danger">
+                <div className="mx-6 mb-4 rounded-lg border border-danger/30 bg-danger-muted px-4 py-3 text-sm text-danger">
                   {serverError}
                 </div>
               )}
@@ -236,15 +239,11 @@ export function OnboardingWizard() {
                     variant="primary"
                     size="default"
                     disabled={isSubmitting}
-                    className="gap-2 min-w-[120px]"
+                    className="min-w-[120px] gap-2"
                     id="onboarding-next-btn"
                     aria-label={step < STEPS.length ? 'Continue to next step' : 'Complete setup'}
                   >
-                    {isSubmitting
-                      ? 'Saving…'
-                      : step < STEPS.length
-                        ? 'Continue'
-                        : 'Complete Setup'}
+                    {isSubmitting ? 'Saving…' : step < STEPS.length ? 'Continue' : 'Complete Setup'}
                     {!isSubmitting && <ArrowRight className="h-4 w-4" aria-hidden />}
                   </Button>
                 </div>

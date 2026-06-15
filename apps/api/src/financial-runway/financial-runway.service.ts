@@ -12,9 +12,16 @@ const CONFIDENCE_WEIGHTS: Record<string, number> = {
 
 export interface RunwayProjection {
   days: number;
-  gross: number;          // Confidence-weighted projected income
+  gross: number; // Confidence-weighted projected income
   dealCount: number;
-  deals: { id: string; brandName: string; amount: number; confidence: string; weighted: number; deadline: Date | null }[];
+  deals: {
+    id: string;
+    brandName: string;
+    amount: number;
+    confidence: string;
+    weighted: number;
+    deadline: Date | null;
+  }[];
 }
 
 export interface RunwayResponse {
@@ -104,9 +111,7 @@ export class FinancialRunwayService {
     // ── Project per time horizon ──────────────────────────────────
     const buildProjection = (days: number): RunwayProjection => {
       const horizon = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
-      const relevant = deals.filter(
-        (d) => d.deadline && d.deadline <= horizon,
-      );
+      const relevant = deals.filter((d) => d.deadline && d.deadline <= horizon);
       const dealDetails = relevant.map((d) => {
         const amount = Number(d.amount);
         const weight = CONFIDENCE_WEIGHTS[d.confidence ?? 'LIKELY'] ?? 0.7;
@@ -151,9 +156,21 @@ export class FinancialRunwayService {
 
     // ── Chart data (monthly buckets for 3 months) ─────────────────
     const chartData = [
-      { label: '30d', projected: Math.round(projection30.gross), receivables: Math.round(outstandingReceivables) },
-      { label: '60d', projected: Math.round(projection60.gross), receivables: Math.round(outstandingReceivables) },
-      { label: '90d', projected: Math.round(projection90.gross), receivables: Math.round(outstandingReceivables) },
+      {
+        label: '30d',
+        projected: Math.round(projection30.gross),
+        receivables: Math.round(outstandingReceivables),
+      },
+      {
+        label: '60d',
+        projected: Math.round(projection60.gross),
+        receivables: Math.round(outstandingReceivables),
+      },
+      {
+        label: '90d',
+        projected: Math.round(projection90.gross),
+        receivables: Math.round(outstandingReceivables),
+      },
     ];
 
     return {

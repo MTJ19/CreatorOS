@@ -35,7 +35,7 @@ export class DealsService {
       orderBy: { createdAt: 'desc' },
     });
 
-    return deals.map(d => this.enrichDealComputedFields(d));
+    return deals.map((d) => this.enrichDealComputedFields(d));
   }
 
   async findOne(id: string, creatorId: string) {
@@ -133,12 +133,29 @@ export class DealsService {
       currency: dto.currency,
       status: dto.status,
       stage: dto.stage,
-      quotedAmount: dto.quotedAmount !== undefined ? (dto.quotedAmount ? new Prisma.Decimal(dto.quotedAmount) : null) : undefined,
-      offeredAmount: dto.offeredAmount !== undefined ? (dto.offeredAmount ? new Prisma.Decimal(dto.offeredAmount) : null) : undefined,
-      startDate: dto.startDate !== undefined ? (dto.startDate ? new Date(dto.startDate) : null) : undefined,
+      quotedAmount:
+        dto.quotedAmount !== undefined
+          ? dto.quotedAmount
+            ? new Prisma.Decimal(dto.quotedAmount)
+            : null
+          : undefined,
+      offeredAmount:
+        dto.offeredAmount !== undefined
+          ? dto.offeredAmount
+            ? new Prisma.Decimal(dto.offeredAmount)
+            : null
+          : undefined,
+      startDate:
+        dto.startDate !== undefined ? (dto.startDate ? new Date(dto.startDate) : null) : undefined,
       endDate: dto.endDate !== undefined ? (dto.endDate ? new Date(dto.endDate) : null) : undefined,
-      deadline: dto.deadline !== undefined ? (dto.deadline ? new Date(dto.deadline) : null) : undefined,
-      followUpReminder: dto.followUpReminder !== undefined ? (dto.followUpReminder ? new Date(dto.followUpReminder) : null) : undefined,
+      deadline:
+        dto.deadline !== undefined ? (dto.deadline ? new Date(dto.deadline) : null) : undefined,
+      followUpReminder:
+        dto.followUpReminder !== undefined
+          ? dto.followUpReminder
+            ? new Date(dto.followUpReminder)
+            : null
+          : undefined,
       exclusivityDays: dto.exclusivityDays,
       exclusivityNotes: dto.exclusivityNotes,
       usageRights: dto.usageRights,
@@ -151,7 +168,6 @@ export class DealsService {
         delete data[key];
       }
     });
-
 
     const updated = await this.prisma.deal.update({
       where: { id },
@@ -230,15 +246,17 @@ export class DealsService {
     });
 
     // Active Deals count
-    const activeDeals = deals.filter(d => d.stage === DealStage.ACTIVE).length;
+    const activeDeals = deals.filter((d) => d.stage === DealStage.ACTIVE).length;
 
     // Monthly Contracted Value (Sum of ACTIVE/COMPLETED deal amounts starting in the current month)
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const monthlyContractedValue = deals
-      .filter(d => 
-        (d.stage === DealStage.ACTIVE || d.stage === DealStage.COMPLETED) &&
-        d.startDate && d.startDate >= startOfMonth
+      .filter(
+        (d) =>
+          (d.stage === DealStage.ACTIVE || d.stage === DealStage.COMPLETED) &&
+          d.startDate &&
+          d.startDate >= startOfMonth,
       )
       .reduce((sum, d) => sum + Number(d.amount), 0);
 
@@ -249,7 +267,7 @@ export class DealsService {
     });
     const flaggedClauseCount = contracts.reduce((sum, c) => {
       const activeFlags = c.riskFlags.filter(
-        f => !f.isAcknowledged && (f.severity === 'HIGH' || f.severity === 'CRITICAL')
+        (f) => !f.isAcknowledged && (f.severity === 'HIGH' || f.severity === 'CRITICAL'),
       ).length;
       return sum + activeFlags;
     }, 0);
@@ -259,8 +277,9 @@ export class DealsService {
       where: { creatorId },
     });
     const overdueInvoices = invoices.filter(
-      i => i.status === 'OVERDUE' || 
-      ((i.status === 'SENT' || i.status === 'VIEWED') && i.dueDate && i.dueDate < now)
+      (i) =>
+        i.status === 'OVERDUE' ||
+        ((i.status === 'SENT' || i.status === 'VIEWED') && i.dueDate && i.dueDate < now),
     ).length;
 
     // Avg CPV across all creator performance logs
@@ -279,10 +298,13 @@ export class DealsService {
     const avgCpv = cpvCount > 0 ? cpvSum / cpvCount : null;
 
     // Stage breakdown for Kanban CRM
-    const stageBreakdown = Object.keys(DealStage).reduce((acc, key) => {
-      acc[key] = deals.filter(d => d.stage === key).length;
-      return acc;
-    }, {} as Record<string, number>);
+    const stageBreakdown = Object.keys(DealStage).reduce(
+      (acc, key) => {
+        acc[key] = deals.filter((d) => d.stage === key).length;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
 
     const stats = {
       activeDeals,

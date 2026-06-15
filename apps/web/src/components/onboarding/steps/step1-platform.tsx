@@ -16,7 +16,12 @@ import {
 import type { SocialPlatform } from '@creator-os/shared';
 import { cn } from '@/lib/utils';
 
-const PLATFORMS: { value: SocialPlatform; label: string; icon: React.ComponentType<{ className?: string }>; color: string }[] = [
+const PLATFORMS: {
+  value: SocialPlatform;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  color: string;
+}[] = [
   { value: 'INSTAGRAM', label: 'Instagram', icon: Instagram, color: 'from-pink-500 to-orange-400' },
   { value: 'YOUTUBE', label: 'YouTube', icon: Youtube, color: 'from-red-500 to-red-400' },
   { value: 'TIKTOK', label: 'TikTok', icon: Music2, color: 'from-slate-100 to-slate-300' },
@@ -28,7 +33,12 @@ const PLATFORMS: { value: SocialPlatform; label: string; icon: React.ComponentTy
 ];
 
 export function Step1Platform() {
-  const { register, watch, setValue, formState: { errors } } = useFormContext();
+  const {
+    register,
+    watch,
+    setValue,
+    formState: { errors },
+  } = useFormContext();
   const primaryPlatform = watch('primaryPlatform') as SocialPlatform | undefined;
   const handle = watch('platformHandles.0.handle') as string | undefined;
 
@@ -37,9 +47,16 @@ export function Step1Platform() {
       {/* Primary Platform Picker */}
       <div className="space-y-3">
         <label className="text-sm font-medium text-foreground">
-          Primary platform <span className="text-danger" aria-hidden>*</span>
+          Primary platform{' '}
+          <span className="text-danger" aria-hidden>
+            *
+          </span>
         </label>
-        <div className="grid grid-cols-4 gap-2.5" role="radiogroup" aria-label="Select your primary platform">
+        <div
+          className="grid grid-cols-4 gap-2.5"
+          role="radiogroup"
+          aria-label="Select your primary platform"
+        >
           {PLATFORMS.map(({ value, label, icon: Icon, color }) => {
             const isSelected = primaryPlatform === value;
             return (
@@ -58,20 +75,22 @@ export function Step1Platform() {
                   }
                 }}
                 className={cn(
-                  'flex flex-col items-center gap-2 p-3 rounded-xl border transition-all duration-200',
+                  'flex flex-col items-center gap-2 rounded-xl border p-3 transition-all duration-200',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                   isSelected
-                    ? 'border-primary bg-primary-muted ring-1 ring-primary shadow-glow-sm'
+                    ? 'border-primary bg-primary-muted shadow-glow-sm ring-1 ring-primary'
                     : 'border-border bg-background-elevated hover:border-border-strong hover:bg-background-overlay',
                 )}
               >
-                <div className={cn(
-                  'flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br',
-                  color,
-                )}>
+                <div
+                  className={cn(
+                    'flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br',
+                    color,
+                  )}
+                >
                   <Icon className="h-5 w-5 text-white" aria-hidden />
                 </div>
-                <span className="text-xs font-medium text-foreground leading-tight text-center">
+                <span className="text-center text-xs font-medium leading-tight text-foreground">
                   {label}
                 </span>
               </button>
@@ -86,11 +105,17 @@ export function Step1Platform() {
       {/* Handle input */}
       <div className="space-y-1.5">
         <label htmlFor="platform-handle" className="text-sm font-medium text-foreground">
-          {primaryPlatform ? `${PLATFORMS.find(p => p.value === primaryPlatform)?.label} handle` : 'Handle'}
-          <span className="text-danger ml-1" aria-hidden>*</span>
+          {primaryPlatform
+            ? `${PLATFORMS.find((p) => p.value === primaryPlatform)?.label} handle`
+            : 'Handle'}
+          <span className="ml-1 text-danger" aria-hidden>
+            *
+          </span>
         </label>
         <div className="relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground-muted text-sm select-none">@</span>
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 select-none text-sm text-foreground-muted">
+            @
+          </span>
           <input
             {...register('platformHandles.0.handle')}
             id="platform-handle"
@@ -98,9 +123,9 @@ export function Step1Platform() {
             placeholder="yourchannel"
             autoComplete="off"
             className={cn(
-              'w-full pl-8 pr-4 py-2.5 rounded-lg text-sm bg-input border text-foreground',
+              'w-full rounded-lg border bg-input py-2.5 pl-8 pr-4 text-sm text-foreground',
               'placeholder:text-foreground-subtle focus:outline-none focus:ring-2 focus:ring-ring',
-              'focus:border-transparent transition-all duration-150',
+              'transition-all duration-150 focus:border-transparent',
               errors.platformHandles ? 'border-danger' : 'border-border',
             )}
           />
@@ -120,9 +145,9 @@ export function Step1Platform() {
             min="0"
             placeholder="50000"
             className={cn(
-              'w-full px-3 py-2.5 rounded-lg text-sm bg-input border text-foreground',
+              'w-full rounded-lg border bg-input px-3 py-2.5 text-sm text-foreground',
               'placeholder:text-foreground-subtle focus:outline-none focus:ring-2 focus:ring-ring',
-              'focus:border-transparent transition-all duration-150 border-border',
+              'border-border transition-all duration-150 focus:border-transparent',
             )}
           />
           <p className="text-xs text-foreground-subtle">Combined across platforms</p>
@@ -139,9 +164,9 @@ export function Step1Platform() {
             min="0"
             placeholder="10000"
             className={cn(
-              'w-full px-3 py-2.5 rounded-lg text-sm bg-input border text-foreground',
+              'w-full rounded-lg border bg-input px-3 py-2.5 text-sm text-foreground',
               'placeholder:text-foreground-subtle focus:outline-none focus:ring-2 focus:ring-ring',
-              'focus:border-transparent transition-all duration-150 border-border',
+              'border-border transition-all duration-150 focus:border-transparent',
             )}
           />
         </div>
@@ -149,7 +174,11 @@ export function Step1Platform() {
 
       {/* Hidden required field for RHF */}
       <input type="hidden" {...register('platformHandles.0.platform')} />
-      <input type="hidden" {...register('platformHandles.0.followerCount', { valueAsNumber: true })} value={watch('totalFollowers') ?? 0} />
+      <input
+        type="hidden"
+        {...register('platformHandles.0.followerCount', { valueAsNumber: true })}
+        value={watch('totalFollowers') ?? 0}
+      />
       <input type="hidden" {...register('platformHandles.0.verified')} value="false" />
     </div>
   );

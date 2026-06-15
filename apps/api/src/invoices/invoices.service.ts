@@ -1,9 +1,5 @@
 import { InjectQueue } from '@nestjs/bullmq';
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { Queue } from 'bullmq';
 
@@ -18,7 +14,6 @@ import {
   PAYMENT_TERMS_DAYS,
   InvoiceStatusEnum,
 } from './invoices.dto';
-
 
 @Injectable()
 export class InvoicesService {
@@ -52,14 +47,8 @@ export class InvoicesService {
 
   // ─── Totals Calculator ────────────────────────────────────────
 
-  private calculateTotals(
-    lineItems: { quantity: number; unitPrice: number }[],
-    taxRate?: number,
-  ) {
-    const subtotal = lineItems.reduce(
-      (sum, item) => sum + item.quantity * item.unitPrice,
-      0,
-    );
+  private calculateTotals(lineItems: { quantity: number; unitPrice: number }[], taxRate?: number) {
+    const subtotal = lineItems.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
     const taxAmount = taxRate ? (subtotal * taxRate) / 100 : 0;
     const totalAmount = subtotal + taxAmount;
     return { subtotal, taxAmount, totalAmount };
@@ -79,7 +68,10 @@ export class InvoicesService {
   async findAll(creatorId: string) {
     const invoices = await this.prisma.invoice.findMany({
       where: { creatorId },
-      include: { lineItems: true, deal: { select: { id: true, brandName: true, title: true, stage: true } } },
+      include: {
+        lineItems: true,
+        deal: { select: { id: true, brandName: true, title: true, stage: true } },
+      },
       orderBy: { createdAt: 'desc' },
     });
 
@@ -87,14 +79,11 @@ export class InvoicesService {
     const now = new Date();
     return invoices.map((inv) => {
       const isOverdue =
-        inv.dueDate &&
-        inv.dueDate < now &&
-        !['PAID', 'CANCELLED', 'DISPUTED'].includes(inv.status);
+        inv.dueDate && inv.dueDate < now && !['PAID', 'CANCELLED', 'DISPUTED'].includes(inv.status);
       return {
         ...inv,
         isOverdue: !!isOverdue,
-        outstandingAmount:
-          Number(inv.totalAmount) - Number(inv.paidAmount ?? 0),
+        outstandingAmount: Number(inv.totalAmount) - Number(inv.paidAmount ?? 0),
       };
     });
   }
@@ -133,10 +122,7 @@ export class InvoicesService {
       ? new Date(dto.dueDate)
       : this.calculateDueDate(paymentTerms, issuedAt);
 
-    const { subtotal, taxAmount, totalAmount } = this.calculateTotals(
-      dto.lineItems,
-      dto.taxRate,
-    );
+    const { subtotal, taxAmount, totalAmount } = this.calculateTotals(dto.lineItems, dto.taxRate);
 
     const invoice = await this.prisma.invoice.create({
       data: {
@@ -173,13 +159,15 @@ export class InvoicesService {
     // Schedule reminder job 3 days before due date
     const reminderDelay = dueDate.getTime() - Date.now() - 3 * 24 * 60 * 60 * 1000;
     if (reminderDelay > 0) {
-      await this.reminderQueue.add(
-        'payment-reminder',
-        { invoiceId: invoice.id, creatorId, brandEmail: dto.brandEmail, invoiceNumber },
-        { delay: reminderDelay, attempts: 3, backoff: { type: 'exponential', delay: 5000 } },
-      ).catch(() => {
-        // Non-fatal — queue may not be available in dev/test
-      });
+      await this.reminderQueue
+        .add(
+          'payment-reminder',
+          { invoiceId: invoice.id, creatorId, brandEmail: dto.brandEmail, invoiceNumber },
+          { delay: reminderDelay, attempts: 3, backoff: { type: 'exponential', delay: 5000 } },
+        )
+        .catch(() => {
+          // Non-fatal — queue may not be available in dev/test
+        });
     }
 
     await this.auditLog.log({
@@ -224,7 +212,7 @@ export class InvoicesService {
     // Recalculate due date if payment terms changed
     let dueDate = existing.dueDate;
     if (dto.paymentTerms && !dto.dueDate) {
-      const issuedAt = dto.issuedAt ? new Date(dto.issuedAt) : existing.issuedAt ?? new Date();
+      const issuedAt = dto.issuedAt ? new Date(dto.issuedAt) : (existing.issuedAt ?? new Date());
       dueDate = this.calculateDueDate(dto.paymentTerms, issuedAt);
     } else if (dto.dueDate) {
       dueDate = new Date(dto.dueDate);

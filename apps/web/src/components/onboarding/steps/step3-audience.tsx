@@ -43,13 +43,22 @@ const AGE_RANGES: { value: AudienceAgeRange; label: string; widthClass: string }
 ];
 
 export function Step3Audience() {
-  const { watch, setValue, register, formState: { errors } } = useFormContext();
+  const {
+    watch,
+    setValue,
+    register,
+    formState: { errors },
+  } = useFormContext();
   const selectedCountries = (watch('audienceGeography') as string[]) ?? [];
   const selectedAges = (watch('audienceAgeRange') as AudienceAgeRange[]) ?? [];
 
   const toggleCountry = (code: string) => {
     if (selectedCountries.includes(code)) {
-      setValue('audienceGeography', selectedCountries.filter((c) => c !== code), { shouldValidate: true });
+      setValue(
+        'audienceGeography',
+        selectedCountries.filter((c) => c !== code),
+        { shouldValidate: true },
+      );
     } else {
       setValue('audienceGeography', [...selectedCountries, code], { shouldValidate: true });
     }
@@ -57,7 +66,11 @@ export function Step3Audience() {
 
   const toggleAge = (range: AudienceAgeRange) => {
     if (selectedAges.includes(range)) {
-      setValue('audienceAgeRange', selectedAges.filter((a) => a !== range), { shouldValidate: true });
+      setValue(
+        'audienceAgeRange',
+        selectedAges.filter((a) => a !== range),
+        { shouldValidate: true },
+      );
     } else {
       setValue('audienceAgeRange', [...selectedAges, range], { shouldValidate: true });
     }
@@ -69,14 +82,17 @@ export function Step3Audience() {
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <label className="text-sm font-medium text-foreground">
-            Audience geography <span className="text-danger" aria-hidden>*</span>
+            Audience geography{' '}
+            <span className="text-danger" aria-hidden>
+              *
+            </span>
           </label>
           <span className="text-xs text-foreground-subtle">
             {selectedCountries.length} selected
           </span>
         </div>
         <div
-          className="flex flex-wrap gap-1.5 max-h-44 overflow-y-auto pr-1 scrollbar-thin"
+          className="scrollbar-thin flex max-h-44 flex-wrap gap-1.5 overflow-y-auto pr-1"
           role="group"
           aria-label="Select audience countries"
         >
@@ -90,11 +106,11 @@ export function Step3Audience() {
                 aria-label={name}
                 onClick={() => toggleCountry(code)}
                 className={cn(
-                  'flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-medium',
+                  'flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium',
                   'transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                   isSelected
-                    ? 'bg-primary-muted border-primary text-foreground shadow-glow-sm'
-                    : 'bg-background-elevated border-border text-foreground-muted hover:border-border-strong hover:text-foreground',
+                    ? 'border-primary bg-primary-muted text-foreground shadow-glow-sm'
+                    : 'border-border bg-background-elevated text-foreground-muted hover:border-border-strong hover:text-foreground',
                 )}
               >
                 <span aria-hidden>{flag}</span>
@@ -111,7 +127,10 @@ export function Step3Audience() {
       {/* Age range — visual bar picker */}
       <div className="space-y-3">
         <label className="text-sm font-medium text-foreground">
-          Audience age ranges <span className="text-danger" aria-hidden>*</span>
+          Audience age ranges{' '}
+          <span className="text-danger" aria-hidden>
+            *
+          </span>
         </label>
         <div
           className="flex items-end gap-3 pt-2"
@@ -126,20 +145,29 @@ export function Step3Audience() {
                 type="button"
                 aria-pressed={isSelected}
                 onClick={() => toggleAge(value)}
-                className="flex flex-col items-center gap-2 group focus-visible:outline-none"
+                className="group flex flex-col items-center gap-2 focus-visible:outline-none"
               >
                 <div
                   className={cn(
                     'rounded-t-md transition-all duration-200',
                     widthClass,
-                    isSelected ? 'bg-primary shadow-glow-sm' : 'bg-background-elevated border border-border',
+                    isSelected
+                      ? 'bg-primary shadow-glow-sm'
+                      : 'border border-border bg-background-elevated',
                   )}
-                  style={{ height: value === 'AGE_25_34' ? 80 : value === 'AGE_18_24' || value === 'AGE_35_44' ? 60 : 40 }}
+                  style={{
+                    height:
+                      value === 'AGE_25_34'
+                        ? 80
+                        : value === 'AGE_18_24' || value === 'AGE_35_44'
+                          ? 60
+                          : 40,
+                  }}
                   aria-hidden
                 />
                 <span
                   className={cn(
-                    'text-xs font-medium whitespace-nowrap',
+                    'whitespace-nowrap text-xs font-medium',
                     isSelected ? 'text-primary' : 'text-foreground-subtle',
                   )}
                 >
@@ -157,7 +185,8 @@ export function Step3Audience() {
       {/* Engagement rate */}
       <div className="space-y-1.5">
         <label htmlFor="engagement-rate" className="text-sm font-medium text-foreground">
-          Avg. engagement rate <span className="text-foreground-subtle text-xs font-normal">(optional)</span>
+          Avg. engagement rate{' '}
+          <span className="text-xs font-normal text-foreground-subtle">(optional)</span>
         </label>
         <div className="relative">
           <input
@@ -169,12 +198,14 @@ export function Step3Audience() {
             max="100"
             placeholder="3.5"
             className={cn(
-              'w-full px-3 pr-8 py-2.5 rounded-lg text-sm bg-input border text-foreground',
+              'w-full rounded-lg border bg-input px-3 py-2.5 pr-8 text-sm text-foreground',
               'placeholder:text-foreground-subtle focus:outline-none focus:ring-2 focus:ring-ring',
-              'focus:border-transparent transition-all duration-150 border-border',
+              'border-border transition-all duration-150 focus:border-transparent',
             )}
           />
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground-muted text-sm select-none">%</span>
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 select-none text-sm text-foreground-muted">
+            %
+          </span>
         </div>
         <p className="text-xs text-foreground-subtle">
           Likes + comments ÷ followers × 100. Leave blank if unsure.

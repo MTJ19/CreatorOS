@@ -25,10 +25,7 @@ describe('FinancialRunwayService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        FinancialRunwayService,
-        { provide: PrismaService, useValue: mockPrisma },
-      ],
+      providers: [FinancialRunwayService, { provide: PrismaService, useValue: mockPrisma }],
     }).compile();
 
     service = module.get<FinancialRunwayService>(FinancialRunwayService);
@@ -42,9 +39,30 @@ describe('FinancialRunwayService', () => {
       const in20Days = new Date(Date.now() + 20 * 24 * 60 * 60 * 1000);
 
       mockPrisma.deal.findMany.mockResolvedValue([
-        { id: 'd1', brandName: 'Brand A', amount: new Prisma.Decimal(1000), confidence: 'CONFIRMED', deadline: in20Days, stage: 'ACTIVE' },
-        { id: 'd2', brandName: 'Brand B', amount: new Prisma.Decimal(1000), confidence: 'LIKELY', deadline: in20Days, stage: 'NEGOTIATING' },
-        { id: 'd3', brandName: 'Brand C', amount: new Prisma.Decimal(1000), confidence: 'SPECULATIVE', deadline: in20Days, stage: 'PITCH_SENT' },
+        {
+          id: 'd1',
+          brandName: 'Brand A',
+          amount: new Prisma.Decimal(1000),
+          confidence: 'CONFIRMED',
+          deadline: in20Days,
+          stage: 'ACTIVE',
+        },
+        {
+          id: 'd2',
+          brandName: 'Brand B',
+          amount: new Prisma.Decimal(1000),
+          confidence: 'LIKELY',
+          deadline: in20Days,
+          stage: 'NEGOTIATING',
+        },
+        {
+          id: 'd3',
+          brandName: 'Brand C',
+          amount: new Prisma.Decimal(1000),
+          confidence: 'SPECULATIVE',
+          deadline: in20Days,
+          stage: 'PITCH_SENT',
+        },
       ]);
       mockPrisma.invoice.findMany.mockResolvedValue([]);
       mockPrisma.financialSettings.findUnique.mockResolvedValue(null);
@@ -63,18 +81,39 @@ describe('FinancialRunwayService', () => {
       const in80Days = new Date(Date.now() + 80 * 24 * 60 * 60 * 1000);
 
       mockPrisma.deal.findMany.mockResolvedValue([
-        { id: 'd1', brandName: 'A', amount: new Prisma.Decimal(1000), confidence: 'CONFIRMED', deadline: in20Days, stage: 'ACTIVE' },
-        { id: 'd2', brandName: 'B', amount: new Prisma.Decimal(2000), confidence: 'CONFIRMED', deadline: in45Days, stage: 'ACTIVE' },
-        { id: 'd3', brandName: 'C', amount: new Prisma.Decimal(3000), confidence: 'CONFIRMED', deadline: in80Days, stage: 'ACTIVE' },
+        {
+          id: 'd1',
+          brandName: 'A',
+          amount: new Prisma.Decimal(1000),
+          confidence: 'CONFIRMED',
+          deadline: in20Days,
+          stage: 'ACTIVE',
+        },
+        {
+          id: 'd2',
+          brandName: 'B',
+          amount: new Prisma.Decimal(2000),
+          confidence: 'CONFIRMED',
+          deadline: in45Days,
+          stage: 'ACTIVE',
+        },
+        {
+          id: 'd3',
+          brandName: 'C',
+          amount: new Prisma.Decimal(3000),
+          confidence: 'CONFIRMED',
+          deadline: in80Days,
+          stage: 'ACTIVE',
+        },
       ]);
       mockPrisma.invoice.findMany.mockResolvedValue([]);
       mockPrisma.financialSettings.findUnique.mockResolvedValue(null);
 
       const result = await service.getProjection('creator-1');
 
-      expect(result.projection30.dealCount).toBe(1);  // only in20Days
-      expect(result.projection60.dealCount).toBe(2);  // in20Days + in45Days
-      expect(result.projection90.dealCount).toBe(3);  // all 3
+      expect(result.projection30.dealCount).toBe(1); // only in20Days
+      expect(result.projection60.dealCount).toBe(2); // in20Days + in45Days
+      expect(result.projection90.dealCount).toBe(3); // all 3
     });
 
     it('returns null netRunwayMonths when monthlyFixedCosts is 0', async () => {

@@ -14,11 +14,16 @@ export interface GlowBackgroundProps extends React.HTMLAttributes<HTMLDivElement
 }
 
 const positionStyles = {
-  'top-left': 'radial-gradient(ellipse 80% 50% at 20% 10%, hsl(var(--primary-glow) / %opacity%) 0%, transparent 60%)',
-  'top-right': 'radial-gradient(ellipse 80% 50% at 80% 10%, hsl(var(--primary-glow) / %opacity%) 0%, transparent 60%)',
-  center: 'radial-gradient(ellipse 80% 60% at 50% 50%, hsl(var(--primary-glow) / %opacity%) 0%, transparent 70%)',
-  'bottom-left': 'radial-gradient(ellipse 80% 50% at 20% 90%, hsl(var(--primary-glow) / %opacity%) 0%, transparent 60%)',
-  'bottom-right': 'radial-gradient(ellipse 80% 50% at 80% 90%, hsl(var(--primary-glow) / %opacity%) 0%, transparent 60%)',
+  'top-left':
+    'radial-gradient(ellipse 80% 50% at 20% 10%, hsl(var(--primary-glow) / %opacity%) 0%, transparent 60%)',
+  'top-right':
+    'radial-gradient(ellipse 80% 50% at 80% 10%, hsl(var(--primary-glow) / %opacity%) 0%, transparent 60%)',
+  center:
+    'radial-gradient(ellipse 80% 60% at 50% 50%, hsl(var(--primary-glow) / %opacity%) 0%, transparent 70%)',
+  'bottom-left':
+    'radial-gradient(ellipse 80% 50% at 20% 90%, hsl(var(--primary-glow) / %opacity%) 0%, transparent 60%)',
+  'bottom-right':
+    'radial-gradient(ellipse 80% 50% at 80% 90%, hsl(var(--primary-glow) / %opacity%) 0%, transparent 60%)',
 };
 
 const intensityOpacity = {

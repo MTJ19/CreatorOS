@@ -10,7 +10,6 @@ import { StorageService } from '../storage/storage.service';
 
 import { DealsService } from './deals.service';
 
-
 const mockPrisma = {
   deal: {
     findMany: jest.fn(),
@@ -176,9 +175,9 @@ describe('DealsService', () => {
       };
       mockPrisma.deal.findUnique.mockResolvedValue(existingDeal);
 
-      await expect(
-        service.updateStage('deal-1', 'creator-1', DealStage.ACTIVE),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.updateStage('deal-1', 'creator-1', DealStage.ACTIVE)).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 

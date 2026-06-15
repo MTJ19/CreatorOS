@@ -20,7 +20,6 @@ import { InvoicesService } from './invoices.service';
 
 import type { JwtPayload } from '../auth/strategies/jwt.strategy';
 
-
 @ApiTags('invoices')
 @ApiBearerAuth('JWT')
 @UseGuards(JwtAuthGuard)
@@ -49,11 +48,7 @@ export class InvoicesController {
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update an invoice' })
-  update(
-    @CurrentUser() user: JwtPayload,
-    @Param('id') id: string,
-    @Body() dto: UpdateInvoiceDto,
-  ) {
+  update(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Body() dto: UpdateInvoiceDto) {
     return this.invoicesService.update(id, user.sub, dto);
   }
 
@@ -66,11 +61,7 @@ export class InvoicesController {
 
   @Patch(':id/mark-paid')
   @ApiOperation({ summary: 'Mark an invoice as paid (or partially paid)' })
-  markPaid(
-    @CurrentUser() user: JwtPayload,
-    @Param('id') id: string,
-    @Body() dto: MarkPaidDto,
-  ) {
+  markPaid(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Body() dto: MarkPaidDto) {
     return this.invoicesService.markPaid(id, user.sub, dto);
   }
 }

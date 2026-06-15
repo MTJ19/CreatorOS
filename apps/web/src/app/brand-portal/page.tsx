@@ -123,7 +123,9 @@ export default function BrandPortalDashboard() {
 
   // Drawer / Detail states
   const [selectedToken, setSelectedToken] = React.useState<BrandPortalToken | null>(null);
-  const [selectedTokenActivity, setSelectedTokenActivity] = React.useState<TokenActivity | null>(null);
+  const [selectedTokenActivity, setSelectedTokenActivity] = React.useState<TokenActivity | null>(
+    null,
+  );
   const [activityLoading, setActivityLoading] = React.useState(false);
   const [commentBody, setCommentBody] = React.useState('');
   const [submittingComment, setSubmittingComment] = React.useState(false);
@@ -175,9 +177,12 @@ export default function BrandPortalDashboard() {
         brandNote: brandNote.trim() || undefined,
       };
 
-      const result = await brandPortalApi.generateToken(accessToken, payload) as GeneratedTokenResponse;
+      const result = (await brandPortalApi.generateToken(
+        accessToken,
+        payload,
+      )) as GeneratedTokenResponse;
       toast('Brand portal link generated successfully!', 'success');
-      
+
       // Auto copy to clipboard
       if (result.portalUrl) {
         void navigator.clipboard.writeText(result.portalUrl);
@@ -192,7 +197,7 @@ export default function BrandPortalDashboard() {
       setShowGenerateForm(false);
 
       // Re-fetch tokens
-      const updatedTokens = await brandPortalApi.listTokens(accessToken) as BrandPortalToken[];
+      const updatedTokens = (await brandPortalApi.listTokens(accessToken)) as BrandPortalToken[];
       setTokens(updatedTokens);
     } catch (err) {
       const errMsg = err instanceof Error ? err.message : 'Failed to generate link';
@@ -205,7 +210,9 @@ export default function BrandPortalDashboard() {
   // Handle Token Revocation
   const handleRevokeToken = async (tokenId: string) => {
     if (!accessToken) return;
-    if (!confirm('Are you sure you want to revoke this link? The brand will lose access immediately.')) {
+    if (
+      !confirm('Are you sure you want to revoke this link? The brand will lose access immediately.')
+    ) {
       return;
     }
     try {
@@ -224,7 +231,7 @@ export default function BrandPortalDashboard() {
   // Toggle permissions checkbox
   const handlePermissionToggle = (perm: string) => {
     setPermissions((prev) =>
-      prev.includes(perm) ? prev.filter((p) => p !== perm) : [...prev, perm]
+      prev.includes(perm) ? prev.filter((p) => p !== perm) : [...prev, perm],
     );
   };
 
@@ -242,7 +249,7 @@ export default function BrandPortalDashboard() {
     setSelectedToken(token);
     try {
       setActivityLoading(true);
-      const activity = await brandPortalApi.getActivity(accessToken, token.id) as TokenActivity;
+      const activity = (await brandPortalApi.getActivity(accessToken, token.id)) as TokenActivity;
       setSelectedTokenActivity(activity);
     } catch {
       toast('Failed to load portal activity', 'error');
@@ -257,7 +264,11 @@ export default function BrandPortalDashboard() {
     if (!accessToken || !selectedToken || !commentBody.trim()) return;
     try {
       setSubmittingComment(true);
-      const comment = await brandPortalApi.addCreatorComment(accessToken, selectedToken.id, commentBody.trim()) as PortalComment;
+      const comment = (await brandPortalApi.addCreatorComment(
+        accessToken,
+        selectedToken.id,
+        commentBody.trim(),
+      )) as PortalComment;
       toast('Comment posted', 'success');
       setCommentBody('');
       // Update local activity state
@@ -283,7 +294,7 @@ export default function BrandPortalDashboard() {
           <Skeleton className="h-8 w-48" />
           <Skeleton className="h-10 w-36" />
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           <Skeleton variant="card" />
           <Skeleton variant="card" />
           <Skeleton variant="card" />
@@ -294,47 +305,52 @@ export default function BrandPortalDashboard() {
 
   if (error) {
     return (
-      <div className="max-w-md mx-auto text-center py-12 space-y-4">
-        <AlertCircle className="w-12 h-12 text-danger mx-auto" />
+      <div className="mx-auto max-w-md space-y-4 py-12 text-center">
+        <AlertCircle className="mx-auto h-12 w-12 text-danger" />
         <h2 className="text-xl font-bold text-white">Error Loading Portal Dashboard</h2>
-        <p className="text-foreground-muted text-sm">{error}</p>
+        <p className="text-sm text-foreground-muted">{error}</p>
         <Button onClick={fetchDashboardData}>Retry</Button>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 animate-fade-in relative">
+    <div className="relative animate-fade-in space-y-6">
       <GlowBackground className="opacity-20" />
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Brand Portal Manager</h1>
           <p className="mt-1 text-foreground-muted">
-            Share secure links with brands to review briefs, track deliverables, and share live collaboration notes.
+            Share secure links with brands to review briefs, track deliverables, and share live
+            collaboration notes.
           </p>
         </div>
-        <Button onClick={() => setShowGenerateForm(!showGenerateForm)} className="shadow-glow-sm self-start">
-          <Plus className="w-4 h-4 mr-2" />
+        <Button
+          onClick={() => setShowGenerateForm(!showGenerateForm)}
+          className="self-start shadow-glow-sm"
+        >
+          <Plus className="mr-2 h-4 w-4" />
           {showGenerateForm ? 'View Links' : 'Create Portal Link'}
         </Button>
       </div>
 
       {/* Generate Link Form */}
       {showGenerateForm && (
-        <Card variant="glass" className="border-primary/20 max-w-2xl">
+        <Card variant="glass" className="max-w-2xl border-primary/20">
           <CardHeader>
             <CardTitle>Create Brand Access Link</CardTitle>
             <CardDescription>
-              Generates a secure, expiring URL scoped to a single deal. The brand can submit briefs and request edits.
+              Generates a secure, expiring URL scoped to a single deal. The brand can submit briefs
+              and request edits.
             </CardDescription>
           </CardHeader>
           <CardContent className="p-6">
             <form onSubmit={handleGenerateToken} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-foreground uppercase tracking-wider block">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-foreground">
                     Brand Name <span className="text-danger">*</span>
                   </label>
                   <input
@@ -347,7 +363,7 @@ export default function BrandPortalDashboard() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-foreground uppercase tracking-wider block">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-foreground">
                     Brand Contact Email <span className="text-danger">*</span>
                   </label>
                   <input
@@ -361,9 +377,9 @@ export default function BrandPortalDashboard() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-foreground uppercase tracking-wider block">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-foreground">
                     Link Expiration
                   </label>
                   <select
@@ -378,13 +394,13 @@ export default function BrandPortalDashboard() {
                   </select>
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-foreground uppercase tracking-wider block">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-foreground">
                     Associated Deal (Optional)
                   </label>
                   <select
                     value={selectedDealId}
                     onChange={(e) => setSelectedDealId(e.target.value)}
-                    className="w-full rounded-md border border-border bg-input px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring animate-pulse"
+                    className="w-full animate-pulse rounded-md border border-border bg-input px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                   >
                     <option value="">No deal — General Access</option>
                     {deals.map((deal) => (
@@ -398,10 +414,10 @@ export default function BrandPortalDashboard() {
 
               {/* Permissions Checkbox Grid */}
               <div className="space-y-2">
-                <span className="text-xs font-semibold text-foreground uppercase tracking-wider block">
+                <span className="block text-xs font-semibold uppercase tracking-wider text-foreground">
                   Access Scope & Permissions
                 </span>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-background-elevated/40 border border-border/60 p-4 rounded-xl">
+                <div className="grid grid-cols-1 gap-3 rounded-xl border border-border/60 bg-background-elevated/40 p-4 sm:grid-cols-2">
                   {[
                     { val: 'VIEW_DELIVERABLES', label: 'View Checklist & Due Dates' },
                     { val: 'APPROVE_CONTENT', label: 'Approve & Request Changes' },
@@ -409,14 +425,17 @@ export default function BrandPortalDashboard() {
                     { val: 'VIEW_INVOICES', label: 'View Associated Invoices' },
                     { val: 'DOWNLOAD_ASSETS', label: 'Download Deliverable Media Files' },
                   ].map((perm) => (
-                    <label key={perm.val} className="flex items-center gap-2 text-sm cursor-pointer select-none">
+                    <label
+                      key={perm.val}
+                      className="flex cursor-pointer select-none items-center gap-2 text-sm"
+                    >
                       <input
                         type="checkbox"
                         checked={permissions.includes(perm.val)}
                         onChange={() => handlePermissionToggle(perm.val)}
                         className="rounded border-border bg-input text-primary focus:ring-ring"
                       />
-                      <span className="text-foreground-muted hover:text-white font-medium transition-colors">
+                      <span className="font-medium text-foreground-muted transition-colors hover:text-white">
                         {perm.label}
                       </span>
                     </label>
@@ -425,7 +444,7 @@ export default function BrandPortalDashboard() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-foreground uppercase tracking-wider block">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-foreground">
                   Add Note for the Brand (Optional)
                 </label>
                 <textarea
@@ -433,7 +452,7 @@ export default function BrandPortalDashboard() {
                   onChange={(e) => setBrandNote(e.target.value)}
                   placeholder="A welcome message, checklist context, or greeting that displays on their portal header..."
                   rows={3}
-                  className="w-full rounded-md border border-border bg-input px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none"
+                  className="w-full resize-none rounded-md border border-border bg-input px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 />
               </div>
 
@@ -452,8 +471,8 @@ export default function BrandPortalDashboard() {
 
       {/* Portal Links Table / Grid */}
       <div className="space-y-4">
-        <h2 className="text-xl font-bold text-white flex items-center gap-2">
-          <Link2 className="w-5 h-5 text-primary" />
+        <h2 className="flex items-center gap-2 text-xl font-bold text-white">
+          <Link2 className="h-5 w-5 text-primary" />
           Active Portal Links ({tokens.length})
         </h2>
 
@@ -466,7 +485,7 @@ export default function BrandPortalDashboard() {
             onActionClick={() => setShowGenerateForm(true)}
           />
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {tokens.map((tok) => {
               const latestSubmission = tok.submissions?.[0];
               const displayUrl = `${window.location.origin}/portal/${tok.token}`;
@@ -475,21 +494,28 @@ export default function BrandPortalDashboard() {
                 <Card
                   key={tok.id}
                   variant="glass"
-                  className="flex flex-col justify-between hover:border-primary/40 transition-colors duration-200"
+                  className="flex flex-col justify-between transition-colors duration-200 hover:border-primary/40"
                 >
-                  <CardHeader className="pb-3 border-b border-border/30">
+                  <CardHeader className="border-b border-border/30 pb-3">
                     <div className="flex items-center justify-between gap-2">
-                      <h3 className="font-bold text-white text-base truncate">{tok.brandName}</h3>
-                      <Badge variant={latestSubmission?.approvalStatus === 'APPROVED' ? 'success' : 'info'} size="sm">
-                        {latestSubmission ? latestSubmission.approvalStatus.replace('_', ' ') : 'NO SUBMISSION'}
+                      <h3 className="truncate text-base font-bold text-white">{tok.brandName}</h3>
+                      <Badge
+                        variant={
+                          latestSubmission?.approvalStatus === 'APPROVED' ? 'success' : 'info'
+                        }
+                        size="sm"
+                      >
+                        {latestSubmission
+                          ? latestSubmission.approvalStatus.replace('_', ' ')
+                          : 'NO SUBMISSION'}
                       </Badge>
                     </div>
                     <CardDescription className="truncate text-xs">{tok.brandEmail}</CardDescription>
                   </CardHeader>
-                  <CardContent className="p-5 flex-1 space-y-4">
+                  <CardContent className="flex-1 space-y-4 p-5">
                     {tok.deal && (
                       <div className="text-xs">
-                        <span className="text-foreground-muted block font-semibold uppercase tracking-wider text-[10px]">
+                        <span className="block text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
                           Deal Scope
                         </span>
                         <span className="font-bold text-white">{tok.deal.title}</span>
@@ -497,25 +523,27 @@ export default function BrandPortalDashboard() {
                     )}
                     <div className="grid grid-cols-2 gap-3 text-xs">
                       <div>
-                        <span className="text-foreground-muted block font-semibold uppercase tracking-wider text-[10px]">
+                        <span className="block text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
                           Clicks
                         </span>
-                        <span className="font-bold text-white font-mono">{tok.accessCount || 0} clicks</span>
+                        <span className="font-mono font-bold text-white">
+                          {tok.accessCount || 0} clicks
+                        </span>
                       </div>
                       <div>
-                        <span className="text-foreground-muted block font-semibold uppercase tracking-wider text-[10px]">
+                        <span className="block text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
                           Expires
                         </span>
-                        <span className="font-bold text-white flex items-center gap-1">
-                          <Clock className="w-3.5 h-3.5 text-warning shrink-0" />
+                        <span className="flex items-center gap-1 font-bold text-white">
+                          <Clock className="h-3.5 w-3.5 shrink-0 text-warning" />
                           {new Date(tok.expiresAt).toLocaleDateString()}
                         </span>
                       </div>
                     </div>
                   </CardContent>
-                  
+
                   {/* Card Footer Actions */}
-                  <div className="p-4 border-t border-border/30 flex gap-2 bg-background-elevated/25">
+                  <div className="flex gap-2 border-t border-border/30 bg-background-elevated/25 p-4">
                     <Button
                       size="sm"
                       variant="secondary"
@@ -524,12 +552,12 @@ export default function BrandPortalDashboard() {
                     >
                       {copiedTokenId === tok.id ? (
                         <>
-                          <Check className="w-4 h-4 mr-1 text-emerald-400" />
+                          <Check className="mr-1 h-4 w-4 text-emerald-400" />
                           Copied
                         </>
                       ) : (
                         <>
-                          <Copy className="w-4 h-4 mr-1" />
+                          <Copy className="mr-1 h-4 w-4" />
                           Copy Link
                         </>
                       )}
@@ -540,15 +568,15 @@ export default function BrandPortalDashboard() {
                       onClick={() => handleViewActivity(tok)}
                       className="px-3"
                     >
-                      <Eye className="w-4 h-4" />
+                      <Eye className="h-4 w-4" />
                     </Button>
                     <Button
                       size="sm"
                       variant="ghost"
                       onClick={() => handleRevokeToken(tok.id)}
-                      className="text-danger hover:bg-danger-muted/20 px-3"
+                      className="px-3 text-danger hover:bg-danger-muted/20"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                 </Card>
@@ -560,7 +588,7 @@ export default function BrandPortalDashboard() {
 
       {/* Slide-over Activity Feed Panel */}
       {selectedToken && (
-        <div className="fixed inset-0 z-50 overflow-hidden flex justify-end">
+        <div className="fixed inset-0 z-50 flex justify-end overflow-hidden">
           {/* Backdrop */}
           <div
             className="absolute inset-0 bg-background/60 backdrop-blur-sm transition-opacity"
@@ -571,16 +599,15 @@ export default function BrandPortalDashboard() {
           />
 
           {/* Activity Drawer */}
-          <div className="relative w-full max-w-xl bg-background-overlay border-l border-border/60 shadow-float-lg h-full flex flex-col z-10 animate-slide-in-right">
-            
+          <div className="relative z-10 flex h-full w-full max-w-xl animate-slide-in-right flex-col border-l border-border/60 bg-background-overlay shadow-float-lg">
             {/* Header */}
-            <div className="p-5 border-b border-border/40 flex items-center justify-between">
+            <div className="flex items-center justify-between border-b border-border/40 p-5">
               <div>
-                <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                  <Activity className="w-5 h-5 text-primary" />
+                <h3 className="flex items-center gap-2 text-lg font-bold text-white">
+                  <Activity className="h-5 w-5 text-primary" />
                   Activity: {selectedToken.brandName}
                 </h3>
-                <p className="text-xs text-foreground-muted mt-0.5">
+                <p className="mt-0.5 text-xs text-foreground-muted">
                   View brief feedback and discussions for this link.
                 </p>
               </div>
@@ -589,14 +616,14 @@ export default function BrandPortalDashboard() {
                   setSelectedToken(null);
                   setSelectedTokenActivity(null);
                 }}
-                className="p-1.5 rounded-lg hover:bg-background-elevated text-foreground-muted hover:text-white transition-all"
+                className="rounded-lg p-1.5 text-foreground-muted transition-all hover:bg-background-elevated hover:text-white"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
             {/* Content Body */}
-            <div className="flex-1 overflow-y-auto p-5 space-y-6">
+            <div className="flex-1 space-y-6 overflow-y-auto p-5">
               {activityLoading ? (
                 <div className="space-y-4">
                   <Skeleton className="h-24" />
@@ -606,8 +633,11 @@ export default function BrandPortalDashboard() {
               ) : selectedTokenActivity ? (
                 <>
                   {/* Latest Submission Card */}
-                  <Card variant="outlined" className="p-4 border-border/60 bg-background-elevated/15">
-                    <h4 className="text-xs font-bold text-primary uppercase tracking-wider mb-3">
+                  <Card
+                    variant="outlined"
+                    className="border-border/60 bg-background-elevated/15 p-4"
+                  >
+                    <h4 className="mb-3 text-xs font-bold uppercase tracking-wider text-primary">
                       Brand Submission Overview
                     </h4>
                     {selectedTokenActivity.submissions?.length > 0 ? (
@@ -623,18 +653,20 @@ export default function BrandPortalDashboard() {
                             </div>
                             {(sub.briefGoogleDocUrl ?? sub.briefFileUrl) && (
                               <div className="space-y-1.5">
-                                <span className="text-xs text-foreground-muted block">Submitted Brief:</span>
+                                <span className="block text-xs text-foreground-muted">
+                                  Submitted Brief:
+                                </span>
                                 <div className="flex flex-wrap gap-2">
                                   {sub.briefGoogleDocUrl && (
                                     <a
                                       href={sub.briefGoogleDocUrl}
                                       target="_blank"
                                       rel="noopener noreferrer"
-                                      className="inline-flex items-center gap-1.5 px-3 py-1 bg-zinc-900 border border-border text-xs text-primary rounded-lg hover:bg-zinc-800"
+                                      className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-zinc-900 px-3 py-1 text-xs text-primary hover:bg-zinc-800"
                                     >
-                                      <Globe className="w-3.5 h-3.5" />
+                                      <Globe className="h-3.5 w-3.5" />
                                       Google Doc
-                                      <ExternalLink className="w-3 h-3" />
+                                      <ExternalLink className="h-3 w-3" />
                                     </a>
                                   )}
                                   {sub.briefFileUrl && (
@@ -642,20 +674,22 @@ export default function BrandPortalDashboard() {
                                       href={sub.briefFileUrl}
                                       target="_blank"
                                       rel="noopener noreferrer"
-                                      className="inline-flex items-center gap-1.5 px-3 py-1 bg-zinc-900 border border-border text-xs text-primary rounded-lg hover:bg-zinc-800"
+                                      className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-zinc-900 px-3 py-1 text-xs text-primary hover:bg-zinc-800"
                                     >
-                                      <FileText className="w-3.5 h-3.5" />
+                                      <FileText className="h-3.5 w-3.5" />
                                       Brief File
-                                      <ExternalLink className="w-3 h-3" />
+                                      <ExternalLink className="h-3 w-3" />
                                     </a>
                                   )}
                                 </div>
                               </div>
                             )}
                             {sub.revisionNotes && (
-                              <div className="pt-2 border-t border-border/40 text-xs">
-                                <span className="text-foreground-muted font-bold block mb-1">Brand Notes:</span>
-                                <p className="text-foreground leading-normal bg-background-overlay p-2.5 rounded-lg border border-border/50">
+                              <div className="border-t border-border/40 pt-2 text-xs">
+                                <span className="mb-1 block font-bold text-foreground-muted">
+                                  Brand Notes:
+                                </span>
+                                <p className="rounded-lg border border-border/50 bg-background-overlay p-2.5 leading-normal text-foreground">
                                   {sub.revisionNotes}
                                 </p>
                               </div>
@@ -664,20 +698,25 @@ export default function BrandPortalDashboard() {
                         );
                       })()
                     ) : (
-                      <p className="text-xs text-foreground-muted">No briefs or approvals submitted yet.</p>
+                      <p className="text-xs text-foreground-muted">
+                        No briefs or approvals submitted yet.
+                      </p>
                     )}
                   </Card>
 
                   {/* Collaboration Comment Stream */}
                   <div className="space-y-3">
-                    <h4 className="text-xs font-bold text-primary uppercase tracking-wider flex items-center gap-2">
-                      <MessageSquare className="w-4 h-4" />
+                    <h4 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-primary">
+                      <MessageSquare className="h-4 w-4" />
                       Collaboration Feed
                     </h4>
-                    
-                    <div className="space-y-4 max-h-[300px] overflow-y-auto bg-background-elevated/20 p-4 border border-border/60 rounded-xl scrollbar-hide">
-                      {(!selectedTokenActivity.comments || selectedTokenActivity.comments.length === 0) ? (
-                        <p className="text-xs text-foreground-muted text-center py-6">No messages posted yet.</p>
+
+                    <div className="scrollbar-hide max-h-[300px] space-y-4 overflow-y-auto rounded-xl border border-border/60 bg-background-elevated/20 p-4">
+                      {!selectedTokenActivity.comments ||
+                      selectedTokenActivity.comments.length === 0 ? (
+                        <p className="py-6 text-center text-xs text-foreground-muted">
+                          No messages posted yet.
+                        </p>
                       ) : (
                         selectedTokenActivity.comments.map((comment) => {
                           const isBrand = comment.author === 'BRAND';
@@ -685,28 +724,35 @@ export default function BrandPortalDashboard() {
                             <div
                               key={comment.id}
                               className={cn(
-                                'flex flex-col max-w-[85%] rounded-xl p-3 border text-xs',
+                                'flex max-w-[85%] flex-col rounded-xl border p-3 text-xs',
                                 !isBrand
-                                  ? 'bg-primary-muted/15 border-primary/20 self-end ml-auto'
-                                  : 'bg-background-elevated/50 border-border/60 self-start mr-auto'
+                                  ? 'ml-auto self-end border-primary/20 bg-primary-muted/15'
+                                  : 'mr-auto self-start border-border/60 bg-background-elevated/50',
                               )}
                             >
-                              <div className="flex items-center gap-1.5 text-[9px] font-bold text-foreground-muted mb-1">
+                              <div className="mb-1 flex items-center gap-1.5 text-[9px] font-bold text-foreground-muted">
                                 {isBrand ? (
                                   <>
-                                    <Building2 className="w-3 h-3 text-primary" />
+                                    <Building2 className="h-3 w-3 text-primary" />
                                     <span>Brand</span>
                                   </>
                                 ) : (
                                   <>
-                                    <User className="w-3 h-3 text-accent" />
+                                    <User className="h-3 w-3 text-accent" />
                                     <span>You</span>
                                   </>
                                 )}
                                 <span>•</span>
-                                <span>{new Date(comment.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                <span>
+                                  {new Date(comment.createdAt).toLocaleTimeString([], {
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                  })}
+                                </span>
                               </div>
-                              <p className="text-foreground leading-normal whitespace-pre-wrap">{comment.body}</p>
+                              <p className="whitespace-pre-wrap leading-normal text-foreground">
+                                {comment.body}
+                              </p>
                             </div>
                           );
                         })
@@ -722,8 +768,13 @@ export default function BrandPortalDashboard() {
                         placeholder="Type a reply to the brand..."
                         className="flex-1 rounded-md border border-border bg-input px-3 py-2 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                       />
-                      <Button type="submit" loading={submittingComment} size="sm" className="shrink-0">
-                        <Send className="w-3.5 h-3.5" />
+                      <Button
+                        type="submit"
+                        loading={submittingComment}
+                        size="sm"
+                        className="shrink-0"
+                      >
+                        <Send className="h-3.5 w-3.5" />
                         <span className="sr-only">Reply</span>
                       </Button>
                     </form>
@@ -733,11 +784,9 @@ export default function BrandPortalDashboard() {
                 <p className="text-sm text-foreground-muted">Failed to fetch link details.</p>
               )}
             </div>
-
           </div>
         </div>
       )}
-
     </div>
   );
 }

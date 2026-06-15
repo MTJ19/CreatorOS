@@ -20,12 +20,7 @@ export type {
   DeliverableStatus,
 } from './types/deal';
 
-export type {
-  Contract,
-  ContractStatus,
-  ContractRiskFlag,
-  RiskSeverity,
-} from './types/contract';
+export type { Contract, ContractStatus, ContractRiskFlag, RiskSeverity } from './types/contract';
 
 export type {
   Brief,
@@ -35,16 +30,9 @@ export type {
   BriefParsedData,
 } from './types/brief';
 
-export type {
-  Invoice,
-  InvoiceStatus,
-  InvoiceLineItem,
-} from './types/invoice';
+export type { Invoice, InvoiceStatus, InvoiceLineItem } from './types/invoice';
 
-export type {
-  PerformanceLog,
-  PerformanceMetrics,
-} from './types/performance';
+export type { PerformanceLog, PerformanceMetrics } from './types/performance';
 
 export type { BrandPortalToken, PortalPermission } from './types/brand-portal';
 
@@ -162,8 +150,4 @@ export type {
   ContractAnalysisResult,
 } from './schemas/contract.schema';
 
-export type {
-  BriefParsedDataInput,
-} from './schemas/brief.schema';
-
-
+export type { BriefParsedDataInput } from './schemas/brief.schema';

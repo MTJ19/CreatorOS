@@ -54,12 +54,9 @@ export class PerformanceService {
     }
 
     // 2. Calculate engagement rate
-    const totalEngagements = dto.views > 0
-      ? (dto.likes + dto.comments + (dto.saves ?? 0) + (dto.shares ?? 0))
-      : 0;
-    const engagementRate = dto.views > 0
-      ? (totalEngagements / dto.views) * 100
-      : 0;
+    const totalEngagements =
+      dto.views > 0 ? dto.likes + dto.comments + (dto.saves ?? 0) + (dto.shares ?? 0) : 0;
+    const engagementRate = dto.views > 0 ? (totalEngagements / dto.views) * 100 : 0;
 
     // 3. Assemble metrics JSON
     const metrics: Record<string, any> = {
@@ -104,9 +101,12 @@ export class PerformanceService {
     const comments = dto.comments !== undefined ? dto.comments : existingMetrics.comments;
     const saves = dto.saves !== undefined ? dto.saves : existingMetrics.saves;
     const shares = dto.shares !== undefined ? dto.shares : existingMetrics.shares;
-    const watchTimePercent = dto.watchTimePercent !== undefined ? dto.watchTimePercent : existingMetrics.watchTimePercent;
-    const brandCategory = dto.brandCategory !== undefined ? dto.brandCategory : existingMetrics.brandCategory;
-    const contentFormat = dto.contentFormat !== undefined ? dto.contentFormat : existingMetrics.contentFormat;
+    const watchTimePercent =
+      dto.watchTimePercent !== undefined ? dto.watchTimePercent : existingMetrics.watchTimePercent;
+    const brandCategory =
+      dto.brandCategory !== undefined ? dto.brandCategory : existingMetrics.brandCategory;
+    const contentFormat =
+      dto.contentFormat !== undefined ? dto.contentFormat : existingMetrics.contentFormat;
 
     // 3. Calculate updated metrics
     let cpv: number | null = null;
@@ -125,12 +125,8 @@ export class PerformanceService {
       }
     }
 
-    const totalEngagements = views > 0
-      ? (likes + comments + (saves ?? 0) + (shares ?? 0))
-      : 0;
-    const engagementRate = views > 0
-      ? (totalEngagements / views) * 100
-      : 0;
+    const totalEngagements = views > 0 ? likes + comments + (saves ?? 0) + (shares ?? 0) : 0;
+    const engagementRate = views > 0 ? (totalEngagements / views) * 100 : 0;
 
     const metrics: Record<string, any> = {
       views,
@@ -172,7 +168,7 @@ export class PerformanceService {
 
   async getRollingAverages(creatorId: string) {
     const now = new Date();
-    
+
     const calculateForDays = async (days: number) => {
       const gteDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
       const logs = await this.prisma.performanceLog.findMany({

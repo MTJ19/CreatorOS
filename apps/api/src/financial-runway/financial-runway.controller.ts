@@ -9,7 +9,6 @@ import { FinancialRunwayService } from './financial-runway.service';
 
 import type { JwtPayload } from '../auth/strategies/jwt.strategy';
 
-
 class UpdateFinancialSettingsDto {
   @IsNumber()
   @Min(0)

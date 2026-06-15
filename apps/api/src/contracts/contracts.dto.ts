@@ -1,4 +1,13 @@
-import { IsString, IsOptional, IsEnum, IsNumber, IsBoolean, Min, Max, IsInt } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsEnum,
+  IsNumber,
+  IsBoolean,
+  Min,
+  Max,
+  IsInt,
+} from 'class-validator';
 
 export class CreateContractGenerationDto {
   @IsString()

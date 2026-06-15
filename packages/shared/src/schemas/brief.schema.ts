@@ -36,4 +36,3 @@ export const BriefSchema = z.object({
 });
 
 export type BriefParsedDataInput = z.infer<typeof BriefParsedDataSchema>;
-

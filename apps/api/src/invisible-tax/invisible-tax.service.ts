@@ -7,12 +7,24 @@ export interface InvisibleTaxSummary {
   underpricingGap: {
     amount: number;
     dealCount: number;
-    deals: { id: string; brandName: string; offeredAmount: number; recommendedMin: number; gap: number }[];
+    deals: {
+      id: string;
+      brandName: string;
+      offeredAmount: number;
+      recommendedMin: number;
+      gap: number;
+    }[];
   };
   usageRightsLeakage: {
     amount: number;
     dealCount: number;
-    deals: { id: string; brandName: string; usageRights: string; amount: number; estimatedLeakage: number }[];
+    deals: {
+      id: string;
+      brandName: string;
+      usageRights: string;
+      amount: number;
+      estimatedLeakage: number;
+    }[];
   };
   scopeCreep: {
     dealsOverRevisionLimit: number;
@@ -173,8 +185,8 @@ export class InvisibleTaxService {
       0,
     );
 
-    const dealsWithHighRisk = contracts.filter(
-      (c) => c.riskFlags.some((f) => ['HIGH', 'CRITICAL'].includes(f.severity) && !f.isAcknowledged),
+    const dealsWithHighRisk = contracts.filter((c) =>
+      c.riskFlags.some((f) => ['HIGH', 'CRITICAL'].includes(f.severity) && !f.isAcknowledged),
     ).length;
 
     // ── 5. Worst Active Flag ──────────────────────────────────────

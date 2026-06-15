@@ -1,4 +1,12 @@
-import { Controller, Get, Query, Res, UnauthorizedException, Logger, NotFoundException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Query,
+  Res,
+  UnauthorizedException,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { Response } from 'express';
 
 import { StorageService } from './storage.service';
@@ -29,7 +37,10 @@ export class StorageController {
       res.setHeader('Content-Type', mimetype);
       // Inline display for PDFs, attachments for Word docs
       const disposition = mimetype === 'application/pdf' ? 'inline' : 'attachment';
-      res.setHeader('Content-Disposition', `${disposition}; filename="${encodeURIComponent(key.split('/').pop() || 'file')}"`);
+      res.setHeader(
+        'Content-Disposition',
+        `${disposition}; filename="${encodeURIComponent(key.split('/').pop() || 'file')}"`,
+      );
       res.send(data);
     } catch (err: any) {
       this.logger.error(`Failed to serve download for key: ${key}`, err);

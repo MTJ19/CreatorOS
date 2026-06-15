@@ -81,7 +81,15 @@ async function bootstrap() {
     .setDescription('AI-powered creator deal management platform API')
     .setVersion('1.0')
     .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'JWT')
-    .addApiKey({ type: 'apiKey', name: 'Authorization', in: 'header', description: 'Portal token as Bearer <token>' }, 'PortalToken')
+    .addApiKey(
+      {
+        type: 'apiKey',
+        name: 'Authorization',
+        in: 'header',
+        description: 'Portal token as Bearer <token>',
+      },
+      'PortalToken',
+    )
     .addTag('auth', 'Authentication endpoints')
     .addTag('creator-profile', 'Creator profile & onboarding')
     .addTag('health', 'Health check endpoints')

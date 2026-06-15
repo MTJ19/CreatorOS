@@ -24,7 +24,6 @@ import {
   AddCreatorCommentDto,
 } from './brand-portal.dto';
 
-
 /** What the public portal consumer sees — never exposes dealId directly. */
 export interface PortalContext {
   tokenId: string;
@@ -322,11 +321,7 @@ export class BrandPortalService {
   }
 
   /** Brand submits/updates brief via portal (file or Google Doc link). */
-  async submitBrief(
-    tokenRecord: any,
-    dto: SubmitBriefDto,
-    file?: any,
-  ) {
+  async submitBrief(tokenRecord: any, dto: SubmitBriefDto, file?: any) {
     const { id: tokenId } = tokenRecord;
 
     // Validate Google Doc URL if provided (no file)

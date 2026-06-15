@@ -134,7 +134,14 @@ describe('AuthService', () => {
     });
 
     it('rotates token on valid refresh', async () => {
-      const user = { id: 'u1', email: 'a@b.com', role: 'CREATOR', avatarUrl: null, name: 'Test', createdAt: new Date() };
+      const user = {
+        id: 'u1',
+        email: 'a@b.com',
+        role: 'CREATOR',
+        avatarUrl: null,
+        name: 'Test',
+        createdAt: new Date(),
+      };
       mockPrisma.refreshToken.findUnique.mockResolvedValue({
         id: 'rt-1',
         isRevoked: false,

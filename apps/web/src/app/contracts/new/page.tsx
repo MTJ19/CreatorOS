@@ -18,7 +18,14 @@ import {
   FileDown,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from '@/components/ui/card';
 import { GlowBackground } from '@/components/ui/glow-background';
 import { contractsApi, dealsApi } from '@/lib/api-client';
 
@@ -37,10 +44,14 @@ export default function NewContractPage() {
   const [brandName, setBrandName] = React.useState('');
   const [creatorName, setCreatorName] = React.useState('');
   const [associatedDealId, setAssociatedDealId] = React.useState('');
-  const [contractType, setContractType] = React.useState<'SPONSORED_POST' | 'UGC' | 'AMBASSADOR' | 'AFFILIATE' | 'OTHER'>('SPONSORED_POST');
+  const [contractType, setContractType] = React.useState<
+    'SPONSORED_POST' | 'UGC' | 'AMBASSADOR' | 'AFFILIATE' | 'OTHER'
+  >('SPONSORED_POST');
   const [exclusivityDays, setExclusivityDays] = React.useState(0);
   const [exclusivityScope, setExclusivityScope] = React.useState('');
-  const [usageRightsScope, setUsageRightsScope] = React.useState('Organic only (social media reposting)');
+  const [usageRightsScope, setUsageRightsScope] = React.useState(
+    'Organic only (social media reposting)',
+  );
   const [killFeePercent, setKillFeePercent] = React.useState(50);
   const [revisionLimit, setRevisionLimit] = React.useState(2);
   const [latePaymentPenaltyToggle, setLatePaymentPenaltyToggle] = React.useState(true);
@@ -53,7 +64,7 @@ export default function NewContractPage() {
     setAssociatedDealId(dealId);
     if (!dealId) return;
 
-    const selectedDeal = deals.find(d => d.id === dealId);
+    const selectedDeal = deals.find((d) => d.id === dealId);
     if (selectedDeal) {
       setBrandName(selectedDeal.brandName || '');
       setCreatorName(session?.user?.name || '');
@@ -140,7 +151,7 @@ export default function NewContractPage() {
       <div>
         <Link
           href="/contracts"
-          className="inline-flex items-center text-sm text-zinc-400 hover:text-zinc-100 transition-colors"
+          className="inline-flex items-center text-sm text-zinc-400 transition-colors hover:text-zinc-100"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Contracts
@@ -149,7 +160,7 @@ export default function NewContractPage() {
 
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-zinc-50 via-zinc-200 to-purple-400 bg-clip-text text-transparent">
+        <h1 className="bg-gradient-to-r from-zinc-50 via-zinc-200 to-purple-400 bg-clip-text text-3xl font-extrabold tracking-tight text-transparent">
           Programmatic Contract Builder
         </h1>
         <p className="mt-2 text-zinc-400">
@@ -158,41 +169,41 @@ export default function NewContractPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="grid gap-6 md:grid-cols-3">
-        <div className="md:col-span-2 space-y-6">
+        <div className="space-y-6 md:col-span-2">
           {/* Main settings Card */}
           <Card variant="glass" className="border-zinc-800/80 bg-zinc-950/20">
             <CardHeader className="border-b border-zinc-900/50">
               <div className="flex items-center gap-2">
-                <FileText className="w-5 h-5 text-purple-400" />
+                <FileText className="h-5 w-5 text-purple-400" />
                 <CardTitle className="text-lg">Agreement Details</CardTitle>
               </div>
               <CardDescription>
                 Provide the primary branding details and type of collaboration.
               </CardDescription>
             </CardHeader>
-            <CardContent className="p-6 space-y-6">
+            <CardContent className="space-y-6 p-6">
               {error && (
-                <div className="p-3 bg-red-950/20 border border-red-500/20 text-red-400 text-xs font-semibold rounded-lg flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4" />
+                <div className="flex items-center gap-2 rounded-lg border border-red-500/20 bg-red-950/20 p-3 text-xs font-semibold text-red-400">
+                  <AlertCircle className="h-4 w-4" />
                   {error}
                 </div>
               )}
 
               <div className="grid gap-6 sm:grid-cols-2">
                 {/* Reference Deal */}
-                <div className="sm:col-span-2 space-y-2">
+                <div className="space-y-2 sm:col-span-2">
                   <label className="text-xs font-bold uppercase tracking-wider text-zinc-400">
                     Import terms from Brand Deal (Optional)
                   </label>
                   {loadingDeals ? (
-                    <div className="text-zinc-500 text-xs flex items-center gap-2">
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" /> Loading deals...
+                    <div className="flex items-center gap-2 text-xs text-zinc-500">
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" /> Loading deals...
                     </div>
                   ) : (
                     <select
                       value={associatedDealId}
                       onChange={(e) => handleDealChange(e.target.value)}
-                      className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-3 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-purple-500/50 text-sm transition-all"
+                      className="w-full rounded-xl border border-zinc-800 bg-zinc-900 p-3 text-sm text-zinc-100 transition-all focus:outline-none focus:ring-2 focus:ring-purple-500/50"
                     >
                       <option value="">-- Start from scratch --</option>
                       {deals.map((deal) => (
@@ -215,7 +226,7 @@ export default function NewContractPage() {
                     value={brandName}
                     onChange={(e) => setBrandName(e.target.value)}
                     placeholder="e.g. Acme Corp"
-                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-3 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-purple-500/50 text-sm"
+                    className="w-full rounded-xl border border-zinc-800 bg-zinc-900 p-3 text-sm text-zinc-100 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
                   />
                 </div>
 
@@ -230,7 +241,7 @@ export default function NewContractPage() {
                     value={creatorName}
                     onChange={(e) => setCreatorName(e.target.value)}
                     placeholder="e.g. Jane Doe"
-                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-3 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-purple-500/50 text-sm"
+                    className="w-full rounded-xl border border-zinc-800 bg-zinc-900 p-3 text-sm text-zinc-100 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
                   />
                 </div>
 
@@ -242,7 +253,7 @@ export default function NewContractPage() {
                   <select
                     value={contractType}
                     onChange={(e) => setContractType(e.target.value as any)}
-                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-3 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-purple-500/50 text-sm"
+                    className="w-full rounded-xl border border-zinc-800 bg-zinc-900 p-3 text-sm text-zinc-100 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
                   >
                     <option value="SPONSORED_POST">Sponsored Post</option>
                     <option value="UGC">User Generated Content (UGC)</option>
@@ -262,7 +273,7 @@ export default function NewContractPage() {
                     value={governingLaw}
                     onChange={(e) => setGoverningLaw(e.target.value)}
                     placeholder="e.g. California"
-                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-3 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-purple-500/50 text-sm"
+                    className="w-full rounded-xl border border-zinc-800 bg-zinc-900 p-3 text-sm text-zinc-100 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
                   />
                 </div>
               </div>
@@ -273,14 +284,14 @@ export default function NewContractPage() {
           <Card variant="glass" className="border-zinc-800/80 bg-zinc-950/20">
             <CardHeader className="border-b border-zinc-900/50">
               <div className="flex items-center gap-2">
-                <Shield className="w-5 h-5 text-purple-400" />
+                <Shield className="h-5 w-5 text-purple-400" />
                 <CardTitle className="text-lg">Exclusivity & IP Protection</CardTitle>
               </div>
               <CardDescription>
                 Define safety rules surrounding exclusivity lockouts and usage rights scope.
               </CardDescription>
             </CardHeader>
-            <CardContent className="p-6 space-y-6">
+            <CardContent className="space-y-6 p-6">
               <div className="grid gap-6 sm:grid-cols-2">
                 {/* Exclusivity Days */}
                 <div className="space-y-2">
@@ -292,10 +303,12 @@ export default function NewContractPage() {
                       type="number"
                       min={0}
                       value={exclusivityDays}
-                      onChange={(e) => setExclusivityDays(Math.max(0, parseInt(e.target.value) || 0))}
-                      className="w-24 bg-zinc-900 border border-zinc-800 rounded-xl p-3 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-purple-500/50 text-sm text-center"
+                      onChange={(e) =>
+                        setExclusivityDays(Math.max(0, parseInt(e.target.value) || 0))
+                      }
+                      className="w-24 rounded-xl border border-zinc-800 bg-zinc-900 p-3 text-center text-sm text-zinc-100 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
                     />
-                    <span className="text-zinc-500 text-xs">
+                    <span className="text-xs text-zinc-500">
                       {exclusivityDays === 0
                         ? 'No exclusivity (non-exclusive agreement)'
                         : `${exclusivityDays} days of campaign exclusivity`}
@@ -304,7 +317,7 @@ export default function NewContractPage() {
                 </div>
 
                 {/* Exclusivity Scope */}
-                <div className="sm:col-span-2 space-y-2">
+                <div className="space-y-2 sm:col-span-2">
                   <label className="text-xs font-bold uppercase tracking-wider text-zinc-400">
                     Exclusivity Competitor Scope
                   </label>
@@ -314,12 +327,12 @@ export default function NewContractPage() {
                     placeholder="e.g. Direct competitors in beauty, cosmetics and makeup product categories"
                     rows={3}
                     disabled={exclusivityDays === 0}
-                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-3 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-purple-500/50 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full rounded-xl border border-zinc-800 bg-zinc-900 p-3 text-sm text-zinc-100 focus:outline-none focus:ring-2 focus:ring-purple-500/50 disabled:cursor-not-allowed disabled:opacity-50"
                   />
                 </div>
 
                 {/* Intellectual Property Scope */}
-                <div className="sm:col-span-2 space-y-2">
+                <div className="space-y-2 sm:col-span-2">
                   <label className="text-xs font-bold uppercase tracking-wider text-zinc-400">
                     Usage Rights Scope & Duration
                   </label>
@@ -328,7 +341,7 @@ export default function NewContractPage() {
                     onChange={(e) => setUsageRightsScope(e.target.value)}
                     placeholder="e.g. Organic social reposting only for 30 days. No paid advertising usage."
                     rows={3}
-                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-3 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-purple-500/50 text-sm"
+                    className="w-full rounded-xl border border-zinc-800 bg-zinc-900 p-3 text-sm text-zinc-100 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
                   />
                 </div>
               </div>
@@ -341,14 +354,12 @@ export default function NewContractPage() {
           <Card variant="glass" className="border-zinc-800/80 bg-zinc-950/20">
             <CardHeader className="border-b border-zinc-900/50">
               <div className="flex items-center gap-2">
-                <Settings className="w-5 h-5 text-purple-400" />
+                <Settings className="h-5 w-5 text-purple-400" />
                 <CardTitle className="text-lg">Safety Controls</CardTitle>
               </div>
-              <CardDescription>
-                Toggle risk mitigations and payment terms.
-              </CardDescription>
+              <CardDescription>Toggle risk mitigations and payment terms.</CardDescription>
             </CardHeader>
-            <CardContent className="p-6 space-y-6">
+            <CardContent className="space-y-6 p-6">
               {/* Revision Round Limit */}
               <div className="space-y-2">
                 <label className="text-xs font-bold uppercase tracking-wider text-zinc-400">
@@ -363,7 +374,7 @@ export default function NewContractPage() {
                     onChange={(e) => setRevisionLimit(parseInt(e.target.value))}
                     className="flex-grow accent-purple-500"
                   />
-                  <span className="text-zinc-100 font-bold bg-zinc-900 border border-zinc-800 px-3 py-1 rounded-lg text-sm shrink-0">
+                  <span className="shrink-0 rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1 text-sm font-bold text-zinc-100">
                     {revisionLimit} Rounds
                   </span>
                 </div>
@@ -384,29 +395,30 @@ export default function NewContractPage() {
                     onChange={(e) => setKillFeePercent(parseInt(e.target.value))}
                     className="flex-grow accent-purple-500"
                   />
-                  <span className="text-zinc-100 font-bold bg-zinc-900 border border-zinc-800 px-3 py-1 rounded-lg text-sm shrink-0">
+                  <span className="shrink-0 rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1 text-sm font-bold text-zinc-100">
                     {killFeePercent}%
                   </span>
                 </div>
-                <p className="text-zinc-500 text-xxs leading-normal">
-                  Creator retains {killFeePercent}% of total deal amount if brand cancels after signing.
+                <p className="text-xxs leading-normal text-zinc-500">
+                  Creator retains {killFeePercent}% of total deal amount if brand cancels after
+                  signing.
                 </p>
               </div>
 
               {/* Late Payment Penalty */}
-              <div className="space-y-3 pt-3 border-t border-zinc-900">
+              <div className="space-y-3 border-t border-zinc-900 pt-3">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold uppercase tracking-wider text-zinc-300">
                     Late Payment Clause
                   </span>
-                  <label className="relative inline-flex items-center cursor-pointer">
+                  <label className="relative inline-flex cursor-pointer items-center">
                     <input
                       type="checkbox"
                       checked={latePaymentPenaltyToggle}
                       onChange={(e) => setLatePaymentPenaltyToggle(e.target.checked)}
-                      className="sr-only peer"
+                      className="peer sr-only"
                     />
-                    <div className="w-9 h-5 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-zinc-400 after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-600 peer-checked:after:bg-white peer-checked:after:border-white"></div>
+                    <div className="peer h-5 w-9 rounded-full bg-zinc-800 after:absolute after:left-[2px] after:top-[2px] after:h-4 after:w-4 after:rounded-full after:border after:border-zinc-300 after:bg-zinc-400 after:transition-all after:content-[''] peer-checked:bg-purple-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-checked:after:bg-white peer-focus:outline-none"></div>
                   </label>
                 </div>
                 {latePaymentPenaltyToggle && (
@@ -416,42 +428,42 @@ export default function NewContractPage() {
                       min={1}
                       max={20}
                       value={latePaymentPenaltyPercent}
-                      onChange={(e) => setLatePaymentPenaltyPercent(Math.max(1, parseInt(e.target.value) || 1))}
-                      className="w-20 bg-zinc-900 border border-zinc-800 rounded-xl p-2.5 text-zinc-100 focus:outline-none text-sm text-center"
+                      onChange={(e) =>
+                        setLatePaymentPenaltyPercent(Math.max(1, parseInt(e.target.value) || 1))
+                      }
+                      className="w-20 rounded-xl border border-zinc-800 bg-zinc-900 p-2.5 text-center text-sm text-zinc-100 focus:outline-none"
                     />
-                    <span className="text-zinc-400 text-xs">
-                      % interest fee per month
-                    </span>
+                    <span className="text-xs text-zinc-400">% interest fee per month</span>
                   </div>
                 )}
               </div>
 
               {/* FTC compliance */}
-              <div className="flex items-center justify-between pt-3 border-t border-zinc-900">
+              <div className="flex items-center justify-between border-t border-zinc-900 pt-3">
                 <div>
-                  <span className="text-xs font-bold uppercase tracking-wider text-zinc-300 block">
+                  <span className="block text-xs font-bold uppercase tracking-wider text-zinc-300">
                     FTC Disclosure Clause
                   </span>
-                  <span className="text-zinc-500 text-xxs block mt-0.5 max-w-[200px]">
+                  <span className="text-xxs mt-0.5 block max-w-[200px] text-zinc-500">
                     Requires clear and conspicuous #ad disclosures.
                   </span>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                <label className="relative inline-flex shrink-0 cursor-pointer items-center">
                   <input
                     type="checkbox"
                     checked={includeFtcDisclosure}
                     onChange={(e) => setIncludeFtcDisclosure(e.target.checked)}
-                    className="sr-only peer"
+                    className="peer sr-only"
                   />
-                  <div className="w-9 h-5 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-zinc-400 after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-600 peer-checked:after:bg-white peer-checked:after:border-white"></div>
+                  <div className="peer h-5 w-9 rounded-full bg-zinc-800 after:absolute after:left-[2px] after:top-[2px] after:h-4 after:w-4 after:rounded-full after:border after:border-zinc-300 after:bg-zinc-400 after:transition-all after:content-[''] peer-checked:bg-purple-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-checked:after:bg-white peer-focus:outline-none"></div>
                 </label>
               </div>
             </CardContent>
-            <CardFooter className="bg-zinc-900/10 border-t border-zinc-900 p-6 flex flex-col gap-4">
+            <CardFooter className="flex flex-col gap-4 border-t border-zinc-900 bg-zinc-900/10 p-6">
               <Button
                 type="submit"
                 disabled={isGenerating}
-                className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold shadow-glow-sm"
+                className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 font-semibold text-white shadow-glow-sm hover:from-purple-500 hover:to-indigo-500"
               >
                 {isGenerating ? (
                   <>
@@ -465,8 +477,9 @@ export default function NewContractPage() {
                   </>
                 )}
               </Button>
-              <p className="text-zinc-500 text-center text-xxs">
-                Generated agreements compile to standard Microsoft Word formats (.docx) with professional formatting.
+              <p className="text-xxs text-center text-zinc-500">
+                Generated agreements compile to standard Microsoft Word formats (.docx) with
+                professional formatting.
               </p>
             </CardFooter>
           </Card>

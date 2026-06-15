@@ -73,27 +73,31 @@ export function StatCard({
     >
       <div className="flex items-start justify-between gap-4">
         {/* Left: label + value */}
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-foreground-muted truncate">{label}</p>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-medium text-foreground-muted">{label}</p>
 
           {loading ? (
-            <div className="mt-2 h-8 w-24 rounded bg-muted shimmer" />
+            <div className="shimmer mt-2 h-8 w-24 rounded bg-muted" />
           ) : (
-            <p className="mt-1 text-3xl font-bold tracking-tight text-foreground">
-              {displayValue}
-            </p>
+            <p className="mt-1 text-3xl font-bold tracking-tight text-foreground">{displayValue}</p>
           )}
 
           {/* Trend badge */}
           {trend && !loading && (
-            <div className={cn('mt-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5', trendCfg?.bg)}>
-              {TrendIcon && <TrendIcon className={cn('h-3.5 w-3.5', trendCfg?.color)} aria-hidden />}
-              <span className={cn('text-xs font-semibold', trendCfg?.color)}>
-                {trend.value > 0 ? '+' : ''}{formatPercent(trend.value, 1)}
-              </span>
-              {trend.label && (
-                <span className="text-xs text-foreground-muted">{trend.label}</span>
+            <div
+              className={cn(
+                'mt-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5',
+                trendCfg?.bg,
               )}
+            >
+              {TrendIcon && (
+                <TrendIcon className={cn('h-3.5 w-3.5', trendCfg?.color)} aria-hidden />
+              )}
+              <span className={cn('text-xs font-semibold', trendCfg?.color)}>
+                {trend.value > 0 ? '+' : ''}
+                {formatPercent(trend.value, 1)}
+              </span>
+              {trend.label && <span className="text-xs text-foreground-muted">{trend.label}</span>}
             </div>
           )}
 
@@ -105,7 +109,7 @@ export function StatCard({
         {/* Right: icon */}
         {icon && (
           <div
-            className="flex-shrink-0 flex h-11 w-11 items-center justify-center rounded-lg bg-primary-muted text-primary"
+            className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg bg-primary-muted text-primary"
             aria-hidden
           >
             {icon}

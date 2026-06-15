@@ -25,9 +25,7 @@ describe('RateIntelligenceController', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [RateIntelligenceController],
-      providers: [
-        { provide: RateIntelligenceService, useValue: mockRateService },
-      ],
+      providers: [{ provide: RateIntelligenceService, useValue: mockRateService }],
     })
       .overrideGuard(JwtAuthGuard)
       .useValue(mockGuard)
@@ -58,7 +56,11 @@ describe('RateIntelligenceController', () => {
           recommendedMax: 1500,
           rationale: 'Solid profile niche and engagement justifies premium pricing.',
           peerComparison: { label: 'Mid tier', percentile: 75, insight: 'Strong niche alignment' },
-          brandComparison: { label: 'Mid tier brand', averageRate: 1200, insight: 'Standard rate fits tier' },
+          brandComparison: {
+            label: 'Mid tier brand',
+            averageRate: 1200,
+            insight: 'Standard rate fits tier',
+          },
           counterofferEmail: 'Dear brand, please find...',
           negotiationPoints: ['Point 1', 'Point 2', 'Point 3'],
         },

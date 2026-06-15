@@ -65,8 +65,7 @@ export const authApi = {
 // ── Creator Profile endpoints ─────────────────────────────────
 
 export const profileApi = {
-  getMe: (accessToken: string) =>
-    request('/api/v1/creator-profile/me', { accessToken }),
+  getMe: (accessToken: string) => request('/api/v1/creator-profile/me', { accessToken }),
 
   upsert: (accessToken: string, data: Record<string, unknown>) =>
     request('/api/v1/creator-profile/me', {
@@ -85,11 +84,9 @@ export const profileApi = {
 // ── Deals endpoints ───────────────────────────────────────────
 
 export const dealsApi = {
-  getAll: (accessToken: string) =>
-    request<any[]>('/api/v1/deals', { accessToken }),
+  getAll: (accessToken: string) => request<any[]>('/api/v1/deals', { accessToken }),
 
-  getOne: (accessToken: string, id: string) =>
-    request<any>(`/api/v1/deals/${id}`, { accessToken }),
+  getOne: (accessToken: string, id: string) => request<any>(`/api/v1/deals/${id}`, { accessToken }),
 
   create: (accessToken: string, data: any) =>
     request<any>('/api/v1/deals', {
@@ -169,8 +166,7 @@ export const rateIntelligenceApi = {
 // ── Performance Log endpoints ─────────────────────────────────
 
 export const performanceApi = {
-  getAll: (accessToken: string) =>
-    request<any[]>('/api/v1/performance', { accessToken }),
+  getAll: (accessToken: string) => request<any[]>('/api/v1/performance', { accessToken }),
 
   getAverages: (accessToken: string) =>
     request<{
@@ -200,12 +196,10 @@ export const performanceApi = {
     }),
 };
 
-
 // ── Contracts endpoints ────────────────────────────────────────
 
 export const contractsApi = {
-  getAll: (accessToken: string) =>
-    request<any[]>('/api/v1/contracts', { accessToken }),
+  getAll: (accessToken: string) => request<any[]>('/api/v1/contracts', { accessToken }),
 
   getOne: (accessToken: string, id: string) =>
     request<any>(`/api/v1/contracts/${id}`, { accessToken }),
@@ -254,8 +248,7 @@ export const contractsApi = {
 // ── Invoices endpoints ─────────────────────────────────────────
 
 export const invoicesApi = {
-  getAll: (accessToken: string) =>
-    request<any[]>('/api/v1/invoices', { accessToken }),
+  getAll: (accessToken: string) => request<any[]>('/api/v1/invoices', { accessToken }),
 
   getOne: (accessToken: string, id: string) =>
     request<any>(`/api/v1/invoices/${id}`, { accessToken }),
@@ -325,14 +318,17 @@ export const brandPortalApi = {
   listTokens: (accessToken: string) =>
     request<any[]>('/api/v1/brand-portal/tokens', { accessToken }),
 
-  generateToken: (accessToken: string, data: {
-    brandName: string;
-    brandEmail: string;
-    dealId?: string;
-    expiresInDays?: number;
-    permissions?: string[];
-    brandNote?: string;
-  }) =>
+  generateToken: (
+    accessToken: string,
+    data: {
+      brandName: string;
+      brandEmail: string;
+      dealId?: string;
+      expiresInDays?: number;
+      permissions?: string[];
+      brandNote?: string;
+    },
+  ) =>
     request<any>('/api/v1/brand-portal/tokens', {
       method: 'POST',
       body: JSON.stringify(data),

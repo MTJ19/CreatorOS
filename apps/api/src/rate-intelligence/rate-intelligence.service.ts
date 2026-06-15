@@ -30,11 +30,10 @@ export class RateIntelligenceService {
 
     // 3. Build prompt and call Gemini
     const prompt = this.buildPrompt(dto, profile, comparables);
-    const result = await this.gemini.generateStructured(
-      prompt,
-      RateIntelligenceResultSchema,
-      { temperature: 0.3, maxTokens: 2048 },
-    );
+    const result = await this.gemini.generateStructured(prompt, RateIntelligenceResultSchema, {
+      temperature: 0.3,
+      maxTokens: 2048,
+    });
 
     // 4. Persist request + result
     const request = await this.prisma.rateIntelligenceRequest.create({
@@ -94,9 +93,7 @@ export class RateIntelligenceService {
     const engagementRate = profile?.avgEngagementRate
       ? `${profile.avgEngagementRate.toFixed(2)}%`
       : 'unknown';
-    const avgViews = profile?.avgViews
-      ? profile.avgViews.toLocaleString()
-      : 'unknown';
+    const avgViews = profile?.avgViews ? profile.avgViews.toLocaleString() : 'unknown';
 
     const comparablesSummary =
       comparables.length > 0
@@ -110,7 +107,9 @@ export class RateIntelligenceService {
         : 'No direct comparables found in database — use general market knowledge.';
 
     const usageRightsStr = dto.usageRights.join(', ');
-    const rushText = dto.isRush ? 'YES — rush premium should be applied (typically 25–50% uplift)' : 'No';
+    const rushText = dto.isRush
+      ? 'YES — rush premium should be applied (typically 25–50% uplift)'
+      : 'No';
     const exclusivityText =
       dto.exclusivityDays > 0
         ? `${dto.exclusivityDays} days (exclusivity premium should be applied)`

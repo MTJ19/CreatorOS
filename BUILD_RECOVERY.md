@@ -38,4 +38,5 @@ Route (app)                              Size     First Load JS
 ```
 
 ## Summary
+
 The workspace is now verified as having 100% successful build compilation.

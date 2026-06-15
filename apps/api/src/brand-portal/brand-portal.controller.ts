@@ -9,13 +9,7 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiBearerAuth,
-  ApiParam,
-  ApiResponse,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiParam, ApiResponse } from '@nestjs/swagger';
 
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -47,10 +41,7 @@ export class BrandPortalController {
   @Post('tokens')
   @ApiOperation({ summary: 'Generate a new brand portal token for a deal' })
   @ApiResponse({ status: 201, description: 'Returns the raw token (shown once) + portal URL' })
-  generateToken(
-    @CurrentUser() user: JwtPayload,
-    @Body() dto: GeneratePortalTokenDto,
-  ) {
+  generateToken(@CurrentUser() user: JwtPayload, @Body() dto: GeneratePortalTokenDto) {
     return this.brandPortalService.generateToken(user.sub, dto);
   }
 

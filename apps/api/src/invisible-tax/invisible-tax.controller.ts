@@ -8,7 +8,6 @@ import { InvisibleTaxService } from './invisible-tax.service';
 
 import type { JwtPayload } from '../auth/strategies/jwt.strategy';
 
-
 @ApiTags('invisible-tax')
 @ApiBearerAuth('JWT')
 @UseGuards(JwtAuthGuard)

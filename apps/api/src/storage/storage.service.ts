@@ -4,9 +4,13 @@ import * as path from 'path';
 
 import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { Injectable, Logger, BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  BadRequestException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-
 
 @Injectable()
 export class StorageService {
@@ -58,7 +62,9 @@ export class StorageService {
       'application/msword', // doc
     ];
     if (!allowedMimeTypes.includes(file.mimetype)) {
-      throw new BadRequestException(`Unsupported file type: ${file.mimetype}. Only PDF and Word docs are allowed.`);
+      throw new BadRequestException(
+        `Unsupported file type: ${file.mimetype}. Only PDF and Word docs are allowed.`,
+      );
     }
 
     const maxFileSize = 10 * 1024 * 1024; // 10MB
@@ -203,7 +209,8 @@ export class StorageService {
         const ext = path.extname(filePath).toLowerCase();
         let mimetype = 'application/octet-stream';
         if (ext === '.pdf') mimetype = 'application/pdf';
-        else if (ext === '.docx') mimetype = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+        else if (ext === '.docx')
+          mimetype = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
         else if (ext === '.doc') mimetype = 'application/msword';
 
         return { data, mimetype };

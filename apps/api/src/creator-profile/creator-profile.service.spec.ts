@@ -6,7 +6,6 @@ import { AuditLogService } from '../audit-log/audit-log.service';
 import { CreatorProfileRepository } from './creator-profile.repository';
 import { CreatorProfileService } from './creator-profile.service';
 
-
 const mockRepo = {
   findByUserId: jest.fn(),
   findById: jest.fn(),

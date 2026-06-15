@@ -13,4 +13,3 @@ import { DealsService } from './deals.service';
   exports: [DealsService],
 })
 export class DealsModule {}
-

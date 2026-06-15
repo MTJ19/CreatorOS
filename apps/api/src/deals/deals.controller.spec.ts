@@ -31,9 +31,7 @@ describe('DealsController', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [DealsController],
-      providers: [
-        { provide: DealsService, useValue: mockDealsService },
-      ],
+      providers: [{ provide: DealsService, useValue: mockDealsService }],
     })
       .overrideGuard(JwtAuthGuard)
       .useValue(mockGuard)
@@ -100,7 +98,11 @@ describe('DealsController', () => {
       mockDealsService.updateStage.mockResolvedValue({ id: 'deal-1', stage: DealStage.QUALIFIED });
 
       const result = await controller.updateStage('deal-1', mockUser, dto as any);
-      expect(mockDealsService.updateStage).toHaveBeenCalledWith('deal-1', 'creator-1', DealStage.QUALIFIED);
+      expect(mockDealsService.updateStage).toHaveBeenCalledWith(
+        'deal-1',
+        'creator-1',
+        DealStage.QUALIFIED,
+      );
       expect(result).toEqual({ id: 'deal-1', stage: DealStage.QUALIFIED });
     });
   });
