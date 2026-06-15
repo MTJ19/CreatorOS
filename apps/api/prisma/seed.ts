@@ -1,0 +1,198 @@
+import { PrismaClient, SocialPlatform, ContentFormat, DealType, BrandTier } from '@prisma/client';
+
+const prisma = new PrismaClient();
+
+const SEED_COMPARABLES = [
+  {
+    platform: SocialPlatform.INSTAGRAM,
+    contentFormat: ContentFormat.SHORT_FORM_VIDEO,
+    followerRange: '10K–50K',
+    niche: 'tech',
+    dealType: DealType.SPONSORED_POST,
+    brandTier: BrandTier.MID,
+    usageRights: ['ORGANIC_ONLY'],
+    exclusivityDays: 0,
+    baseRate: 450.00,
+    currency: 'USD',
+    engagementRate: 3.5,
+    country: 'US',
+    year: 2026,
+    isVerified: true,
+    source: 'Creator survey 2026',
+  },
+  {
+    platform: SocialPlatform.INSTAGRAM,
+    contentFormat: ContentFormat.SHORT_FORM_VIDEO,
+    followerRange: '50K–200K',
+    niche: 'lifestyle',
+    dealType: DealType.SPONSORED_POST,
+    brandTier: BrandTier.MACRO,
+    usageRights: ['ORGANIC_ONLY', 'PAID_ADS'],
+    exclusivityDays: 30,
+    baseRate: 1500.00,
+    currency: 'USD',
+    engagementRate: 2.1,
+    country: 'US',
+    year: 2026,
+    isVerified: true,
+    source: 'Influencer agency report',
+  },
+  {
+    platform: SocialPlatform.YOUTUBE,
+    contentFormat: ContentFormat.LONG_FORM_VIDEO,
+    followerRange: '50K–200K',
+    niche: 'tech',
+    dealType: DealType.SPONSORED_POST,
+    brandTier: BrandTier.ENTERPRISE,
+    usageRights: ['ORGANIC_ONLY'],
+    exclusivityDays: 14,
+    baseRate: 5000.00,
+    currency: 'USD',
+    engagementRate: 4.8,
+    country: 'US',
+    year: 2026,
+    isVerified: true,
+    source: 'Verified contract upload',
+  },
+  {
+    platform: SocialPlatform.TIKTOK,
+    contentFormat: ContentFormat.SHORT_FORM_VIDEO,
+    followerRange: '200K–1M',
+    niche: 'beauty',
+    dealType: DealType.SPONSORED_POST,
+    brandTier: BrandTier.MEGA,
+    usageRights: ['ORGANIC_ONLY', 'WHITELISTING'],
+    exclusivityDays: 60,
+    baseRate: 3500.00,
+    currency: 'USD',
+    engagementRate: 5.2,
+    country: 'US',
+    year: 2026,
+    isVerified: true,
+    source: 'Creator community submission',
+  },
+  {
+    platform: SocialPlatform.LINKEDIN,
+    contentFormat: ContentFormat.STATIC_IMAGE,
+    followerRange: '10K–50K',
+    niche: 'business',
+    dealType: DealType.SPONSORED_POST,
+    brandTier: BrandTier.MID,
+    usageRights: ['ORGANIC_ONLY'],
+    exclusivityDays: 7,
+    baseRate: 800.00,
+    currency: 'USD',
+    engagementRate: 4.0,
+    country: 'US',
+    year: 2026,
+    isVerified: true,
+    source: 'LinkedIn creator community',
+  },
+  {
+    platform: SocialPlatform.PODCAST,
+    contentFormat: ContentFormat.PODCAST,
+    followerRange: '1K–10K',
+    niche: 'finance',
+    dealType: DealType.SPONSORED_POST,
+    brandTier: BrandTier.MICRO,
+    usageRights: ['ORGANIC_ONLY'],
+    exclusivityDays: 0,
+    baseRate: 250.00,
+    currency: 'USD',
+    engagementRate: 1.5,
+    country: 'US',
+    year: 2026,
+    isVerified: true,
+    source: 'Podcast network pricing sheet',
+  },
+  {
+    platform: SocialPlatform.INSTAGRAM,
+    contentFormat: ContentFormat.CAROUSEL,
+    followerRange: '50K–200K',
+    niche: 'fashion',
+    dealType: DealType.SPONSORED_POST,
+    brandTier: BrandTier.MACRO,
+    usageRights: ['ORGANIC_ONLY'],
+    exclusivityDays: 30,
+    baseRate: 1200.00,
+    currency: 'USD',
+    engagementRate: 2.8,
+    country: 'US',
+    year: 2026,
+    isVerified: true,
+    source: 'Agency contract',
+  },
+  {
+    platform: SocialPlatform.YOUTUBE,
+    contentFormat: ContentFormat.LONG_FORM_VIDEO,
+    followerRange: '200K–1M',
+    niche: 'education',
+    dealType: DealType.SPONSORED_POST,
+    brandTier: BrandTier.ENTERPRISE,
+    usageRights: ['ORGANIC_ONLY', 'REPURPOSE_ALLOWED'],
+    exclusivityDays: 90,
+    baseRate: 12000.00,
+    currency: 'USD',
+    engagementRate: 3.9,
+    country: 'US',
+    year: 2026,
+    isVerified: true,
+    source: 'Verified creator contract',
+  },
+  {
+    platform: SocialPlatform.TIKTOK,
+    contentFormat: ContentFormat.SHORT_FORM_VIDEO,
+    followerRange: '10K–50K',
+    niche: 'gaming',
+    dealType: DealType.UGC,
+    brandTier: BrandTier.MICRO,
+    usageRights: ['ORGANIC_ONLY'],
+    exclusivityDays: 0,
+    baseRate: 300.00,
+    currency: 'USD',
+    engagementRate: 6.7,
+    country: 'US',
+    year: 2026,
+    isVerified: true,
+    source: 'UGC hub submission',
+  },
+  {
+    platform: SocialPlatform.INSTAGRAM,
+    contentFormat: ContentFormat.STORIES,
+    followerRange: '50K–200K',
+    niche: 'travel',
+    dealType: DealType.SPONSORED_POST,
+    brandTier: BrandTier.MID,
+    usageRights: ['ORGANIC_ONLY'],
+    exclusivityDays: 0,
+    baseRate: 600.00,
+    currency: 'USD',
+    engagementRate: 1.8,
+    country: 'US',
+    year: 2026,
+    isVerified: true,
+    source: 'Creator rate card survey',
+  }
+];
+
+async function main() {
+  console.log('Seeding comparable deals...');
+  await prisma.comparableDeal.deleteMany();
+  
+  for (const deal of SEED_COMPARABLES) {
+    await prisma.comparableDeal.create({
+      data: deal,
+    });
+  }
+  
+  console.log(`Successfully seeded ${SEED_COMPARABLES.length} comparable deals.`);
+}
+
+main()
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });
