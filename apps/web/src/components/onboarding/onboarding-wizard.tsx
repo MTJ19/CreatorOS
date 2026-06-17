@@ -115,7 +115,7 @@ export function OnboardingWizard() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-background">
+    <div className="relative min-h-screen bg-background">
       <GlowBackground glowPosition="top-left" intensity="medium" animated />
 
       <div className="relative z-10 mx-auto max-w-2xl px-4 py-12">

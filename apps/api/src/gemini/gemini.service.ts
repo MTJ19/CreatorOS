@@ -1,3 +1,4 @@
+
 import {
   GoogleGenerativeAI,
   GenerationConfig,
@@ -31,7 +32,7 @@ export class GeminiService {
       maxTokens?: number;
     },
   ): Promise<T> {
-    const modelName = opts?.model ?? 'gemini-1.5-flash';
+    const modelName = opts?.model ?? 'gemini-2.0-flash';
     const model = this.client.getGenerativeModel({ model: modelName });
 
     const generationConfig: GenerationConfig = {
@@ -61,9 +62,11 @@ export class GeminiService {
         safetySettings,
       });
       rawText = result.response.text();
-    } catch (err) {
-      this.logger.error('Gemini API call failed', err);
-      throw new InternalServerErrorException('AI service temporarily unavailable');
+    } catch (err: any) {
+      this.logger.error(`Gemini API call failed: ${err.message || err}`, err);
+      throw new InternalServerErrorException(
+        `Gemini API error: ${err.message || 'Service temporarily unavailable'}`,
+      );
     }
 
     // Strip markdown code fences if present

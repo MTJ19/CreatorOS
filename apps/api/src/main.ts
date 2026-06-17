@@ -8,8 +8,10 @@ import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 
+import { NestExpressApplication } from '@nestjs/platform-express';
+
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, {
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: ['error', 'warn', 'log'],
   });
 
@@ -47,6 +49,9 @@ async function bootstrap() {
   );
 
   app.use(cookieParser());
+
+  // ── Static Assets (Local Storage Fallback) ─────────────────────
+  app.useStaticAssets('./uploads', { prefix: '/uploads' });
 
   // ── CORS ──────────────────────────────────────────────────────
   app.enableCors({

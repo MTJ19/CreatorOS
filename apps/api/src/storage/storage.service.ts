@@ -25,12 +25,13 @@ export class StorageService {
     const accessKeyId = this.config.get<string>('AWS_ACCESS_KEY_ID');
     const secretAccessKey = this.config.get<string>('AWS_SECRET_ACCESS_KEY');
     const region = this.config.get<string>('AWS_REGION', 'us-east-1');
+    const storageType = this.config.get<string>('STORAGE_TYPE', 'local');
     this.bucketName = this.config.get<string>('AWS_S3_BUCKET', '');
     this.signingSecret = this.config.get<string>('JWT_SECRET', 'local-secret-for-storage-signing');
     this.apiBaseUrl = this.config.get<string>('API_BASE_URL', 'http://localhost:3001');
-    this.localDir = path.resolve(process.cwd(), 'storage/uploads');
+    this.localDir = path.resolve(process.cwd(), 'uploads');
 
-    if (accessKeyId && secretAccessKey && this.bucketName) {
+    if (storageType === 's3' && accessKeyId && secretAccessKey && this.bucketName) {
       this.s3Client = new S3Client({
         region,
         credentials: {
@@ -40,7 +41,7 @@ export class StorageService {
       });
       this.logger.log('S3 Storage Engine initialized');
     } else {
-      this.logger.warn('AWS credentials or S3 bucket not configured. Storing files locally.');
+      this.logger.warn('Using Local Storage Engine. Files will be saved to ./uploads');
       if (!fs.existsSync(this.localDir)) {
         fs.mkdirSync(this.localDir, { recursive: true });
       }
@@ -125,14 +126,8 @@ export class StorageService {
         throw new InternalServerErrorException('Error generating secure download URL');
       }
     } else {
-      // Local fallback signing
-      const expires = Math.floor(Date.now() / 1000) + expirySeconds;
-      const signature = crypto
-        .createHmac('sha256', this.signingSecret)
-        .update(`${fileKey}:${expires}`)
-        .digest('hex');
-      const token = `${expires}:${signature}`;
-      return `${this.apiBaseUrl}/storage/download?key=${encodeURIComponent(fileKey)}&token=${encodeURIComponent(token)}`;
+      // Return static local URL
+      return `${this.apiBaseUrl}/uploads/${fileKey}`;
     }
   }
 

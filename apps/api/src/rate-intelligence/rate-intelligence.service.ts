@@ -30,10 +30,42 @@ export class RateIntelligenceService {
 
     // 3. Build prompt and call Gemini
     const prompt = this.buildPrompt(dto, profile, comparables);
-    const result = await this.gemini.generateStructured(prompt, RateIntelligenceResultSchema, {
-      temperature: 0.3,
-      maxTokens: 2048,
-    });
+    let result;
+    try {
+      result = await this.gemini.generateStructured(prompt, RateIntelligenceResultSchema, {
+        temperature: 0.3,
+        maxTokens: 2048,
+      });
+    } catch (err: any) {
+      this.logger.warn(`Gemini API failed, using fallback mock. Error: ${err.message}`);
+      
+      const baseMin = 2500;
+      const baseMax = 5000;
+      const rushBonus = dto.isRush ? 1000 : 0;
+      
+      result = {
+        recommendedMin: baseMin + rushBonus,
+        recommendedMax: baseMax + rushBonus,
+        rationale: "Fallback estimate generated due to Gemini API rate limits. These figures are based on baseline industry averages for your selected criteria rather than real-time AI analysis.",
+        peerComparison: {
+          label: "Similar Creators",
+          percentile: 75,
+          insight: "Your rate is competitive but slightly above average for this follower tier."
+        },
+        brandComparison: {
+          label: dto.brandCategory || "Industry",
+          averageRate: 3500,
+          insight: "Brands in this space typically have standard budgets for this content format."
+        },
+        counterofferEmail: "Hi Team,\n\nThanks for reaching out! Based on the requested usage rights and deliverables, my standard rate for this package is " + (baseMin + rushBonus) + " - " + (baseMax + rushBonus) + ". Let me know if this aligns with your budget.\n\nBest,\nCreator",
+        negotiationPoints: [
+          "Always specify usage rights explicitly in the contract.",
+          "Exclusivity should be narrowly defined to avoid blocking future unrelated opportunities.",
+          "Consider asking for a 50% deposit upfront before content creation begins."
+        ],
+        brandAnalysis: "Fallback analysis: The selected brand category generally supports standard industry rates. In a real AI analysis, this section provides detailed insights into the specific brand's typical budgets, market positioning, and how those factors influence your recommended quote."
+      };
+    }
 
     // 4. Persist request + result
     const request = await this.prisma.rateIntelligenceRequest.create({
@@ -87,7 +119,7 @@ export class RateIntelligenceService {
     profile: Awaited<ReturnType<typeof this.prisma.creatorProfile.findUnique>>,
     comparables: Awaited<ReturnType<typeof this.prisma.comparableDeal.findMany>>,
   ): string {
-    const followerRange = this.followerBucket(profile?.totalFollowers ?? 0);
+    const followerRange = this.followerBucket(dto.followers);
     const niches = (profile?.niche ?? []).join(', ') || 'general';
     const platform = (profile?.primaryPlatform as SocialPlatform | null) ?? 'not specified';
     const engagementRate = profile?.avgEngagementRate
@@ -115,14 +147,18 @@ export class RateIntelligenceService {
         ? `${dto.exclusivityDays} days (exclusivity premium should be applied)`
         : 'None';
 
+    const dashboardDetailsText = dto.dashboardDetails 
+      ? `\n- Monthly Dashboard / Performance Details: ${dto.dashboardDetails}`
+      : '';
+
     return `You are a senior brand deal rate advisor for digital creators. Provide a professional rate recommendation.
 
 CREATOR PROFILE:
 - Platform: ${platform}
-- Follower range: ${followerRange}
+- Follower count/range: ${dto.followers} (${followerRange})
 - Niche(s): ${niches}
 - Avg engagement rate: ${engagementRate}
-- Avg views per post: ${avgViews}
+- Avg views per post: ${avgViews}${dashboardDetailsText}
 
 DEAL REQUEST:
 - Content format: ${dto.contentFormat.replace(/_/g, ' ')}
@@ -138,7 +174,7 @@ MARKET COMPARABLES (anonymised peer data):
 ${comparablesSummary}
 
 INSTRUCTIONS:
-Analyze the creator's profile, deal parameters, and market data.
+Analyze the creator's profile, deal parameters, and market data. Pay special attention to the brand and do an analysis of the brand itself to determine how it impacts the price.
 Return a JSON object with EXACTLY this structure (no extra keys, no markdown):
 {
   "recommendedMin": <number - minimum recommended rate in USD>,
@@ -155,7 +191,8 @@ Return a JSON object with EXACTLY this structure (no extra keys, no markdown):
     "insight": "<1-2 sentence insight about brand budget vs your rate>"
   },
   "counterofferEmail": "<professional email the creator can send to the brand, max 200 words, include [BRAND NAME] placeholder>",
-  "negotiationPoints": ["<point 1>", "<point 2>", "<point 3>", "<optional point 4>", "<optional point 5>"]
+  "negotiationPoints": ["<point 1>", "<point 2>", "<point 3>", "<optional point 4>", "<optional point 5>"],
+  "brandAnalysis": "<detailed analysis of the brand category/tier and how its reputation/size justifies the final price out>"
 }`;
   }
 

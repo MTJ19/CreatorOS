@@ -78,7 +78,8 @@ export class FinancialRunwayService {
       this.prisma.deal.findMany({
         where: {
           creatorId,
-          status: { notIn: ['COMPLETED', 'CANCELLED', 'LOST' as any, 'DISPUTED'] as any[] },
+          status: { notIn: ['COMPLETED', 'CANCELLED', 'DISPUTED'] },
+          stage: { notIn: ['LOST'] },
         },
         select: {
           id: true,

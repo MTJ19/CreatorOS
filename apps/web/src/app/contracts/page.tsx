@@ -28,7 +28,7 @@ import { contractsApi, dealsApi } from '@/lib/api-client';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function ContractsPage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const accessToken = (session as any)?.accessToken;
   const router = useRouter();
 
@@ -44,7 +44,7 @@ export default function ContractsPage() {
   const [uploadError, setUploadError] = React.useState<string | null>(null);
 
   const fetchData = React.useCallback(async () => {
-    if (!accessToken) return;
+    if (!accessToken) { setLoading(false); return; }
     try {
       setLoading(true);
       const [contractsData, dealsData] = await Promise.all([
@@ -64,8 +64,13 @@ export default function ContractsPage() {
   }, [accessToken]);
 
   React.useEffect(() => {
+    if (status === 'loading') return;
+    if (status === 'unauthenticated') {
+      setLoading(false);
+      return;
+    }
     fetchData();
-  }, [fetchData]);
+  }, [status, fetchData]);
 
   const handleFileUpload = async (file: File) => {
     if (!selectedDealId) {

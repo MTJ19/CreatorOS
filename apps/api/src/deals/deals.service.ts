@@ -326,20 +326,8 @@ export class DealsService {
   private validateStageTransition(from: DealStage, to: DealStage) {
     if (from === to) return;
 
-    const allowed: Record<DealStage, DealStage[]> = {
-      NEW_INQUIRY: ['QUALIFIED', 'LOST'],
-      QUALIFIED: ['PITCH_SENT', 'NEGOTIATING', 'LOST'],
-      PITCH_SENT: ['NEGOTIATING', 'LOST'],
-      NEGOTIATING: ['CONTRACT_SENT', 'LOST'],
-      CONTRACT_SENT: ['ACTIVE', 'NEGOTIATING', 'LOST'],
-      ACTIVE: ['COMPLETED', 'LOST'],
-      COMPLETED: ['NEGOTIATING'],
-      LOST: ['NEW_INQUIRY', 'QUALIFIED'],
-    };
-
-    if (!allowed[from]?.includes(to)) {
-      throw new BadRequestException(`Invalid stage transition from ${from} to ${to}`);
-    }
+    // Allow all stage transitions for maximum flexibility in the Kanban board
+    // A strict transition path is not enforced so users can move deals backwards if needed.
   }
 
   private async invalidateDashboardCache(creatorId: string) {
@@ -388,6 +376,9 @@ export class DealsService {
 
     return {
       ...deal,
+      amount: Number(deal.amount),
+      quotedAmount: deal.quotedAmount ? Number(deal.quotedAmount) : null,
+      offeredAmount: deal.offeredAmount ? Number(deal.offeredAmount) : null,
       computed: {
         views,
         engagementRate,

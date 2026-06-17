@@ -30,7 +30,7 @@ import { GlowBackground } from '@/components/ui/glow-background';
 import { contractsApi, dealsApi } from '@/lib/api-client';
 
 export default function NewContractPage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const accessToken = (session as any)?.accessToken;
   const router = useRouter();
 
@@ -79,7 +79,7 @@ export default function NewContractPage() {
 
   React.useEffect(() => {
     async function loadDeals() {
-      if (!accessToken) return;
+      if (!accessToken) { setLoadingDeals(false); return; }
       try {
         setLoadingDeals(true);
         const dealsData = await dealsApi.getAll(accessToken);

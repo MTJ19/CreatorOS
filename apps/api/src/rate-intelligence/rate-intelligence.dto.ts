@@ -77,6 +77,14 @@ export class CreateRateIntelligenceDto implements RateIntelligenceInput {
 
   @IsString()
   brandCategory!: string;
+
+  @IsInt()
+  @Min(0)
+  followers!: number;
+
+  @IsOptional()
+  @IsString()
+  dashboardDetails?: string;
 }
 
 export class GetHistoryDto {

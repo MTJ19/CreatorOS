@@ -17,6 +17,7 @@ import { CurrentUser } from './decorators/current-user.decorator';
 import { Public } from './decorators/public.decorator';
 import { AuthResponseDto } from './dto/auth-response.dto';
 import { LoginDto } from './dto/login.dto';
+import { GoogleLoginDto } from './dto/google-login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { RegisterDto } from './dto/register.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
@@ -62,6 +63,16 @@ export class AuthController {
       throw new Error('Invalid credentials'); // Will be caught by UnauthorizedException in service
     }
     return this.authService.login(user.id, this.getMeta(req));
+  }
+
+  @Public()
+  @Post('google')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 per minute
+  @ApiOperation({ summary: 'Login with Google OAuth token' })
+  @ApiResponse({ status: 200, type: AuthResponseDto })
+  async googleLogin(@Body() dto: GoogleLoginDto, @Req() req: ExpressRequest): Promise<AuthResponseDto> {
+    return this.authService.googleLogin(dto.email, dto.name, this.getMeta(req));
   }
 
   @Public()

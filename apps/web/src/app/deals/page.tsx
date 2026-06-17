@@ -3,6 +3,7 @@
 
 import * as React from 'react';
 import { useSession } from 'next-auth/react';
+import { useSearchParams } from 'next/navigation';
 import {
   Handshake,
   Plus,
@@ -221,7 +222,6 @@ function DraggableCard({
             }}
             className="rounded p-1 text-foreground-muted hover:bg-background/40 hover:text-white"
             aria-label="Edit deal"
-            {...listeners} // prevent drag triggering on action buttons
             onMouseDown={(e) => e.stopPropagation()}
           >
             <Edit2 className="h-3 w-3" />
@@ -277,8 +277,9 @@ function DraggableCard({
   );
 }
 
-export default function DealsPage() {
-  const { data: session } = useSession();
+function DealsContent() {
+  const { data: session, status: sessionStatus } = useSession();
+  const searchParams = useSearchParams();
   const accessToken = (session as any)?.accessToken;
   const { toast } = useToast();
 
@@ -331,7 +332,7 @@ export default function DealsPage() {
 
   // Fetch Deals and Portal Tokens
   const fetchDeals = React.useCallback(async () => {
-    if (!accessToken) return;
+    if (!accessToken) { setLoading(false); return; }
     try {
       setLoading(true);
       const [dealsData, tokensData] = await Promise.all([
@@ -348,8 +349,13 @@ export default function DealsPage() {
   }, [accessToken]);
 
   React.useEffect(() => {
+    if (sessionStatus === 'loading') return;
+    if (sessionStatus === 'unauthenticated') {
+      setLoading(false);
+      return;
+    }
     fetchDeals();
-  }, [fetchDeals]);
+  }, [sessionStatus, fetchDeals]);
 
   // Handle Drag Over column
   const handleDragStart = (event: any) => {
@@ -366,6 +372,32 @@ export default function DealsPage() {
 
     const deal = deals.find((d) => d.id === dealId);
     if (!deal || deal.stage === toStage) return;
+
+    // Check for required fields for the target stage
+    const missingFields = [];
+    switch (toStage) {
+      case 'PITCH_SENT':
+        if (!deal.quotedAmount || Number(deal.quotedAmount) <= 0) missingFields.push('Quoted Amount');
+        break;
+      case 'NEGOTIATING':
+      case 'CONTRACT_SENT':
+        if (!deal.amount || Number(deal.amount) <= 0) missingFields.push('Deal Amount');
+        break;
+      case 'ACTIVE':
+      case 'COMPLETED':
+        if (!deal.amount || Number(deal.amount) <= 0) missingFields.push('Deal Amount');
+        if (!deal.deadline) missingFields.push('Deadline');
+        break;
+    }
+
+    if (missingFields.length > 0) {
+      console.error(`Missing required fields: ${missingFields.join(', ')}`);
+      toast(`Please provide: ${missingFields.join(', ')}`, 'error');
+      handleOpenEdit(deal);
+      setStage(toStage); // Pre-select the target stage
+      setFormError(`Please fill out required fields for ${toStage.replace('_', ' ')}: ${missingFields.join(', ')}`);
+      return; // Do not update stage automatically, wait for form save
+    }
 
     // Optimistically update
     const originalDeals = [...deals];
@@ -453,13 +485,56 @@ export default function DealsPage() {
     setPanelOpen(true);
   };
 
+  React.useEffect(() => {
+    if (searchParams?.get('new') === 'true') {
+      handleOpenAdd();
+      window.history.replaceState(null, '', '/deals');
+    }
+  }, [searchParams]);
+
+  React.useEffect(() => {
+    if (editingDeal) {
+      setBrandName(editingDeal.brandName || '');
+      setBrandEmail(editingDeal.brandEmail || '');
+      setBrandWebsite(editingDeal.brandWebsite || '');
+      setBrandInstagram(editingDeal.brandInstagram || '');
+      setDealSource(editingDeal.dealSource || 'INBOUND');
+      setTitle(editingDeal.title || '');
+      setDescription(editingDeal.description || '');
+      setAmount(Number(editingDeal.amount) || 0);
+      setCurrency(editingDeal.currency || 'USD');
+      setStatus(editingDeal.status || 'DRAFT');
+      setStage(editingDeal.stage || 'NEW_INQUIRY');
+      setQuotedAmount(editingDeal.quotedAmount ? Number(editingDeal.quotedAmount) : '');
+      setOfferedAmount(editingDeal.offeredAmount ? Number(editingDeal.offeredAmount) : '');
+      setDeadline(editingDeal.deadline ? new Date(editingDeal.deadline).toISOString().split('T')[0] : '');
+      setFollowUpReminder(
+        editingDeal.followUpReminder ? new Date(editingDeal.followUpReminder).toISOString().split('T')[0] : '',
+      );
+      setExclusivityDays(editingDeal.exclusivityDays !== null ? Number(editingDeal.exclusivityDays) : '');
+      setExclusivityNotes(editingDeal.exclusivityNotes || '');
+      setUsageRights(editingDeal.usageRights || '');
+      setNotes(editingDeal.notes || '');
+      setTagsInput((editingDeal.tags || []).join(', '));
+      
+      const dels = (editingDeal.deliverables || []).map((d: any) => ({
+        type: d.type,
+        dueDate: new Date(d.dueDate).toISOString().split('T')[0],
+        description: d.description || '',
+        notes: d.notes || '',
+        platform: d.platform || '',
+      }));
+      setDeliverables(dels);
+    }
+  }, [editingDeal]);
+
   // Generate portal link directly from deal form
   const handleGeneratePortalLinkFromForm = async (
     dealId: string,
     bName: string,
     bEmail: string,
   ) => {
-    if (!accessToken) return;
+    if (!accessToken) { setLoading(false); return; }
     if (!bName.trim() || !bEmail.trim()) {
       toast('Brand Name and Contact Email are required to generate collaboration link', 'error');
       return;
@@ -495,7 +570,7 @@ export default function DealsPage() {
 
   // Revoke portal link directly from deal form
   const handleRevokePortalLinkFromForm = async (tokenId: string) => {
-    if (!accessToken) return;
+    if (!accessToken) { setLoading(false); return; }
     if (
       !confirm('Are you sure you want to revoke this link? The brand will lose access immediately.')
     ) {
@@ -515,7 +590,7 @@ export default function DealsPage() {
   // Handle Form Submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!accessToken) return;
+    if (!accessToken) { setLoading(false); return; }
 
     if (!brandName.trim()) {
       setFormError('Brand name is required.');
@@ -525,17 +600,29 @@ export default function DealsPage() {
       setFormError('Deal title is required.');
       return;
     }
-    if (amount <= 0) {
-      setFormError('Amount must be greater than 0.');
+    // Stage specific validation
+    if (stage === 'PITCH_SENT' && (!quotedAmount || Number(quotedAmount) <= 0)) {
+      setFormError('Quoted Amount is required for Pitch Sent stage.');
       return;
     }
-
-    // Validate deliverables
-    for (const d of deliverables) {
-      if (!d.dueDate) {
-        setFormError('Deliverable due date is required.');
+    if (['NEGOTIATING', 'CONTRACT_SENT'].includes(stage) && amount <= 0) {
+      setFormError('Deal Amount must be greater than 0 for this stage.');
+      return;
+    }
+    if (['ACTIVE', 'COMPLETED'].includes(stage)) {
+      if (amount <= 0) {
+        setFormError('Deal Amount must be greater than 0 for Active/Completed stages.');
         return;
       }
+      if (!deadline) {
+        setFormError('Deadline is required for Active/Completed stages.');
+        return;
+      }
+    }
+
+    if (deliverables.some((d) => !d.dueDate)) {
+      setFormError('All Deliverables must have a Due Date.');
+      return;
     }
 
     setFormLoading(true);
@@ -579,7 +666,9 @@ export default function DealsPage() {
       setPanelOpen(false);
       fetchDeals();
     } catch (err: any) {
-      setFormError(err.message || 'Failed to save deal');
+      console.error('Failed to save deal:', err, err?.body);
+      const msg = err?.body?.message || err?.message || 'Failed to save deal';
+      setFormError(Array.isArray(msg) ? msg.join(', ') : msg);
     } finally {
       setFormLoading(false);
     }
@@ -587,7 +676,7 @@ export default function DealsPage() {
 
   // Handle Delete
   const handleDelete = async (id: string) => {
-    if (!accessToken) return;
+    if (!accessToken) { setLoading(false); return; }
     if (
       !confirm(
         'Are you sure you want to delete this brand deal? All linked deliverables will be lost.',
@@ -921,6 +1010,11 @@ export default function DealsPage() {
 
             {/* Scrollable Form */}
             <form onSubmit={handleSubmit} className="flex-1 space-y-6 overflow-y-auto p-5">
+              {formError && (
+                <div className="rounded border border-danger/20 bg-danger-muted p-2.5 text-xs font-medium text-danger">
+                  {formError}
+                </div>
+              )}
               {/* Brand Info */}
               <div className="space-y-4">
                 <span className="block border-b border-border/20 pb-1 text-xs font-bold uppercase tracking-widest text-primary">
@@ -1586,12 +1680,6 @@ export default function DealsPage() {
                 </div>
               </div>
 
-              {formError && (
-                <div className="rounded border border-danger/20 bg-danger-muted p-2.5 text-xs font-medium text-danger">
-                  {formError}
-                </div>
-              )}
-
               {/* Form Actions Footer */}
               <div className="flex gap-3 border-t border-border/40 pt-4">
                 <Button
@@ -1616,5 +1704,13 @@ export default function DealsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function DealsPage() {
+  return (
+    <React.Suspense fallback={<div className="p-8 text-center text-foreground-muted">Loading Deals...</div>}>
+      <DealsContent />
+    </React.Suspense>
   );
 }

@@ -44,8 +44,9 @@ describe('RateIntelligenceController', () => {
         exclusivityDays: 30,
         isRush: true,
         revisionRounds: 2,
-        brandTier: 'MID' as any,
-        brandCategory: 'SaaS',
+        brandTier: 'MID' as const,
+        brandCategory: 'Tech',
+        followers: 10000,
       };
 
       const mockResponse = {

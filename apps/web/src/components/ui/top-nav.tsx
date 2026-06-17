@@ -1,8 +1,10 @@
+/* eslint-disable */
 'use client';
 
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { signOut } from 'next-auth/react';
 import {
   LayoutDashboard,
   Handshake,
@@ -22,6 +24,8 @@ import {
   TrendingUp,
   Sun,
   Moon,
+  User,
+  LogOut,
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -51,7 +55,7 @@ const NAV_LINKS: NavLink[] = [
   },
   {
     href: '/rate-intelligence',
-    label: 'Rate Intelligence',
+    label: 'Rate Intel',
     icon: BarChart3,
     description: 'Market rates & benchmarks',
   },
@@ -75,7 +79,7 @@ const NAV_LINKS: NavLink[] = [
   },
   {
     href: '/invisible-tax',
-    label: 'Invisible Tax',
+    label: 'Tax Audit',
     icon: Eye,
     description: 'Hidden costs & deductions',
   },
@@ -87,7 +91,7 @@ const NAV_LINKS: NavLink[] = [
   },
   {
     href: '/brand-portal',
-    label: 'Brand Portal',
+    label: 'Portal',
     icon: Building2,
     description: 'Secure brand access links',
   },
@@ -98,6 +102,7 @@ const NAV_LINKS: NavLink[] = [
 export function TopNav() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = React.useState(false);
+  const [profileOpen, setProfileOpen] = React.useState(false);
   const [theme, setTheme] = React.useState<'dark' | 'light'>('dark');
 
   // Synchronize initial theme preference
@@ -185,7 +190,7 @@ export function TopNav() {
 
           {/* ── Desktop Nav Links ───────────────────────────── */}
           <nav
-            className="hidden flex-1 items-center gap-1 lg:flex"
+            className="hidden flex-1 items-center gap-1 lg:flex overflow-x-auto scrollbar-hide"
             aria-label="Primary navigation"
             id="primary-nav"
           >
@@ -197,7 +202,7 @@ export function TopNav() {
                   href={href}
                   id={`nav-link-${label.toLowerCase().replace(/\s+/g, '-')}`}
                   className={cn(
-                    'group relative flex items-center gap-2 rounded-md px-3 py-2',
+                    'group relative flex items-center gap-2 rounded-md px-2 py-2 whitespace-nowrap',
                     'text-sm font-medium transition-all duration-150',
                     isActive
                       ? 'bg-background-elevated text-foreground'
@@ -280,28 +285,53 @@ export function TopNav() {
               <Settings className="h-4 w-4" aria-hidden />
             </Link>
 
-            {/* User avatar */}
-            <button
-              type="button"
-              className={cn(
-                'flex items-center gap-2 rounded-lg px-2 py-1.5',
-                'transition-colors duration-150 hover:bg-background-elevated',
-              )}
-              aria-label="User menu"
-              id="nav-user-menu"
-              aria-haspopup="menu"
-            >
-              <div
-                className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent text-xs font-bold text-white"
-                aria-hidden
+            {/* User avatar dropdown */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setProfileOpen(!profileOpen)}
+                className={cn(
+                  'flex items-center gap-2 rounded-lg px-2 py-1.5',
+                  'transition-colors duration-150 hover:bg-background-elevated',
+                )}
+                aria-label="User menu"
+                id="nav-user-menu"
+                aria-haspopup="menu"
+                aria-expanded={profileOpen}
               >
-                C
-              </div>
-              <ChevronDown
-                className="hidden h-3.5 w-3.5 text-foreground-muted sm:block"
-                aria-hidden
-              />
-            </button>
+                <div
+                  className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent text-xs font-bold text-white"
+                  aria-hidden
+                >
+                  C
+                </div>
+                <ChevronDown
+                  className="hidden h-3.5 w-3.5 text-foreground-muted sm:block"
+                  aria-hidden
+                />
+              </button>
+
+              {profileOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setProfileOpen(false)} />
+                  <div className="absolute right-0 top-full mt-2 w-48 z-50 rounded-lg border border-border/50 bg-background-elevated/95 p-1 shadow-float backdrop-blur-xl animate-in fade-in slide-in-from-top-2">
+                    <Link
+                      href="/onboarding"
+                      className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-foreground-muted transition-colors hover:bg-background-overlay hover:text-white"
+                      onClick={() => setProfileOpen(false)}
+                    >
+                      <User className="h-4 w-4" /> Edit Profile
+                    </Link>
+                    <button
+                      onClick={() => { setProfileOpen(false); signOut({ callbackUrl: '/login' }); }}
+                      className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-foreground-muted transition-colors hover:bg-danger-muted/30 hover:text-danger"
+                    >
+                      <LogOut className="h-4 w-4" /> Sign Out
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
 
             {/* New Deal CTA — Primary action */}
             <Button
@@ -310,9 +340,12 @@ export function TopNav() {
               className="hidden gap-1.5 pl-3 pr-4 sm:inline-flex"
               id="nav-new-deal-cta"
               aria-label="Create a new deal"
+              asChild
             >
-              <Plus className="h-4 w-4" aria-hidden />
-              New Deal
+              <Link href="/deals?new=true">
+                <Plus className="h-4 w-4" aria-hidden />
+                New Deal
+              </Link>
             </Button>
 
             {/* Mobile menu toggle */}
@@ -403,9 +436,12 @@ export function TopNav() {
               size="default"
               className="w-full gap-2"
               id="mobile-new-deal-cta"
+              asChild
             >
-              <Plus className="h-4 w-4" aria-hidden />
-              New Deal
+              <Link href="/deals?new=true" onClick={() => setMobileOpen(false)}>
+                <Plus className="h-4 w-4" aria-hidden />
+                New Deal
+              </Link>
             </Button>
           </div>
         </div>

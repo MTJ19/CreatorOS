@@ -3,6 +3,7 @@
 
 import * as React from 'react';
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import {
   TrendingDown,
   AlertTriangle,
@@ -26,8 +27,11 @@ import {
 } from 'recharts';
 import { cn } from '@/lib/utils';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { GlowBackground } from '@/components/ui/glow-background';
-import { invisibleTaxApi } from '@/lib/api-client';
+import { EmptyState } from '@/components/ui/empty-state';
+import { invisibleTaxApi, dealsApi } from '@/lib/api-client';
 
 const formatCurrency = (val: number) =>
   new Intl.NumberFormat(undefined, {
@@ -56,20 +60,38 @@ const buildTrendData = (total: number) => {
 };
 
 export default function InvisibleTaxPage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const accessToken = (session as any)?.accessToken;
+  const router = useRouter();
 
   const [data, setData] = React.useState<any | null>(null);
+  const [hasDeals, setHasDeals] = React.useState<boolean>(true);
   const [loading, setLoading] = React.useState(true);
 
-  React.useEffect(() => {
-    if (!accessToken) return;
-    invisibleTaxApi
-      .getSummary(accessToken)
-      .then(setData)
-      .catch(console.error)
-      .finally(() => setLoading(false));
+  const fetchData = React.useCallback(async () => {
+    if (!accessToken) {
+      setLoading(false);
+      return;
+    }
+    try {
+      const [summary, dealsData] = await Promise.all([
+        invisibleTaxApi.getSummary(accessToken),
+        dealsApi.getAll(accessToken),
+      ]);
+      setData(summary);
+      setHasDeals(dealsData.length > 0);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   }, [accessToken]);
+
+  React.useEffect(() => {
+    if (status === 'loading') return;
+    if (status === 'unauthenticated') { setLoading(false); return; }
+    fetchData();
+  }, [status, fetchData]);
 
   const trendData = data ? buildTrendData(data.totalMoneyLeftOnTable) : [];
 
@@ -82,6 +104,19 @@ export default function InvisibleTaxPage() {
             <div key={i} className="h-32 animate-shimmer rounded-xl bg-background-elevated" />
           ))}
         </div>
+      </div>
+    );
+  }
+
+  if (!hasDeals) {
+    return (
+      <div className="flex flex-col items-center justify-center py-24 text-center">
+        <Eye className="h-12 w-12 text-primary/40 mb-4" />
+        <h2 className="text-xl font-bold text-white mb-2">No Invisible Tax Data Yet</h2>
+        <p className="text-foreground-muted text-sm mb-6">
+          Add deals, log performance, and upload contracts to see your hidden losses.
+        </p>
+        <Button onClick={() => router.push('/deals?new=true')}>+ Add a Deal</Button>
       </div>
     );
   }

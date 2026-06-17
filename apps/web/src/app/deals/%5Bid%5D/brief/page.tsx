@@ -32,7 +32,7 @@ import { cn } from '@/lib/utils';
 import { dealsApi } from '@/lib/api-client';
 
 export default function BriefIntakePage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const accessToken = (session as any)?.accessToken;
   const { id: dealId } = useParams() as { id: string };
   const router = useRouter();
@@ -74,8 +74,13 @@ export default function BriefIntakePage() {
   }, [accessToken, dealId]);
 
   React.useEffect(() => {
+    if (status === 'loading') return;
+    if (status === 'unauthenticated') {
+      setLoading(false);
+      return;
+    }
     fetchBriefData();
-  }, [fetchBriefData]);
+  }, [status, fetchBriefData]);
 
   const handleBriefUpload = async (file: File) => {
     try {

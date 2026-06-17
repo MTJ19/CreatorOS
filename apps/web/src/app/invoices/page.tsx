@@ -90,7 +90,7 @@ const formatDate = (d: string | Date | null | undefined) =>
     : '—';
 
 export default function InvoicesPage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const accessToken = (session as any)?.accessToken;
 
   const [invoices, setInvoices] = React.useState<any[]>([]);
@@ -116,7 +116,7 @@ export default function InvoicesPage() {
   ]);
 
   const fetchData = React.useCallback(async () => {
-    if (!accessToken) return;
+    if (!accessToken) { setLoading(false); return; }
     try {
       setLoading(true);
       const [invData, dealData] = await Promise.all([
@@ -133,8 +133,13 @@ export default function InvoicesPage() {
   }, [accessToken]);
 
   React.useEffect(() => {
+    if (status === 'loading') return;
+    if (status === 'unauthenticated') {
+      setLoading(false);
+      return;
+    }
     fetchData();
-  }, [fetchData]);
+  }, [status, fetchData]);
 
   // Summary stats
   const totalAmount = invoices.reduce((s, i) => s + Number(i.totalAmount), 0);
@@ -193,7 +198,7 @@ export default function InvoicesPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!accessToken) return;
+    if (!accessToken) { setLoading(false); return; }
     if (!brandName.trim() || !brandEmail.trim()) {
       setFormError('Brand name and email are required.');
       return;
@@ -242,7 +247,7 @@ export default function InvoicesPage() {
   };
 
   const handleMarkPaid = async (id: string, totalAmount: number) => {
-    if (!accessToken) return;
+    if (!accessToken) { setLoading(false); return; }
     try {
       await invoicesApi.markPaid(accessToken, id, { paidAmount: totalAmount });
       fetchData();
@@ -457,7 +462,7 @@ export default function InvoicesPage() {
                   Create your first invoice to start tracking payments from brand deals.
                 </p>
                 <Button onClick={openAdd} variant="primary" size="sm" className="mt-4 gap-1.5">
-                  <Plus className="h-4 w-4" /> Create Invoice
+                  <Plus className="h-4 w-4" /> Create First Invoice
                 </Button>
               </div>
             )}
