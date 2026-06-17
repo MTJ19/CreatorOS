@@ -1,61 +1,38 @@
-import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import Redis from 'ioredis';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Redis } from '@upstash/redis';
 
 @Injectable()
-export class RedisService implements OnModuleInit, OnModuleDestroy {
+export class RedisService implements OnModuleInit {
   private readonly logger = new Logger(RedisService.name);
-  private client!: Redis;
-
-  constructor(private readonly config: ConfigService) {}
+  private client: Redis;
 
   onModuleInit() {
-    const url = this.config.get<string>('REDIS_URL', 'redis://localhost:6379');
-    this.client = new Redis(url, {
-      maxRetriesPerRequest: 1,
-      enableOfflineQueue: false, // Return error immediately if offline
-      retryStrategy(times) {
-        if (times > 3) {
-          return null; // Stop retrying after 3 attempts
-        }
-        return Math.min(times * 50, 2000);
-      },
+    this.client = new Redis({
+      url: process.env.UPSTASH_REDIS_REST_URL!,
+      token: process.env.UPSTASH_REDIS_REST_TOKEN!,
     });
-
-    this.client.on('connect', () => {
-      this.logger.log('Connected to Redis');
-    });
-
-    this.client.on('error', (err) => {
-      this.logger.error('Redis connection error', err);
-    });
+    this.logger.log('Upstash Redis client initialized');
   }
 
-  async onModuleDestroy() {
-    await this.client.quit();
-  }
-
-  async get<T>(key: string): Promise<T | null> {
+  async get(key: string): Promise<string | null> {
     try {
-      const data = await this.client.get(key);
-      if (!data) return null;
-      return JSON.parse(data) as T;
+      const val = await this.client.get<string>(key);
+      return val ?? null;
     } catch (err) {
-      this.logger.warn(`Redis get failed for key "${key}"`, err);
+      this.logger.error(`Redis GET failed for key ${key}`, err);
       return null;
     }
   }
 
-  async set(key: string, value: any, ttlSeconds?: number): Promise<void> {
+  async set(key: string, value: string, ttlSeconds?: number): Promise<void> {
     try {
-      const data = JSON.stringify(value);
       if (ttlSeconds) {
-        await this.client.setex(key, ttlSeconds, data);
+        await this.client.set(key, value, { ex: ttlSeconds });
       } else {
-        await this.client.set(key, data);
+        await this.client.set(key, value);
       }
     } catch (err) {
-      this.logger.warn(`Redis set failed for key "${key}"`, err);
+      this.logger.error(`Redis SET failed for key ${key}`, err);
     }
   }
 
@@ -63,7 +40,31 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     try {
       await this.client.del(key);
     } catch (err) {
-      this.logger.warn(`Redis del failed for key "${key}"`, err);
+      this.logger.error(`Redis DEL failed for key ${key}`, err);
+    }
+  }
+
+  async exists(key: string): Promise<boolean> {
+    try {
+      const result = await this.client.exists(key);
+      return result === 1;
+    } catch (err) {
+      this.logger.error(`Redis EXISTS failed for key ${key}`, err);
+      return false;
+    }
+  }
+
+  async setJson(key: string, value: object, ttlSeconds?: number): Promise<void> {
+    await this.set(key, JSON.stringify(value), ttlSeconds);
+  }
+
+  async getJson<T>(key: string): Promise<T | null> {
+    const raw = await this.get(key);
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw) as T;
+    } catch {
+      return null;
     }
   }
 }

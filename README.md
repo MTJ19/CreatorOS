@@ -26,60 +26,35 @@ This project is configured as a **pnpm monorepo workspace** managed with **Turbo
 
 ---
 
-## 3. Local Development Setup
+## Local Development Setup
 
 ### Prerequisites
+- Node.js 18+
+- pnpm
 
-- Node.js (version 20+)
-- pnpm (version 9+)
-- Docker (for database and Redis services)
+### Database
+This project uses Supabase (PostgreSQL). Create a free project at https://supabase.com and copy your connection string into apps/api/.env as DATABASE_URL.
 
-### Step 3.1: Install Dependencies
+### Cache
+This project uses Upstash Redis. Create a free database at https://upstash.com and copy UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN into apps/api/.env.
 
-From the root workspace directory, run:
-
+### Running locally
 ```bash
+# Install dependencies
 pnpm install
-```
 
-### Step 3.2: Start Services (Database & Redis)
+# Apply database migrations
+cd apps/api && pnpm prisma migrate deploy
 
-Spin up PostgreSQL and Redis local containers via Docker Compose:
+# Seed benchmark data
+cd apps/api && pnpm prisma db seed
 
-```bash
-docker-compose up -d
-```
-
-### Step 3.3: Configure Environment Variables
-
-Copy `.env.example` to `.env` in `apps/api`:
-
-```bash
-cp apps/api/.env.example apps/api/.env
-```
-
-Ensure your database credentials match the `docker-compose.yml` config.
-
-### Step 3.4: Generate Database Client & Seed
-
-Generate the Prisma client and run seed scripts to populate mock deals and analytics:
-
-```bash
-pnpm db:generate
-pnpm --filter @creator-os/api db:migrate
-pnpm --filter @creator-os/api db:seed
-```
-
-### Step 3.5: Run Developer Servers
-
-Start both the NestJS API server and Next.js client concurrently:
-
-```bash
+# Start dev servers
 pnpm dev
 ```
 
-- **Web App**: [http://localhost:3000](http://localhost:3000)
-- **API Server**: [http://localhost:3001](http://localhost:3001)
+The API runs on http://localhost:3001
+The web app runs on http://localhost:3000
 
 ---
 
