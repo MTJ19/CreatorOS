@@ -41,7 +41,7 @@ import { StorageModule } from './storage/storage.module';
     ]),
 
     // BullMQ — connects to same Redis as cache (Optional in Dev)
-    ...(process.env.REDIS_URL || process.env.REDIS_HOST
+    ...(process.env.UPSTASH_REDIS_REST_URL || process.env.REDIS_HOST
       ? [
           BullModule.forRootAsync({
             inject: [ConfigService],
