@@ -56,6 +56,10 @@ export const RateIntelligenceInputSchema = z.object({
   dealType: DealTypeEnum,
   /** Brand's primary category */
   brandCategory: z.string().min(1).max(100),
+  /** Creator's followers count */
+  followers: z.number().int().min(0),
+  /** Monthly dashboard details */
+  dashboardDetails: z.string().optional(),
 });
 
 export type RateIntelligenceInput = z.infer<typeof RateIntelligenceInputSchema>;
@@ -85,6 +89,8 @@ export const RateIntelligenceResultSchema = z.object({
   counterofferEmail: z.string().min(50).max(2000),
   /** 3-5 negotiation talking points */
   negotiationPoints: z.array(z.string().max(200)).min(3).max(5),
+  /** Analysis of the brand itself */
+  brandAnalysis: z.string().min(10).max(2000),
 });
 
 export type RateIntelligenceResult = z.infer<typeof RateIntelligenceResultSchema>;

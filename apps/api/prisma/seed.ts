@@ -1,4 +1,4 @@
-import { PrismaClient, SocialPlatform, ContentFormat, DealType, BrandTier } from '@prisma/client';
+import { PrismaClient, SocialPlatform, ContentFormat, DealType, BrandTier, DealStatus, DealStage, ContractStatus, InvoiceStatus } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -175,17 +175,80 @@ const SEED_COMPARABLES = [
   },
 ];
 
-async function main() {
-  console.log('Seeding comparable deals...');
-  await prisma.comparableDeal.deleteMany();
+import * as bcrypt from 'bcryptjs';
 
+async function main() {
+  console.log('Clearing existing database...');
+  await prisma.comparableDeal.deleteMany();
+  await prisma.contractRiskFlag.deleteMany();
+  await prisma.contract.deleteMany();
+  await prisma.invoiceLineItem.deleteMany();
+  await prisma.invoice.deleteMany();
+  await prisma.deliverable.deleteMany();
+  await prisma.deal.deleteMany();
+  await prisma.creatorProfile.deleteMany();
+  await prisma.user.deleteMany();
+
+  console.log('Seeding comparable deals...');
   for (const deal of SEED_COMPARABLES) {
     await prisma.comparableDeal.create({
       data: deal,
     });
   }
-
   console.log(`Successfully seeded ${SEED_COMPARABLES.length} comparable deals.`);
+
+  console.log('Seeding user and relationships...');
+  const hashedPassword = await bcrypt.hash('password123', 10);
+  
+  const user = await prisma.user.create({
+    data: {
+      email: 'test@creatoros.com',
+      name: 'Test Creator',
+      password: hashedPassword,
+      profile: {
+        create: {
+          bio: 'Test creator bio',
+          niche: ['tech'],
+          totalFollowers: 100000,
+        }
+      }
+    }
+  });
+
+  const deal = await prisma.deal.create({
+    data: {
+      creatorId: user.id,
+      brandName: 'Acme Corp',
+      title: 'Acme Corp Sponsorship',
+      amount: 5000.0,
+      status: DealStatus.ACTIVE,
+      stage: DealStage.ACTIVE,
+    }
+  });
+
+  const contract = await prisma.contract.create({
+    data: {
+      creatorId: user.id,
+      dealId: deal.id,
+      title: 'Acme Corp Agreement',
+      status: ContractStatus.SIGNED,
+    }
+  });
+
+  const invoice = await prisma.invoice.create({
+    data: {
+      creatorId: user.id,
+      dealId: deal.id,
+      invoiceNumber: 'INV-001',
+      brandName: 'Acme Corp',
+      brandEmail: 'billing@acme.corp',
+      totalAmount: 5000.0,
+      subtotal: 5000.0,
+      status: InvoiceStatus.DRAFT,
+    }
+  });
+
+  console.log(`Successfully seeded User (test@creatoros.com), Deal, Contract, and Invoice.`);
 }
 
 main()

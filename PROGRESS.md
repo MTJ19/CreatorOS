@@ -678,5 +678,23 @@ Replaced stub service with a complete implementation:
 - **Creator dashboard**: Completed `apps/web/src/app/brand-portal/page.tsx` for generating portal tokens, copying shareable links, revoking permissions, and replying to brand comments.
 - **Deals slide-over integration**: Injected direct copy-link and revocation controls inside the deal details slide-over of `/deals`.
 - **E2E Integration Testing**: Added 6 tests in `apps/api/test/brand-portal.e2e-spec.ts` covering validation rules, token expiration, submissions, and comments.
-- **DevOps Docker configurations**: Wrote multi-stage production Dockerfiles for both API and web applications.
 - **Documentation**: Compiled comprehensive README setup files, production operational runbooks, and design system addendums.
+
+---
+
+## Post-Launch Bug Fixes
+
+**Completed:** 2026-06-16  
+**Scope:** Loading states, Error Handling, Navigation, Redis offline handling, Gemini AI Integration stability
+
+### ✅ Completed
+
+- **Dashboard & Brand Portal Infinite Loading Fix**: Addressed useCallback unauthenticated fast-returns bypassing `setLoading(false)`, causing infinite spinners on data fetching components.
+- **Empty State Components Added**: Updated `/invisible-tax` and `/brand-portal` pages with beautiful empty states for when the user has no deals or brand links yet.
+- **Gemini Service Hardening**: Added robust try-catch logging, specific `GEMINI_API_KEY` validation checks, and structured error responses.
+- **Redis Queue Management**: Adjusted `enableOfflineQueue` to `false` preventing silent hanging requests when cache server is momentarily unavailable.
+- **Form Error Surfacing**: Updated nested `Deals` creation forms and the `Rate Intelligence` generation form to properly map array-based class-validator errors into visible frontend alerts.
+- **Top Navigation UX**: Added a dropdown to the top-nav avatar for quick access to "Edit Profile" and "Sign Out" actions.
+## Bug Fix Round 3 — Loading Fix
+## Bug Fix Round 4 - Fix Rate Intelligence Silent Failure
+## Production Readiness Audit

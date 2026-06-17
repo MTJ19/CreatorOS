@@ -57,7 +57,7 @@ const CONFIDENCE_CONFIG: Record<string, { label: string; className: string; weig
 };
 
 export default function FinancialRunwayPage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const accessToken = (session as any)?.accessToken;
 
   const [projection, setProjection] = React.useState<any | null>(null);
@@ -70,7 +70,7 @@ export default function FinancialRunwayPage() {
   const [updatingConfidence, setUpdatingConfidence] = React.useState<string | null>(null);
 
   const fetchData = React.useCallback(async () => {
-    if (!accessToken) return;
+    if (!accessToken) { setLoading(false); return; }
     setLoading(true);
     try {
       const [proj, dealsData] = await Promise.all([
@@ -79,7 +79,7 @@ export default function FinancialRunwayPage() {
       ]);
       setProjection(proj);
       setDeals(
-        dealsData.filter((d: any) => !['COMPLETED', 'CANCELLED', 'LOST'].includes(d.status)),
+        dealsData.filter((d: any) => !['COMPLETED', 'CANCELLED', 'DISPUTED'].includes(d.status) && d.stage !== 'LOST'),
       );
       setFixedCosts(Number(proj.monthlyFixedCosts ?? 0));
       setSettingsCurrency(proj.currency ?? 'USD');
@@ -91,11 +91,16 @@ export default function FinancialRunwayPage() {
   }, [accessToken]);
 
   React.useEffect(() => {
+    if (status === 'loading') return;
+    if (status === 'unauthenticated') {
+      setLoading(false);
+      return;
+    }
     fetchData();
-  }, [fetchData]);
+  }, [status, fetchData]);
 
   const handleSaveSettings = async () => {
-    if (!accessToken) return;
+    if (!accessToken) { setLoading(false); return; }
     setSavingSettings(true);
     try {
       await financialRunwayApi.upsertSettings(accessToken, {
@@ -112,7 +117,7 @@ export default function FinancialRunwayPage() {
   };
 
   const handleConfidenceChange = async (dealId: string, confidence: string) => {
-    if (!accessToken) return;
+    if (!accessToken) { setLoading(false); return; }
     setUpdatingConfidence(dealId);
     try {
       await financialRunwayApi.updateDealConfidence(accessToken, dealId, confidence);
@@ -322,7 +327,14 @@ export default function FinancialRunwayPage() {
                   <YAxis
                     stroke="#64748b"
                     tick={{ fontSize: 11, fill: '#94a3b8' }}
-                    tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
+                    tickFormatter={(v) =>
+                      new Intl.NumberFormat(undefined, {
+                        style: 'currency',
+                        currency,
+                        notation: 'compact',
+                        maximumFractionDigits: 1,
+                      }).format(v)
+                    }
                     width={52}
                   />
                   <Tooltip

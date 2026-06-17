@@ -30,7 +30,7 @@ import { GlowBackground } from '@/components/ui/glow-background';
 import { contractsApi } from '@/lib/api-client';
 
 export default function ContractReviewPage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const accessToken = (session as any)?.accessToken;
   const { id } = useParams() as { id: string };
   const router = useRouter();
@@ -63,11 +63,16 @@ export default function ContractReviewPage() {
   }, [accessToken, id]);
 
   React.useEffect(() => {
+    if (status === 'loading') return;
+    if (status === 'unauthenticated') {
+      setLoading(false);
+      return;
+    }
     fetchContract();
-  }, [fetchContract]);
+  }, [status, fetchContract]);
 
   const handleAcknowledge = async (flagId: string) => {
-    if (!accessToken) return;
+    if (!accessToken) { setLoading(false); return; }
     try {
       await contractsApi.acknowledgeFlag(accessToken, flagId);
       // Update local state

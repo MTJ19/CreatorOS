@@ -50,7 +50,7 @@ const FORMATS = [
 ];
 
 export default function PerformancePage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const accessToken = (session as any)?.accessToken;
 
   // Data states
@@ -82,7 +82,7 @@ export default function PerformancePage() {
 
   // Fetch initial data
   const fetchData = React.useCallback(async () => {
-    if (!accessToken) return;
+    if (!accessToken) { setLoading(false); return; }
     try {
       const [logsData, averagesData, dealsData] = await Promise.all([
         performanceApi.getAll(accessToken),
@@ -98,8 +98,13 @@ export default function PerformancePage() {
   }, [accessToken]);
 
   React.useEffect(() => {
+    if (status === 'loading') return;
+    if (status === 'unauthenticated') {
+      setLoading(false);
+      return;
+    }
     fetchData();
-  }, [fetchData]);
+  }, [status, fetchData]);
 
   // Open Panel for Add
   const handleOpenAdd = () => {
@@ -147,7 +152,7 @@ export default function PerformancePage() {
   // Handle Form Submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!accessToken) return;
+    if (!accessToken) { setLoading(false); return; }
 
     if (isPaid) {
       if (!dealId) {
@@ -197,7 +202,7 @@ export default function PerformancePage() {
 
   // Handle Delete Log
   const handleDelete = async (id: string) => {
-    if (!accessToken) return;
+    if (!accessToken) { setLoading(false); return; }
     if (!confirm('Are you sure you want to delete this performance log?')) return;
 
     try {
@@ -428,10 +433,13 @@ export default function PerformancePage() {
               <div className="p-12 text-center text-foreground-muted">
                 <BarChart3 className="mx-auto mb-3 h-10 w-10 text-foreground-subtle" />
                 <p className="text-base font-semibold text-white">No performance logs found</p>
-                <p className="mx-auto mt-1 max-w-xs text-xs">
+                <p className="mx-auto mt-1 max-w-xs text-xs mb-4">
                   Add your first post performance metrics to start tracking benchmarks and
                   engagement rates.
                 </p>
+                <Button onClick={handleOpenAdd} variant="primary" size="sm" className="gap-1.5">
+                  <Plus className="h-4 w-4" /> Log First Post
+                </Button>
               </div>
             )}
           </CardContent>

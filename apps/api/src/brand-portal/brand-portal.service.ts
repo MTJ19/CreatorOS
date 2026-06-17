@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { PortalPermission, PortalCommentAuthor } from '@prisma/client';
+import { PortalPermission, PortalCommentAuthor, DeliverableStatus } from '@prisma/client';
 
 import { AuditLogService } from '../audit-log/audit-log.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -430,6 +430,20 @@ export class BrandPortalService {
             revisionNotes: dto.revisionNotes ?? null,
           },
         });
+
+    if (tokenRecord.dealId) {
+      let deliverableStatus: DeliverableStatus | undefined;
+      if (dto.approvalStatus === 'APPROVED') deliverableStatus = 'APPROVED';
+      else if (dto.approvalStatus === 'REJECTED') deliverableStatus = 'REVISION_REQUESTED';
+      else if (dto.approvalStatus === 'APPROVED_WITH_CHANGES') deliverableStatus = 'REVISION_REQUESTED';
+
+      if (deliverableStatus) {
+        await this.prisma.deliverable.updateMany({
+          where: { dealId: tokenRecord.dealId },
+          data: { status: deliverableStatus },
+        });
+      }
+    }
 
     await this.auditLog.log({
       action: 'portal_approval_set',

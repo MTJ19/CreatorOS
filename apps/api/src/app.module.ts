@@ -40,17 +40,21 @@ import { StorageModule } from './storage/storage.module';
       },
     ]),
 
-    // BullMQ — connects to same Redis as cache
-    BullModule.forRootAsync({
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        connection: {
-          host: config.get('REDIS_HOST', 'localhost'),
-          port: config.get<number>('REDIS_PORT', 6379),
-          password: config.get('REDIS_PASSWORD') || undefined,
-        },
-      }),
-    }),
+    // BullMQ — connects to same Redis as cache (Optional in Dev)
+    ...(process.env.REDIS_URL || process.env.REDIS_HOST
+      ? [
+          BullModule.forRootAsync({
+            inject: [ConfigService],
+            useFactory: (config: ConfigService) => ({
+              connection: {
+                host: config.get('REDIS_HOST', 'localhost'),
+                port: config.get<number>('REDIS_PORT', 6379),
+                password: config.get('REDIS_PASSWORD') || undefined,
+              },
+            }),
+          }),
+        ]
+      : []),
 
     // Health checks
     TerminusModule,

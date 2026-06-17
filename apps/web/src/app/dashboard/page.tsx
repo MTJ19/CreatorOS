@@ -3,6 +3,7 @@
 
 import * as React from 'react';
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import {
   DollarSign,
   Handshake,
@@ -21,7 +22,9 @@ import {
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { GlowBackground } from '@/components/ui/glow-background';
+import { EmptyState } from '@/components/ui/empty-state';
 import { dealsApi } from '@/lib/api-client';
 import { dealStatusVariant } from '@/lib/status-variants';
 
@@ -38,8 +41,9 @@ import {
 } from 'recharts';
 
 export default function DashboardPage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const accessToken = (session as any)?.accessToken;
+  const router = useRouter();
 
   // Data states
   const [stats, setStats] = React.useState<any>(null);
@@ -48,7 +52,10 @@ export default function DashboardPage() {
 
   // Fetch Dashboard Stats & Deals
   const fetchDashboardData = React.useCallback(async () => {
-    if (!accessToken) return;
+    if (!accessToken) {
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       const [statsData, dealsData] = await Promise.all([
@@ -62,11 +69,13 @@ export default function DashboardPage() {
     } finally {
       setLoading(false);
     }
-  }, [accessToken]);
+  }, [accessToken, session]);
 
   React.useEffect(() => {
+    if (status === 'loading') return;
+    if (status === 'unauthenticated') { setLoading(false); return; }
     fetchDashboardData();
-  }, [fetchDashboardData]);
+  }, [status, fetchDashboardData]);
 
   // Format currency helper
   const formatCurrency = (val: number) => {
@@ -160,6 +169,17 @@ export default function DashboardPage() {
       {loading ? (
         <div className="flex h-96 items-center justify-center">
           <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-t-2 border-primary" />
+        </div>
+      ) : deals.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-24 text-center">
+          <LayoutDashboard className="h-12 w-12 text-primary/40 mb-4" />
+          <h2 className="text-xl font-bold text-white mb-2">Welcome to DEALOS</h2>
+          <p className="text-foreground-muted text-sm mb-6">
+            Create your first brand deal to see your dashboard come alive.
+          </p>
+          <Button onClick={() => router.push('/deals?new=true')}>
+            + Create First Deal
+          </Button>
         </div>
       ) : (
         <>
@@ -454,6 +474,122 @@ export default function DashboardPage() {
                 </div>
               )}
             </div>
+          </section>
+
+          {/* Upcoming Deadlines & Recent Performance */}
+          <section aria-label="Dashboard widgets" className="relative z-10 grid grid-cols-1 gap-6 md:grid-cols-2 mt-8 mb-8">
+            {/* Upcoming Deadlines */}
+            <Card variant="glass" className="border-border/40 flex flex-col">
+              <CardHeader className="pb-3 border-b border-border/20">
+                <CardTitle className="flex items-center gap-1.5 text-base font-bold text-white">
+                  <Clock className="h-4 w-4 text-primary" /> Upcoming Deadlines
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-4 flex-1">
+                {(() => {
+                  const upcoming = deals.flatMap((d) => 
+                    (d.deliverables || [])
+                      .filter((del: any) => !['SUBMITTED', 'APPROVED'].includes(del.status))
+                      .map((del: any) => ({
+                        ...del,
+                        dealTitle: d.title,
+                        brandName: d.brandName,
+                        type: 'deliverable'
+                      }))
+                  );
+                  const upcomingInvoices = deals.flatMap((d) => 
+                    (d.invoices || [])
+                      .filter((inv: any) => inv.status !== 'PAID' && inv.status !== 'DRAFT')
+                      .map((inv: any) => ({
+                        ...inv,
+                        dealTitle: d.title,
+                        brandName: d.brandName,
+                        dueDate: inv.dueDate || inv.createdAt,
+                        type: 'invoice'
+                      }))
+                  );
+                  const combined = [...upcoming, ...upcomingInvoices]
+                    .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
+                    .slice(0, 5);
+
+                  if (combined.length === 0) {
+                    return (
+                      <div className="flex h-32 flex-col items-center justify-center text-center">
+                        <Inbox className="h-8 w-8 text-foreground-subtle mb-2" />
+                        <p className="text-sm font-medium text-white">No Upcoming Deadlines</p>
+                        <p className="text-xs text-foreground-muted mt-1">You are all caught up!</p>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div className="space-y-4">
+                      {combined.map((item, idx) => (
+                        <div key={idx} className="flex items-start justify-between border-b border-border/10 pb-3 last:border-0 last:pb-0">
+                          <div>
+                            <p className="text-sm font-semibold text-white">{item.dealTitle}</p>
+                            <p className="text-xs text-foreground-muted">{item.type === 'invoice' ? 'Invoice Due' : 'Deliverable Due'}</p>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-xs font-mono text-primary">
+                              {new Date(item.dueDate).toLocaleDateString()}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
+              </CardContent>
+            </Card>
+
+            {/* Recent Performance */}
+            <Card variant="glass" className="border-border/40 flex flex-col">
+              <CardHeader className="pb-3 border-b border-border/20">
+                <CardTitle className="flex items-center gap-1.5 text-base font-bold text-white">
+                  <TrendingUp className="h-4 w-4 text-primary" /> Recent Performance
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-4 flex-1">
+                {(() => {
+                  const logs = deals.flatMap((d) => 
+                    (d.performanceLogs || []).map((log: any) => ({
+                      ...log,
+                      dealTitle: d.title,
+                      brandName: d.brandName
+                    }))
+                  ).sort((a, b) => new Date(b.recordedAt).getTime() - new Date(a.recordedAt).getTime()).slice(0, 5);
+
+                  if (logs.length === 0) {
+                    return (
+                      <div className="flex h-32 flex-col items-center justify-center text-center">
+                        <TrendingUp className="h-8 w-8 text-foreground-subtle mb-2 opacity-50" />
+                        <p className="text-sm font-medium text-white">No Recent Performance</p>
+                        <p className="text-xs text-foreground-muted mt-1">Log performance metrics to see them here.</p>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div className="space-y-4">
+                      {logs.map((log: any, idx) => (
+                        <div key={idx} className="flex items-start justify-between border-b border-border/10 pb-3 last:border-0 last:pb-0">
+                          <div>
+                            <p className="text-sm font-semibold text-white">{log.dealTitle}</p>
+                            <p className="text-xs text-foreground-muted">{log.platform || 'General'}</p>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-xs font-mono text-primary">
+                              {log.metrics?.views?.toLocaleString() || 0} Views
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
+              </CardContent>
+            </Card>
           </section>
 
           {/* Upcoming Alert Banner */}

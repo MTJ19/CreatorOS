@@ -39,7 +39,13 @@ async function request<T>(
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new ApiError(res.status, (body as { message?: string }).message ?? res.statusText, body);
+    const message = (body as { message?: string }).message ?? res.statusText;
+    
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('api-error', { detail: message }));
+    }
+
+    throw new ApiError(res.status, message, body);
   }
 
   if (res.status === 204) return undefined as T;

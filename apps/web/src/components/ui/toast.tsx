@@ -1,3 +1,4 @@
+/* eslint-disable */
 'use client';
 
 import * as React from 'react';
@@ -40,6 +41,15 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     },
     [removeToast],
   );
+
+  React.useEffect(() => {
+    const handleApiError = (e: Event) => {
+      const msg = (e as CustomEvent).detail;
+      toast(msg || 'An API error occurred', 'error');
+    };
+    window.addEventListener('api-error', handleApiError);
+    return () => window.removeEventListener('api-error', handleApiError);
+  }, [toast]);
 
   return (
     <ToastContext.Provider value={{ toast, toasts, removeToast }}>

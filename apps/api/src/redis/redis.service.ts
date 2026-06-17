@@ -12,8 +12,12 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   onModuleInit() {
     const url = this.config.get<string>('REDIS_URL', 'redis://localhost:6379');
     this.client = new Redis(url, {
-      maxRetriesPerRequest: 3,
+      maxRetriesPerRequest: 1,
+      enableOfflineQueue: false, // Return error immediately if offline
       retryStrategy(times) {
+        if (times > 3) {
+          return null; // Stop retrying after 3 attempts
+        }
         return Math.min(times * 50, 2000);
       },
     });

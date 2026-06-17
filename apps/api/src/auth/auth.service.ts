@@ -89,6 +89,44 @@ export class AuthService {
     return this.buildAuthResponse(user, tokens);
   }
 
+  /** Login with Google */
+  async googleLogin(
+    email: string,
+    name: string,
+    meta: { ipAddress?: string; userAgent?: string } = {},
+  ): Promise<AuthResponseDto> {
+    let user = await this.prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      user = await this.prisma.user.create({
+        data: {
+          email,
+          name,
+          role: 'CREATOR',
+          provider: 'google',
+        },
+      });
+      await this.auditLog.log({
+        userId: user.id,
+        action: 'auth.register_google',
+        resource: 'User',
+        resourceId: user.id,
+        metadata: { email: user.email },
+        ...meta,
+      });
+    }
+
+    await this.auditLog.log({
+      userId: user.id,
+      action: 'auth.login_google',
+      resource: 'User',
+      resourceId: user.id,
+      ...meta,
+    });
+
+    const tokens = await this.generateTokenPair(user.id, user.email, user.role, meta);
+    return this.buildAuthResponse(user, tokens);
+  }
+
   /** Rotate refresh token → new access + refresh pair */
   async refreshTokens(
     refreshToken: string,

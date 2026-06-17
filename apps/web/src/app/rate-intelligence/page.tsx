@@ -66,7 +66,7 @@ const BRAND_TIERS = [
 ];
 
 export default function RateIntelligencePage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const accessToken = (session as any)?.accessToken;
 
   // Form State
@@ -78,6 +78,8 @@ export default function RateIntelligencePage() {
   const [revisionRounds, setRevisionRounds] = React.useState(2);
   const [brandTier, setBrandTier] = React.useState('MID');
   const [brandCategory, setBrandCategory] = React.useState('');
+  const [followers, setFollowers] = React.useState(10000);
+  const [dashboardDetails, setDashboardDetails] = React.useState('');
 
   // UI States
   const [loading, setLoading] = React.useState(false);
@@ -112,7 +114,11 @@ export default function RateIntelligencePage() {
   // Handle Quote Generation
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!accessToken) return;
+    if (!accessToken) { 
+      setFormError('Access token is missing. Please refresh the page.');
+      setLoading(false); 
+      return; 
+    }
     if (!brandCategory.trim()) {
       setFormError('Brand category is required');
       return;
@@ -130,6 +136,8 @@ export default function RateIntelligencePage() {
         revisionRounds,
         brandTier,
         brandCategory,
+        followers,
+        dashboardDetails,
       });
       setResult(response);
       setCheckedPoints({});
@@ -137,7 +145,13 @@ export default function RateIntelligencePage() {
       const histData = await rateIntelligenceApi.getHistory(accessToken).catch(() => []);
       setHistory(histData);
     } catch (err: any) {
-      setFormError(err.message || 'Failed to generate quote range');
+      let errMsg = err.message || 'Failed to generate quote range';
+      if (err.body?.message) {
+        errMsg = Array.isArray(err.body.message) ? err.body.message.join(', ') : err.body.message;
+      } else if (err.body?.error) {
+        errMsg = err.body.error;
+      }
+      setFormError(errMsg);
     } finally {
       setLoading(false);
     }
@@ -162,6 +176,8 @@ export default function RateIntelligencePage() {
     setRevisionRounds(input.revisionRounds);
     setBrandTier(input.brandTier);
     setBrandCategory(input.brandCategory);
+    setFollowers(input.followers || 10000);
+    setDashboardDetails(input.dashboardDetails || '');
     setResult(item);
     setCheckedPoints({});
     setIsEmailExpanded(true);
@@ -199,6 +215,24 @@ export default function RateIntelligencePage() {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-5">
+                {/* Followers */}
+                <div className="space-y-1.5">
+                  <label
+                    htmlFor="followers-input"
+                    className="text-xs font-semibold uppercase tracking-wider text-foreground"
+                  >
+                    Followers
+                  </label>
+                  <input
+                    id="followers-input"
+                    type="number"
+                    min="0"
+                    value={followers}
+                    onChange={(e) => setFollowers(parseInt(e.target.value, 10) || 0)}
+                    className="w-full rounded-lg border border-border bg-input px-3 py-2.5 text-sm text-foreground transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-ring"
+                  />
+                </div>
+
                 {/* Content Format */}
                 <div className="space-y-1.5">
                   <label
@@ -347,6 +381,24 @@ export default function RateIntelligencePage() {
                       className="w-full border border-border bg-input px-3 py-2 text-sm text-foreground transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-ring"
                     />
                   </div>
+                </div>
+
+                {/* Dashboard Details */}
+                <div className="space-y-1.5">
+                  <label
+                    htmlFor="dashboard-details"
+                    className="text-xs font-semibold uppercase tracking-wider text-foreground"
+                  >
+                    Monthly Dashboard Details (Optional)
+                  </label>
+                  <textarea
+                    id="dashboard-details"
+                    rows={3}
+                    placeholder="e.g. 500k avg views, 5% engagement rate, high US demographic"
+                    value={dashboardDetails}
+                    onChange={(e) => setDashboardDetails(e.target.value)}
+                    className="w-full rounded-lg border border-border bg-input px-3 py-2.5 text-sm text-foreground transition-all duration-150 placeholder:text-foreground-subtle focus:outline-none focus:ring-2 focus:ring-ring"
+                  />
                 </div>
 
                 {/* Rush toggle */}
@@ -558,6 +610,20 @@ export default function RateIntelligencePage() {
                     </div>
                   </CardContent>
                 )}
+              </Card>
+
+              {/* Brand Analysis Section */}
+              <Card variant="glass" className="border-border/40">
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-sm font-semibold text-white">
+                    <Building2 className="h-4 w-4 text-primary" /> Brand Analysis
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2.5">
+                  <p className="text-sm leading-relaxed text-foreground-muted whitespace-pre-wrap">
+                    {result.result.brandAnalysis}
+                  </p>
+                </CardContent>
               </Card>
 
               {/* Negotiation talking points as checklist */}
