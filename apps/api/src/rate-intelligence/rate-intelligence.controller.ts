@@ -16,6 +16,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 import { CreateRateIntelligenceDto, GetHistoryDto } from './rate-intelligence.dto';
 import { RateIntelligenceService } from './rate-intelligence.service';
+import { ComparableVectorSearchService } from './comparable-vector-search.service';
 
 import type { JwtPayload } from '../auth/strategies/jwt.strategy';
 
@@ -24,7 +25,10 @@ import type { JwtPayload } from '../auth/strategies/jwt.strategy';
 @UseGuards(JwtAuthGuard)
 @Controller('rate-intelligence')
 export class RateIntelligenceController {
-  constructor(private readonly rateIntelligenceService: RateIntelligenceService) {}
+  constructor(
+    private readonly rateIntelligenceService: RateIntelligenceService,
+    private readonly vectorSearchService: ComparableVectorSearchService,
+  ) {}
 
   /**
    * POST /rate-intelligence/quote
@@ -50,5 +54,12 @@ export class RateIntelligenceController {
   @ApiOperation({ summary: 'Get rate intelligence history' })
   async getHistory(@CurrentUser() user: JwtPayload, @Query() query: GetHistoryDto) {
     return this.rateIntelligenceService.getHistory(user.sub, query.limit);
+  }
+
+  @Post('admin/backfill-embeddings')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT')
+  async backfillEmbeddings(@Query('batchSize') batchSize?: string) {
+    return this.vectorSearchService.backfillEmbeddings(batchSize ? parseInt(batchSize) : 20);
   }
 }

@@ -17,13 +17,16 @@ import {
   BarChart3,
   ExternalLink,
   ChevronRight,
+  Instagram,
+  RefreshCw,
+  Loader2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { GlowBackground } from '@/components/ui/glow-background';
-import { performanceApi, dealsApi } from '@/lib/api-client';
+import { performanceApi, dealsApi, instagramApi } from '@/lib/api-client';
 
 const PLATFORMS = [
   { value: 'INSTAGRAM', label: 'Instagram' },
@@ -58,6 +61,9 @@ export default function PerformancePage() {
   const [averages, setAverages] = React.useState<any>(null);
   const [deals, setDeals] = React.useState<any[]>([]);
 
+  const [igStatus, setIgStatus] = React.useState<any>(null);
+  const [igSyncing, setIgSyncing] = React.useState(false);
+
   // UI Panel states
   const [panelOpen, setPanelOpen] = React.useState(false);
   const [editingLog, setEditingLog] = React.useState<any | null>(null);
@@ -89,9 +95,12 @@ export default function PerformancePage() {
         performanceApi.getAverages(accessToken),
         dealsApi.getAll(accessToken),
       ]);
+      const igData = await instagramApi.getStatus(accessToken).catch(() => null);
+      
       setLogs(logsData);
       setAverages(averagesData);
       setDeals(dealsData);
+      setIgStatus(igData);
     } catch (err) {
       console.error('Error fetching performance data:', err);
     }
@@ -105,6 +114,45 @@ export default function PerformancePage() {
     }
     fetchData();
   }, [status, fetchData]);
+
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const igParam = params.get('ig');
+    if (igParam) {
+      if (igParam === 'connected') {
+        alert('Instagram connected successfully!');
+      } else if (igParam === 'denied') {
+        alert('Instagram connection denied.');
+      } else if (igParam === 'error') {
+        alert('Error connecting Instagram.');
+      }
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
+
+  const handleIgSync = async () => {
+    if (!accessToken) return;
+    setIgSyncing(true);
+    try {
+      await instagramApi.sync(accessToken);
+      await fetchData();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIgSyncing(false);
+    }
+  };
+
+  const handleIgDisconnect = async () => {
+    if (!accessToken) return;
+    if (!confirm('Are you sure you want to disconnect Instagram?')) return;
+    try {
+      await instagramApi.disconnect(accessToken);
+      await fetchData();
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   // Open Panel for Add
   const handleOpenAdd = () => {
@@ -302,6 +350,64 @@ export default function PerformancePage() {
         >
           <Plus className="h-4 w-4" /> Add Post Log
         </Button>
+      </div>
+
+      {/* Instagram Banner */}
+      <div className="relative z-10">
+        <Card variant="glass" className="border-border/40 overflow-hidden relative group">
+          <div className="absolute right-0 top-0 p-3 opacity-5 transition-opacity group-hover:opacity-10 pointer-events-none">
+            <Instagram className="h-24 w-24 text-primary" />
+          </div>
+          <CardContent className="p-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-500 text-white shadow-glow-sm flex-shrink-0">
+                  {igStatus?.profilePicUrl ? (
+                    <img src={igStatus.profilePicUrl} alt="IG" className="h-11 w-11 rounded-full object-cover border-2 border-background" />
+                  ) : (
+                    <Instagram className="h-6 w-6" />
+                  )}
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                    {igStatus?.connected ? (
+                      <>@{igStatus.username} <Badge variant="deal-active" className="px-1.5 py-0 text-[10px]">Connected</Badge></>
+                    ) : (
+                      'Connect Instagram'
+                    )}
+                  </h3>
+                  <p className="text-sm text-foreground-muted mt-0.5">
+                    {igStatus?.connected 
+                      ? `${(igStatus.followersCount || 0).toLocaleString()} followers • ${(igStatus.mediaCount || 0).toLocaleString()} posts`
+                      : 'Automatically sync your latest posts, reach, and engagement metrics.'}
+                  </p>
+                  {igStatus?.connected && igStatus.lastSyncedAt && (
+                    <p className="text-[10px] text-foreground-subtle mt-1.5">
+                      Last synced: {new Date(igStatus.lastSyncedAt).toLocaleString()}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                {igStatus?.connected ? (
+                  <>
+                    <Button variant="outline" size="sm" onClick={handleIgDisconnect} className="text-xs">
+                      Disconnect
+                    </Button>
+                    <Button variant="primary" size="sm" onClick={handleIgSync} disabled={igSyncing} className="gap-1.5 text-xs shadow-glow-sm">
+                      {igSyncing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
+                      {igSyncing ? 'Syncing...' : 'Sync Now'}
+                    </Button>
+                  </>
+                ) : (
+                  <Button variant="primary" onClick={() => accessToken && instagramApi.connect(accessToken)} className="gap-1.5 shadow-glow-sm">
+                    <Instagram className="h-4 w-4" /> Connect Account
+                  </Button>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Rolling averages */}

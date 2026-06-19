@@ -22,6 +22,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { RateIntelligenceModule } from './rate-intelligence/rate-intelligence.module';
 import { RedisModule } from './redis/redis.module';
 import { StorageModule } from './storage/storage.module';
+import { InstagramModule } from './instagram/instagram.module';
 
 @Module({
   imports: [
@@ -82,6 +83,7 @@ import { StorageModule } from './storage/storage.module';
     StorageModule,
     InvisibleTaxModule,
     FinancialRunwayModule,
+    InstagramModule,
   ],
   providers: [
     // Global rate-limiting guard

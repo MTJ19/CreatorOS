@@ -410,3 +410,28 @@ export const publicPortalApi = {
       headers: { 'x-portal-token': token },
     }),
 };
+
+// ── Instagram endpoints ────────────────────────────────────────
+
+export const instagramApi = {
+  getStatus: (accessToken: string) =>
+    request<{
+      connected: boolean; username: string | null; connectedAt: string | null;
+      expiresAt: string | null; followersCount: number | null; followsCount: number | null;
+      mediaCount: number | null; profilePicUrl: string | null; accountType: string | null;
+      lastSyncedAt: string | null;
+    }>('/api/v1/instagram/status', { accessToken }),
+  connect: (accessToken: string) => {
+    window.location.href = `${API_BASE}/api/v1/instagram/connect?token=${accessToken}`;
+  },
+  sync: (accessToken: string) =>
+    request<{ postsCount: number; status: string }>('/api/v1/instagram/sync', {
+      method: 'POST',
+      accessToken,
+    }),
+  disconnect: (accessToken: string) =>
+    request<{ disconnected: boolean }>('/api/v1/instagram/disconnect', {
+      method: 'POST',
+      accessToken,
+    }),
+};

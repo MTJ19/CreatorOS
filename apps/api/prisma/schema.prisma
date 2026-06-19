@@ -108,6 +108,7 @@ enum PerformanceSource {
   MANUAL
   API_SYNC
   IMPORT
+  INSTAGRAM_API
 }
 
 enum PortalPermission {
@@ -234,6 +235,19 @@ model User {
   auditLogs          AuditLog[]
   rateIntelligenceRequests RateIntelligenceRequest[]
   financialSettings  FinancialSettings?
+  instagramSyncLogs  InstagramSyncLog[]
+
+  igUserId           String?   @unique
+  igAccessToken      String?
+  igTokenExpiresAt   DateTime?
+  igUsername         String?
+  igAccountType      String?
+  igFollowersCount   Int?
+  igFollowsCount     Int?
+  igMediaCount       Int?
+  igProfilePicUrl    String?
+  igConnectedAt      DateTime?
+  igLastSyncedAt     DateTime?
 
   @@map("users")
 }
@@ -597,6 +611,7 @@ model PortalComment {
   @@map("portal_comments")
 }
 
+// NOTE: You must manually run CREATE EXTENSION IF NOT EXISTS vector; in the Supabase SQL editor before migrating.
 /// Market-rate reference data for comparable creator deals (seed data)
 model ComparableDeal {
   id            String         @id @default(cuid())
@@ -618,6 +633,10 @@ model ComparableDeal {
   isVerified    Boolean        @default(false)
   source        String?
 
+  /// 768-dim embedding vector (Gemini text-embedding-004) of a composed text summary of this deal
+  embedding     Unsupported("vector(768)")?
+  summaryText   String? /// the exact text that was embedded, for debugging/re-embedding
+
   createdAt DateTime @default(now())
 
   @@index([platform, niche])
@@ -638,6 +657,8 @@ model RateIntelligenceRequest {
 
   createdAt DateTime @default(now())
 
+  outcome RateIntelligenceOutcome?
+
   @@index([userId])
   @@index([createdAt])
   @@map("rate_intelligence_requests")
@@ -655,4 +676,43 @@ model FinancialSettings {
   updatedAt DateTime @updatedAt
 
   @@map("financial_settings")
+}
+
+/// Log of Instagram metric synchronization
+model InstagramSyncLog {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  syncedAt    DateTime @default(now())
+  postsCount  Int      @default(0)
+  status      String   @default("success")
+  errorMsg    String?
+
+  @@index([userId])
+  @@map("instagram_sync_logs")
+}
+
+model BrandIntelCache {
+  id            String   @id @default(cuid())
+  brandName     String   @unique
+  brandCategory String?
+  summary       String   /// AI-synthesized summary of brand size, industry, sponsorship history
+  sourceUrls    String[] /// URLs used to build the summary
+  estimatedTier String?  /// "STARTUP" | "MID_MARKET" | "ENTERPRISE" | "LUXURY" — inferred
+  refreshedAt   DateTime @default(now())
+
+  @@index([brandName])
+  @@map("brand_intel_cache")
+}
+
+model RateIntelligenceOutcome {
+  id          String   @id @default(cuid())
+  requestId   String   @unique
+  request     RateIntelligenceRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  actualRate  Decimal? @db.Decimal(12, 2)
+  wasAccepted Boolean?
+  notes       String?
+  createdAt   DateTime @default(now())
+
+  @@map("rate_intelligence_outcomes")
 }

@@ -1,6 +1,8 @@
 import { RateIntelligenceResultSchema } from '@creator-os/shared';
 import { Injectable, Logger } from '@nestjs/common';
 
+import { BrandIntelService } from './brand-intel.service';
+import { ComparableVectorSearchService } from './comparable-vector-search.service';
 import { GeminiService } from '../gemini/gemini.service';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -14,6 +16,8 @@ export class RateIntelligenceService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly gemini: GeminiService,
+    private readonly brandIntel: BrandIntelService,
+    private readonly vectorSearch: ComparableVectorSearchService,
   ) {}
 
   // ── Quote Generation ─────────────────────────────────────────
@@ -25,11 +29,16 @@ export class RateIntelligenceService {
       include: { user: { select: { name: true } } },
     });
 
-    // 2. Find comparable deals (up to 10)
-    const comparables = await this.findComparables(dto);
+    // 2. RAG retrieval: vector-search comparables + web-researched brand intel, in parallel
+    const [comparables, brandIntel] = await Promise.all([
+      this.vectorSearch.findSimilarComparables(dto, 8),
+      dto.brandName
+        ? this.brandIntel.getBrandIntel(dto.brandName, dto.brandCategory)
+        : Promise.resolve(null),
+    ]);
 
     // 3. Build prompt and call Gemini
-    const prompt = this.buildPrompt(dto, profile, comparables);
+    const prompt = this.buildPrompt(dto, profile, comparables, brandIntel);
     let result;
     try {
       result = await this.gemini.generateStructured(prompt, RateIntelligenceResultSchema, {
@@ -63,7 +72,9 @@ export class RateIntelligenceService {
           "Exclusivity should be narrowly defined to avoid blocking future unrelated opportunities.",
           "Consider asking for a 50% deposit upfront before content creation begins."
         ],
-        brandAnalysis: "Fallback analysis: The selected brand category generally supports standard industry rates. In a real AI analysis, this section provides detailed insights into the specific brand's typical budgets, market positioning, and how those factors influence your recommended quote."
+        brandAnalysis: "Fallback analysis: The selected brand category generally supports standard industry rates. In a real AI analysis, this section provides detailed insights into the specific brand's typical budgets, market positioning, and how those factors influence your recommended quote.",
+        citedComparables: [],
+        brandResearchConfidence: 'LOW' as const,
       };
     }
 
@@ -117,7 +128,8 @@ export class RateIntelligenceService {
   private buildPrompt(
     dto: CreateRateIntelligenceDto,
     profile: Awaited<ReturnType<typeof this.prisma.creatorProfile.findUnique>>,
-    comparables: Awaited<ReturnType<typeof this.prisma.comparableDeal.findMany>>,
+    comparables: any[],
+    brandIntel: { summary: string; sourceUrls: string[]; estimatedTier: string | null } | null,
   ): string {
     const followerRange = this.followerBucket(dto.followers);
     const niches = (profile?.niche ?? []).join(', ') || 'general';
@@ -132,11 +144,15 @@ export class RateIntelligenceService {
         ? comparables
             .slice(0, 8)
             .map(
-              (c) =>
-                `- ${c.followerRange} ${c.niche} creator, ${c.platform}, ${c.dealType}: $${Number(c.baseRate).toFixed(0)} ${c.currency}`,
+              (c: any) =>
+                `- ${c.followerRange} ${c.niche} creator, ${c.platform}, ${c.dealType}: $${Number(c.baseRate).toFixed(0)} ${c.currency}${c.similarity ? ` (relevance: ${(c.similarity * 100).toFixed(0)}%)` : ''}`,
             )
             .join('\n')
         : 'No direct comparables found in database — use general market knowledge.';
+
+    const brandIntelSummary = brandIntel
+      ? `Brand: ${dto.brandName}\nEstimated tier: ${brandIntel.estimatedTier ?? 'unknown'}\nResearch summary: ${brandIntel.summary}`
+      : 'No specific brand named — use general brand category assumptions only.';
 
     const usageRightsStr = dto.usageRights.join(', ');
     const rushText = dto.isRush
@@ -170,10 +186,14 @@ DEAL REQUEST:
 - Rush delivery: ${rushText}
 - Revision rounds included: ${dto.revisionRounds}
 
-MARKET COMPARABLES (anonymised peer data):
+MARKET COMPARABLES (semantically retrieved via vector search, most relevant first):
 ${comparablesSummary}
 
+BRAND RESEARCH (live web-grounded intelligence on the specific brand named):
+${brandIntelSummary}
+
 INSTRUCTIONS:
+Weigh the BRAND RESEARCH section heavily — a named, well-researched brand should materially shift the recommended rate range compared to a generic brand tier guess. If brand research indicates ENTERPRISE or LUXURY tier, lean toward the higher end of market comparables. If STARTUP tier, note that budget constraints are likely even if the creator's profile justifies a higher rate, and mention this tradeoff in the rationale.
 Analyze the creator's profile, deal parameters, and market data. Pay special attention to the brand and do an analysis of the brand itself to determine how it impacts the price.
 Return a JSON object with EXACTLY this structure (no extra keys, no markdown):
 {
@@ -192,7 +212,9 @@ Return a JSON object with EXACTLY this structure (no extra keys, no markdown):
   },
   "counterofferEmail": "<professional email the creator can send to the brand, max 200 words, include [BRAND NAME] placeholder>",
   "negotiationPoints": ["<point 1>", "<point 2>", "<point 3>", "<optional point 4>", "<optional point 5>"],
-  "brandAnalysis": "<detailed analysis of the brand category/tier and how its reputation/size justifies the final price out>"
+  "brandAnalysis": "<detailed analysis of the brand category/tier and how its reputation/size justifies the final price out>",
+  "citedComparables": ["<array of up to 3 strings, each citing which comparable deal most influenced the recommendation, e.g. 'A 50K-200K follower lifestyle creator on Instagram doing a similar sponsored post deal earned $4200'>"],
+  "brandResearchConfidence": "<one of: HIGH, MEDIUM, LOW — based on how much real information was found about this specific brand>"
 }`;
   }
 
