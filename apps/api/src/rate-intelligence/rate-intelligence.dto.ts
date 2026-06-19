@@ -85,6 +85,10 @@ export class CreateRateIntelligenceDto implements RateIntelligenceInput {
   @IsOptional()
   @IsString()
   dashboardDetails?: string;
+
+  @IsString()
+  @IsOptional()
+  brandName?: string;
 }
 
 export class GetHistoryDto {

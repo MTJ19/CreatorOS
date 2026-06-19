@@ -91,6 +91,10 @@ export const RateIntelligenceResultSchema = z.object({
   negotiationPoints: z.array(z.string().max(200)).min(3).max(5),
   /** Analysis of the brand itself */
   brandAnalysis: z.string().min(10).max(2000),
+  /** Cited comparables that influenced the recommendation */
+  citedComparables: z.array(z.string()).max(3).optional().default([]),
+  /** Confidence in brand research */
+  brandResearchConfidence: z.enum(['HIGH', 'MEDIUM', 'LOW']).optional().default('MEDIUM'),
 });
 
 export type RateIntelligenceResult = z.infer<typeof RateIntelligenceResultSchema>;

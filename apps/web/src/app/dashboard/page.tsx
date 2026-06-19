@@ -18,6 +18,7 @@ import {
   Inbox,
   ArrowRight,
   ShieldAlert,
+  Instagram,
 } from 'lucide-react';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -177,9 +178,26 @@ export default function DashboardPage() {
           <p className="text-foreground-muted text-sm mb-6">
             Create your first brand deal to see your dashboard come alive.
           </p>
-          <Button onClick={() => router.push('/deals?new=true')}>
+          <Button onClick={() => router.push('/deals?new=true')} className="mb-8">
             + Create First Deal
           </Button>
+          
+          <Card variant="glass" className="border-border/40 max-w-sm w-full mx-auto p-4 text-left">
+            <div className="flex items-start gap-4">
+              <div className="bg-primary/10 p-2 rounded-lg">
+                <Instagram className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-white">Connect Instagram</h4>
+                <p className="text-xs text-foreground-muted mt-1 mb-3">
+                  Automatically sync your posts and engagement metrics.
+                </p>
+                <Button variant="outline" size="sm" onClick={() => router.push('/performance')}>
+                  Go to Performance
+                </Button>
+              </div>
+            </div>
+          </Card>
         </div>
       ) : (
         <>

@@ -17,10 +17,12 @@ import {
   DollarSign,
   Briefcase,
   History,
+  FileSearch,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { GlowBackground } from '@/components/ui/glow-background';
 import { rateIntelligenceApi } from '@/lib/api-client';
 
@@ -78,6 +80,7 @@ export default function RateIntelligencePage() {
   const [revisionRounds, setRevisionRounds] = React.useState(2);
   const [brandTier, setBrandTier] = React.useState('MID');
   const [brandCategory, setBrandCategory] = React.useState('');
+  const [brandName, setBrandName] = React.useState('');
   const [followers, setFollowers] = React.useState(10000);
   const [dashboardDetails, setDashboardDetails] = React.useState('');
 
@@ -136,6 +139,7 @@ export default function RateIntelligencePage() {
         revisionRounds,
         brandTier,
         brandCategory,
+        brandName: brandName.trim() || undefined,
         followers,
         dashboardDetails,
       });
@@ -176,6 +180,7 @@ export default function RateIntelligencePage() {
     setRevisionRounds(input.revisionRounds);
     setBrandTier(input.brandTier);
     setBrandCategory(input.brandCategory);
+    setBrandName(input.brandName || '');
     setFollowers(input.followers || 10000);
     setDashboardDetails(input.dashboardDetails || '');
     setResult(item);
@@ -275,6 +280,24 @@ export default function RateIntelligencePage() {
                       </option>
                     ))}
                   </select>
+                </div>
+
+                {/* Brand Name */}
+                <div className="space-y-1.5">
+                  <label
+                    htmlFor="brand-name-input"
+                    className="text-xs font-semibold uppercase tracking-wider text-foreground"
+                  >
+                    Brand Name (Optional)
+                  </label>
+                  <input
+                    id="brand-name-input"
+                    type="text"
+                    placeholder="e.g. Nike, Gymshark, Notion"
+                    value={brandName}
+                    onChange={(e) => setBrandName(e.target.value)}
+                    className="w-full rounded-lg border border-border bg-input px-3 py-2.5 text-sm text-foreground transition-all duration-150 placeholder:text-foreground-subtle focus:outline-none focus:ring-2 focus:ring-ring"
+                  />
                 </div>
 
                 {/* Brand Category */}
@@ -506,6 +529,27 @@ export default function RateIntelligencePage() {
                   <p className="mx-auto max-w-lg text-sm leading-relaxed text-foreground-muted">
                     {result.result.rationale}
                   </p>
+                  {result.input.brandName && (
+                    <div className="mt-4 flex items-center justify-center gap-2">
+                      <span className="text-[10px] uppercase tracking-wider text-foreground-subtle">
+                        Research Confidence:
+                      </span>
+                      <Badge
+                        variant="default"
+                        className={cn(
+                          'text-[10px] font-bold px-2 py-0.5',
+                          result.result.brandResearchConfidence === 'HIGH' && 'border-success text-success bg-success/10',
+                          result.result.brandResearchConfidence === 'MEDIUM' && 'border-warning text-warning bg-warning/10',
+                          result.result.brandResearchConfidence === 'LOW' && 'border-foreground-muted text-foreground-muted bg-foreground-muted/10'
+                        )}
+                      >
+                        {result.result.brandResearchConfidence || 'MEDIUM'}
+                      </Badge>
+                      <span className="text-[10px] text-foreground-subtle ml-1">
+                        Includes live research on {result.input.brandName}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -662,6 +706,25 @@ export default function RateIntelligencePage() {
                   })}
                 </CardContent>
               </Card>
+
+              {/* Evidence Section */}
+              {result.result.citedComparables && result.result.citedComparables.length > 0 && (
+                <Card variant="glass" className="border-border/40">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center gap-2 text-sm font-semibold text-white">
+                      <FileSearch className="h-4 w-4 text-primary" /> Evidence
+                    </CardTitle>
+                    <CardDescription>Comparable deals that most influenced this recommendation.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-2.5">
+                    <ul className="list-inside list-disc space-y-2 text-sm text-foreground-muted">
+                      {result.result.citedComparables.map((citation: string, idx: number) => (
+                        <li key={idx}>{citation}</li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           ) : (
             <Card
