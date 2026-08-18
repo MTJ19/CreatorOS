@@ -1,14 +1,23 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
 serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
+
   try {
     const { currentFollowers, weeklyGrowthRate, weeksToForecast = 4 } = await req.json();
 
     if (currentFollowers === undefined || weeklyGrowthRate === undefined) {
       return new Response(
         JSON.stringify({ error: "Missing required fields: currentFollowers, weeklyGrowthRate" }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -31,12 +40,12 @@ serve(async (req) => {
           upperBound: Math.round(upperBound),
         }
       }),
-      { status: 200, headers: { "Content-Type": "application/json" } }
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
     return new Response(
       JSON.stringify({ error: error.message }),
-      { status: 400, headers: { "Content-Type": "application/json" } }
+      { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });
