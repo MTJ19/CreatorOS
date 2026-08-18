@@ -18,7 +18,7 @@ supabase functions deploy negotiation-script-drafter
 
 Env vars needed by the functions (set via `supabase secrets set`):
 - `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` — provided automatically in deployed functions, needed in `.env` for local `supabase functions serve`
-- `OPENAI_API_KEY` — required for the `negotiation-script-drafter` function in Phase 2.
+- `GEMINI_API_KEY` — required for the `negotiation-script-drafter` function in Phase 2.
 - `ESIGN_PROVIDER` — unset defaults to the stub provider (`_shared/esignProvider.ts`). Set to `docusign` / `zoho` / etc. once picked, and add the real implementation.
 
 For local development, create a `.env` file in this directory and start your functions using:
@@ -50,7 +50,7 @@ supabase functions serve --no-verify-jwt --env-file .env
 | POST | `/brand-portal/generate-link` | Agency generates a magic link (`{ contract_id }`) |
 | GET | `/brand-portal/:token` | Brand views contract + deliverables — no auth, token-scoped |
 | POST | `/brand-portal/:token/approve` | Brand approves a deliverable (`{ deliverable_id }`) |
-| POST | `/negotiation-script-drafter` | Phase 2: Drafts a negotiation counter-offer using OpenAI (`{ brandName, initialOffer, desiredRate }`) |
+| POST | `/negotiation-script-drafter` | Phase 2: Drafts a negotiation counter-offer using Gemini (`{ brandName, initialOffer, desiredRate }`) |
 
 ## Activity log
 
