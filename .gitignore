@@ -1,0 +1,15 @@
+# Environment Variables
+.env
+.env.*
+!.env.example
+
+# Supabase
+supabase/.branches/
+supabase/.temp/
+
+# OS Files
+.DS_Store
+
+# Node
+node_modules/
+dist/
