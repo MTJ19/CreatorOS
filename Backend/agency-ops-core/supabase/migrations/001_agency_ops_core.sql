@@ -51,6 +51,13 @@ create table deals (
   created_at timestamptz not null default now()
 );
 
+create table agency_members (
+  id uuid primary key default gen_random_uuid(),
+  agency_id uuid not null references agencies(id) on delete cascade,
+  auth_user_id uuid, -- references auth.users(id)
+  role text not null default 'member'
+);
+
 -- ---------- Agency Ops Core tables (yours) ----------
 
 create table contracts (
