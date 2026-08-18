@@ -120,11 +120,6 @@ export default function NegotiationDrafter() {
                <div>
                  <strong>AI Provider Error</strong>
                  <p style={{ marginTop: '0.25rem', opacity: 0.9 }}>{result.error}</p>
-                 {result.error.includes('429') && (
-                   <p style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: '#fef2f2' }}>
-                     Note: Your OpenAI account is currently out of quota. Add billing credits to see the script generation work end-to-end!
-                   </p>
-                 )}
                </div>
              </div>
           )}
