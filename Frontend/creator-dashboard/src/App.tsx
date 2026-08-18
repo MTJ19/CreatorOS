@@ -1,8 +1,9 @@
 import React, { useState } from 'react'
-import { Calculator, TrendingUp, Mail, DollarSign } from 'lucide-react'
+import { Calculator, TrendingUp, Mail, DollarSign, CheckSquare } from 'lucide-react'
 import RateCalculator from './components/RateCalculator'
 import GrowthForecaster from './components/GrowthForecaster'
 import NegotiationDrafter from './components/NegotiationDrafter'
+import ChecklistGate from './components/ChecklistGate'
 
 function App() {
   const [activeTab, setActiveTab] = useState('rate')
@@ -32,6 +33,14 @@ function App() {
         </div>
         
         <div 
+          className={`nav-item ${activeTab === 'checklist' ? 'active' : ''}`}
+          onClick={() => setActiveTab('checklist')}
+        >
+          <CheckSquare size={20} />
+          <span>Checklist Gate</span>
+        </div>
+        
+        <div 
           className={`nav-item ${activeTab === 'negotiation' ? 'active' : ''}`}
           onClick={() => setActiveTab('negotiation')}
         >
@@ -43,6 +52,7 @@ function App() {
       <main className="main-content">
         {activeTab === 'rate' && <RateCalculator />}
         {activeTab === 'growth' && <GrowthForecaster />}
+        {activeTab === 'checklist' && <ChecklistGate />}
         {activeTab === 'negotiation' && <NegotiationDrafter />}
       </main>
     </div>
