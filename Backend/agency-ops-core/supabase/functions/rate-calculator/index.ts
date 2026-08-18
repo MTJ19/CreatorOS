@@ -2,6 +2,11 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 // Define multipliers and adjustments (these could be fetched from the DB in Phase 2)
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
 const FOLLOWER_TIER_MULTIPLIERS: Record<string, number> = {
   nano: 100,
   micro: 300,
@@ -28,13 +33,17 @@ const NICHE_CPMS: Record<string, number> = {
 };
 
 serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
+
   try {
     const { viewsPerWeek, niche, followerTier, engagementRateTier } = await req.json();
 
     if (!viewsPerWeek || !niche || !followerTier || !engagementRateTier) {
       return new Response(
         JSON.stringify({ error: "Missing required fields" }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -67,12 +76,12 @@ serve(async (req) => {
         suggestedRateLow: parseFloat(suggestedRateLow.toFixed(2)),
         suggestedRateHigh: parseFloat(suggestedRateHigh.toFixed(2)),
       }),
-      { status: 200, headers: { "Content-Type": "application/json" } }
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
     return new Response(
       JSON.stringify({ error: error.message }),
-      { status: 400, headers: { "Content-Type": "application/json" } }
+      { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });
