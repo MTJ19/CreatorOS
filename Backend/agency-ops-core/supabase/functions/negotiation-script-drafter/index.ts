@@ -1,6 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import OpenAI from "npm:openai";
+import { GoogleGenerativeAI } from "npm:@google/generative-ai";
 
 // CORS headers for the browser to call this edge function
 const corsHeaders = {
@@ -25,16 +25,17 @@ serve(async (req) => {
       );
     }
 
-    // Initialize OpenAI client
-    const apiKey = Deno.env.get("OPENAI_API_KEY");
-    if (!apiKey || apiKey === "your_openai_api_key_here") {
+    // Initialize Gemini client
+    const apiKey = Deno.env.get("GEMINI_API_KEY");
+    if (!apiKey || apiKey === "your_gemini_api_key_here") {
        return new Response(
-        JSON.stringify({ error: "OpenAI API key is missing or not configured in .env" }),
+        JSON.stringify({ error: "Gemini API key is missing or not configured in .env" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const openai = new OpenAI({ apiKey });
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: "gemini-3.6-flash" });
 
     // Draft the script
     const prompt = `
@@ -44,16 +45,8 @@ serve(async (req) => {
       Write a ${tone} email to the brand negotiating for this higher rate. Keep it concise, polite, and persuasive.
     `;
 
-    const chatCompletion = await openai.chat.completions.create({
-      model: "gpt-4o-mini", // Using mini for fast/cheap response in testing
-      messages: [
-        { role: "system", content: "You are a professional talent manager negotiating a brand deal." },
-        { role: "user", content: prompt }
-      ],
-      temperature: 0.7,
-    });
-
-    const script = chatCompletion.choices[0].message.content;
+    const result = await model.generateContent(prompt);
+    const script = result.response.text();
 
     return new Response(
       JSON.stringify({ script }),
