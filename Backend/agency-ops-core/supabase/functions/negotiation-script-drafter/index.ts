@@ -35,7 +35,7 @@ serve(async (req) => {
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-3.6-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-pro-latest" });
 
     // Draft the script
     const prompt = `
