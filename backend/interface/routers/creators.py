@@ -1,0 +1,80 @@
+from uuid import UUID
+
+from fastapi import APIRouter, Depends, HTTPException
+
+from application.services.creators import CreatorService
+from domain.models.brand import Brand
+from domain.models.creator import Creator, CreatorOnboardRequest, CreatorProfileUpdateRequest
+from domain.models.auth import LinkBrandRequest
+from exceptions import ValidationError
+from infrastructure.supabase.client import get_supabase_client
+from infrastructure.supabase.repos import SupabaseActivityLogRepo, SupabaseBrandRepo, SupabaseCreatorRepo
+from interface.dependencies import ActorContext, get_current_actor, get_current_brand
+
+router = APIRouter(prefix="/creators", tags=["creators"])
+
+def get_creator_service() -> CreatorService:
+    client = get_supabase_client(service_role=True)
+    return CreatorService(
+        creator_repo=SupabaseCreatorRepo(client),
+        activity_log_repo=SupabaseActivityLogRepo(client),
+        brand_repo=SupabaseBrandRepo(client),
+    )
+
+@router.post("", response_model=Creator)
+async def onboard_creator(
+    request: CreatorOnboardRequest,
+    actor: ActorContext = Depends(get_current_brand),
+    service: CreatorService = Depends(get_creator_service)
+):
+    return await service.onboard_creator(request, actor.brand_id, actor.actor_id, actor.actor_type)
+
+@router.get("", response_model=list[Creator])
+async def list_creators(
+    limit: int = 50,
+    offset: int = 0,
+    actor: ActorContext = Depends(get_current_brand),
+    service: CreatorService = Depends(get_creator_service)
+):
+    return await service.list_for_brand(actor.brand_id, min(limit, 100), offset)
+
+@router.patch("/me", response_model=Creator)
+async def update_my_profile(
+    request: CreatorProfileUpdateRequest,
+    actor: ActorContext = Depends(get_current_actor),
+    service: CreatorService = Depends(get_creator_service)
+):
+    if not actor.creator_id:
+        raise HTTPException(status_code=403, detail="This action requires a creator account")
+    return await service.update_profile(
+        actor.creator_id, request.followers_count, request.engagement_rate, request.avg_views_per_week
+    )
+
+@router.get("/me/brands", response_model=list[Brand])
+async def list_my_brands(
+    actor: ActorContext = Depends(get_current_actor),
+    service: CreatorService = Depends(get_creator_service)
+):
+    if not actor.creator_id:
+        raise HTTPException(status_code=403, detail="This action requires a creator account")
+    return await service.list_linked_brands(actor.creator_id)
+
+@router.post("/me/link-brand", response_model=Brand)
+async def link_brand(
+    request: LinkBrandRequest,
+    actor: ActorContext = Depends(get_current_actor),
+    service: CreatorService = Depends(get_creator_service)
+):
+    if not actor.creator_id:
+        raise HTTPException(status_code=403, detail="This action requires a creator account")
+    try:
+        return await service.link_brand(actor.creator_id, request.invite_code)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.get("/{id}", response_model=Creator)
+async def get_creator(id: UUID, service: CreatorService = Depends(get_creator_service)):
+    creator = await service.creator_repo.get(id)
+    if not creator:
+        raise HTTPException(status_code=404, detail="Creator not found")
+    return creator
