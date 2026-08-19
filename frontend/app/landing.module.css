@@ -1,0 +1,275 @@
+.page {
+  background: #ffffff;
+  color: #0a0a0a;
+  min-height: 100vh;
+}
+
+.announce {
+  background: #f4f3ef;
+  text-align: center;
+  font-size: 12.5px;
+  padding: 9px 16px;
+  color: rgba(10, 10, 10, 0.65);
+}
+
+.wrap {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 32px;
+}
+
+/* ---- nav ---- */
+.nav {
+  padding: 22px 0;
+}
+.navInner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.logo {
+  font-family: var(--font-editorial), serif;
+  font-size: 20px;
+  font-weight: 300;
+  letter-spacing: -0.01em;
+  color: #0a0a0a;
+  text-decoration: none;
+}
+.navRight {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.navLink {
+  font-size: 14px;
+  color: #0a0a0a;
+  text-decoration: none;
+  padding: 8px 10px;
+}
+
+.dropdown {
+  position: relative;
+}
+.dropdown summary {
+  list-style: none;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(10, 10, 10, 0.15);
+  color: #0a0a0a;
+}
+.dropdown summary::-webkit-details-marker { display: none; }
+.dropdown[open] summary { border-color: rgba(10, 10, 10, 0.35); }
+.dropdown.solid summary {
+  background: #0a0a0a;
+  color: #ffffff;
+  border-color: #0a0a0a;
+}
+.dropdownMenu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: #ffffff;
+  border: 1px solid rgba(10, 10, 10, 0.12);
+  border-radius: 12px;
+  box-shadow: 0 8px 28px rgba(10, 10, 10, 0.12);
+  padding: 6px;
+  min-width: 180px;
+  z-index: 20;
+}
+.dropdownMenu a {
+  display: block;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  color: #0a0a0a;
+  text-decoration: none;
+}
+.dropdownMenu a:hover { background: #f4f3ef; }
+.dropdownMenu .menuLabel {
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(10, 10, 10, 0.4);
+  padding: 8px 12px 2px;
+}
+
+/* ---- hero ---- */
+.hero {
+  padding: 64px 0 40px;
+  text-align: center;
+}
+.eyebrow {
+  font-size: 12.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(10, 10, 10, 0.45);
+  margin: 0 0 20px;
+}
+.headline {
+  font-family: var(--font-editorial), serif;
+  font-weight: 200;
+  font-size: clamp(40px, 6.4vw, 76px);
+  letter-spacing: -0.025em;
+  line-height: 1.04;
+  margin: 0 auto 22px;
+  max-width: 15ch;
+  text-wrap: balance;
+}
+.headline em {
+  font-style: italic;
+}
+.lede {
+  font-size: 17px;
+  color: rgba(10, 10, 10, 0.55);
+  max-width: 50ch;
+  margin: 0 auto 34px;
+  line-height: 1.55;
+}
+.heroCtas {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+.btnDark {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #0a0a0a;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 12px 22px;
+  border-radius: 999px;
+  text-decoration: none;
+}
+.btnGhost {
+  display: inline-flex;
+  align-items: center;
+  background: transparent;
+  color: #0a0a0a;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 12px 22px;
+  border-radius: 999px;
+  border: 1px solid rgba(10, 10, 10, 0.15);
+  text-decoration: none;
+}
+
+/* ---- art strip ---- */
+.artStrip {
+  height: 220px;
+  border-radius: 24px;
+  margin: 40px 0 72px;
+  overflow: hidden;
+}
+
+/* ---- role cards ---- */
+.roleGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  margin-bottom: 88px;
+}
+@media (max-width: 780px) {
+  .roleGrid { grid-template-columns: 1fr; }
+}
+.roleCard {
+  border: 1px solid rgba(10, 10, 10, 0.1);
+  border-radius: 18px;
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transition: border-color 150ms ease-out;
+}
+.roleCard:hover {
+  border-color: rgba(10, 10, 10, 0.3);
+}
+.roleTag {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(10, 10, 10, 0.45);
+}
+.roleTitle {
+  font-family: var(--font-editorial), serif;
+  font-weight: 300;
+  font-size: 26px;
+  letter-spacing: -0.01em;
+}
+.roleDesc {
+  font-size: 14px;
+  color: rgba(10, 10, 10, 0.55);
+  line-height: 1.55;
+  flex: 1;
+}
+.roleActions {
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
+}
+.roleActions a {
+  font-size: 13.5px;
+  text-decoration: none;
+  padding: 9px 16px;
+  border-radius: 999px;
+}
+.roleActions .primary {
+  background: #0a0a0a;
+  color: #ffffff;
+}
+.roleActions .secondary {
+  border: 1px solid rgba(10, 10, 10, 0.15);
+  color: #0a0a0a;
+}
+
+/* ---- phase strip ---- */
+.phasesSection {
+  border-top: 1px solid rgba(10, 10, 10, 0.1);
+}
+.phases {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 56px 32px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+}
+@media (max-width: 780px) {
+  .phases { grid-template-columns: 1fr; }
+}
+.phaseNum {
+  font-family: var(--font-editorial), serif;
+  font-weight: 200;
+  font-size: 32px;
+  color: rgba(10, 10, 10, 0.25);
+  margin-bottom: 10px;
+}
+.phaseTitle {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.phaseDesc {
+  font-size: 13.5px;
+  color: rgba(10, 10, 10, 0.55);
+  line-height: 1.55;
+}
+
+/* ---- footer ---- */
+.footer {
+  border-top: 1px solid rgba(10, 10, 10, 0.1);
+  padding: 32px 0 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  color: rgba(10, 10, 10, 0.45);
+}
+.footer a {
+  color: rgba(10, 10, 10, 0.55);
+  text-decoration: none;
+  margin-left: 20px;
+}

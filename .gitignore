@@ -13,3 +13,9 @@ supabase/.temp/
 # Node
 node_modules/
 dist/
+
+# Python / IDE
+.ruff_cache/
+.vscode/
+.idea/
+*.log
