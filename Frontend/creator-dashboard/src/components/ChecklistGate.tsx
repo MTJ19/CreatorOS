@@ -1,12 +1,17 @@
-import React, { useState } from 'react'
-import { CheckCircle2, AlertCircle } from 'lucide-react'
+import { useState } from 'react'
+import { CheckCircle2, AlertTriangle, ShieldCheck, Lock, Unlock, ArrowRight, XCircle } from 'lucide-react'
+import { api, type ChecklistResult } from '../services/api'
 
-export default function ChecklistGate() {
+interface ChecklistGateProps {
+  onChecklistPassed?: () => void;
+}
+
+export default function ChecklistGate({ onChecklistPassed }: ChecklistGateProps) {
   const [loading, setLoading] = useState(false)
-  const [result, setResult] = useState<any>(null)
+  const [result, setResult] = useState<ChecklistResult | null>(null)
   
   const [usageRights, setUsageRights] = useState('6 months')
-  const [exclusivity, setExclusivity] = useState('None')
+  const [exclusivity, setExclusivity] = useState('Category Specific')
   const [revisions, setRevisions] = useState<number | string>(2)
   const [payment, setPayment] = useState('Net 30')
 
@@ -14,112 +19,210 @@ export default function ChecklistGate() {
     e.preventDefault()
     setLoading(true)
     try {
-      const res = await fetch('http://127.0.0.1:54321/functions/v1/checklist-gate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          usage_rights_duration: usageRights,
-          exclusivity_scope: exclusivity,
-          revision_limit: revisions === '' ? null : Number(revisions),
-          payment_timeline: payment
-        })
+      const data = await api.verifyChecklist({
+        usage_rights_duration: usageRights,
+        exclusivity_scope: exclusivity,
+        revision_limit: revisions === '' ? null : Number(revisions),
+        payment_timeline: payment
       })
-      const data = await res.json()
       setResult(data)
     } catch (err) {
       console.error(err)
-      setResult({ error: "Failed to connect to backend API." })
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="glass-card" style={{ maxWidth: '800px', margin: '0 auto' }}>
+    <div className="tool-container">
       <header className="page-header">
-        <h1 className="page-title">Checklist Gate</h1>
-        <p className="page-subtitle">Verify all mandatory contract clauses before approving a counter-offer.</p>
+        <div className="badge-pill mb-2">Pre-Send Verification Gate</div>
+        <h1 className="page-title">Pre-Send Checklist Gate</h1>
+        <p className="page-subtitle">
+          Mandatory compliance gate: Usage rights, exclusivity scope, revision limits, and payment timelines must be strictly defined before sending any counter-offer.
+        </p>
       </header>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3rem' }}>
-        <form onSubmit={handleVerify}>
-          <div className="form-group">
-            <label className="form-label">Usage Rights Duration</label>
-            <select className="form-input" value={usageRights} onChange={e => setUsageRights(e.target.value)}>
-              <option value="">-- Select --</option>
-              <option value="3 months">3 Months</option>
-              <option value="6 months">6 Months</option>
-              <option value="12 months">1 Year</option>
-              <option value="In Perpetuity">In Perpetuity (Requires Review)</option>
-            </select>
-          </div>
-          
-          <div className="form-group">
-            <label className="form-label">Exclusivity Scope</label>
-            <select className="form-input" value={exclusivity} onChange={e => setExclusivity(e.target.value)}>
-              <option value="">-- Select --</option>
-              <option value="None">None</option>
-              <option value="Category Specific">Category Specific</option>
-              <option value="Total">Total Exclusivity</option>
-            </select>
-          </div>
+      <div className="grid-2-col">
+        {/* Term Input Form */}
+        <div className="glass-card">
+          <h2 className="card-title mb-4 flex items-center gap-2">
+            <ShieldCheck size={20} className="text-accent" />
+            Deal Terms & Mandatory Clauses
+          </h2>
 
-          <div className="form-group">
-            <label className="form-label">Revision Limit</label>
-            <input 
-              type="number" 
-              className="form-input" 
-              value={revisions} 
-              onChange={e => setRevisions(e.target.value)} 
-              placeholder="e.g. 2"
-            />
-          </div>
+          <form onSubmit={handleVerify}>
+            <div className="form-group">
+              <label className="form-label flex justify-between items-center">
+                <span>1. Usage Rights Duration *</span>
+                {usageRights.includes('Perpetuity') && (
+                  <span className="text-xs text-danger font-semibold flex items-center gap-1">
+                    <AlertTriangle size={12} /> Red Flag Risk
+                  </span>
+                )}
+              </label>
+              <select 
+                className={`form-input ${usageRights.includes('Perpetuity') ? 'border-danger' : ''}`}
+                value={usageRights} 
+                onChange={e => setUsageRights(e.target.value)}
+              >
+                <option value="">-- Select Required Duration --</option>
+                <option value="3 months">3 Months (Standard Digital Campaign)</option>
+                <option value="6 months">6 Months (Extended Commercial)</option>
+                <option value="12 months">12 Months (Annual License)</option>
+                <option value="In Perpetuity">In Perpetuity (Dangerous - Hard Lock)</option>
+              </select>
+            </div>
+            
+            <div className="form-group">
+              <label className="form-label flex justify-between items-center">
+                <span>2. Exclusivity Scope *</span>
+                {exclusivity.includes('Total') && (
+                  <span className="text-xs text-warning font-semibold flex items-center gap-1">
+                    <AlertTriangle size={12} /> High Restriction
+                  </span>
+                )}
+              </label>
+              <select 
+                className="form-input" 
+                value={exclusivity} 
+                onChange={e => setExclusivity(e.target.value)}
+              >
+                <option value="">-- Select Required Exclusivity --</option>
+                <option value="None">None (Non-Exclusive)</option>
+                <option value="Category Specific">Category Specific (Direct Competitors Only)</option>
+                <option value="Total">Total Exclusivity (Blocks All Other Deals)</option>
+              </select>
+            </div>
 
-          <div className="form-group">
-            <label className="form-label">Payment Timeline</label>
-            <select className="form-input" value={payment} onChange={e => setPayment(e.target.value)}>
-              <option value="">-- Select --</option>
-              <option value="Upon Delivery">Upon Delivery</option>
-              <option value="Net 30">Net 30</option>
-              <option value="Net 60">Net 60</option>
-              <option value="Net 90">Net 90</option>
-            </select>
-          </div>
+            <div className="form-group">
+              <label className="form-label flex justify-between items-center">
+                <span>3. Creative Revision Limit *</span>
+                {Number(revisions) > 3 && (
+                  <span className="text-xs text-warning font-semibold flex items-center gap-1">
+                    <AlertTriangle size={12} /> Scope Creep Risk
+                  </span>
+                )}
+              </label>
+              <input 
+                type="number" 
+                min="0"
+                max="10"
+                className="form-input" 
+                value={revisions} 
+                onChange={e => setRevisions(e.target.value)} 
+                placeholder="Recommended: 2 rounds"
+              />
+              <span className="text-xs text-muted mt-1">Recommended: 2 rounds maximum (additional rounds charged at 15%).</span>
+            </div>
 
-          <button type="submit" className="btn-primary" disabled={loading}>
-            {loading ? 'Verifying...' : 'Run Checklist'}
-          </button>
-        </form>
+            <div className="form-group">
+              <label className="form-label flex justify-between items-center">
+                <span>4. Payment Timeline *</span>
+                {payment.includes('90') && (
+                  <span className="text-xs text-warning font-semibold flex items-center gap-1">
+                    <AlertTriangle size={12} /> Delayed Rail
+                  </span>
+                )}
+              </label>
+              <select 
+                className="form-input" 
+                value={payment} 
+                onChange={e => setPayment(e.target.value)}
+              >
+                <option value="">-- Select Required Timeline --</option>
+                <option value="Upon Delivery">Upon Delivery (Immediate)</option>
+                <option value="Net 30">Net 30 Days (Industry Benchmark)</option>
+                <option value="Net 60">Net 60 Days (Extended)</option>
+                <option value="Net 90">Net 90 Days (Delayed Cashflow Risk)</option>
+              </select>
+            </div>
 
-        <div className="results-panel">
-          {result && result.canSendCounter !== undefined && (
-            <div className="results-container" style={{ marginTop: 0, paddingTop: 0, border: 'none' }}>
+            <button type="submit" className="btn-primary mt-4" disabled={loading}>
+              {loading ? 'Evaluating Terms...' : 'Run Checklist Gate'}
+            </button>
+          </form>
+        </div>
+
+        {/* Verification Status Card */}
+        <div className="glass-card result-panel-card">
+          <h2 className="card-title mb-4 flex items-center justify-between">
+            <span>Gate Authorization Status</span>
+            {result && (
+              <span className={result.canSendCounter ? "badge-success" : "badge-danger"}>
+                {result.canSendCounter ? "Gate Cleared" : "Counter Locked"}
+              </span>
+            )}
+          </h2>
+
+          {!result && (
+            <div className="empty-state-box">
+              <Lock size={48} className="text-muted mb-2" />
+              <p className="text-sm text-muted">Submit all mandatory deal terms to run pre-send validation.</p>
+            </div>
+          )}
+
+          {result && (
+            <div className="checklist-result-box">
               {result.canSendCounter ? (
-                <div style={{ textAlign: 'center', padding: '2rem 0' }}>
-                  <CheckCircle2 size={64} style={{ color: 'var(--success)', margin: '0 auto 1rem' }} />
-                  <h3 style={{ fontSize: '1.25rem', color: 'var(--success)' }}>All Clear!</h3>
-                  <p style={{ color: 'var(--text-muted)', marginTop: '0.5rem' }}>{result.message}</p>
+                <div className="gate-cleared-panel">
+                  <div className="icon-badge-success mb-3">
+                    <CheckCircle2 size={48} className="text-success" />
+                  </div>
+                  <h3 className="text-lg font-bold text-success">All Checklist Criteria Cleared!</h3>
+                  <p className="text-sm text-muted mt-1">{result.message}</p>
+
+                  {/* Warning callouts if any */}
+                  {result.warnings && result.warnings.length > 0 && (
+                    <div className="warning-box mt-4 text-left">
+                      <div className="flex items-center gap-2 text-warning font-semibold text-xs mb-2">
+                        <AlertTriangle size={14} /> Attention Items:
+                      </div>
+                      <ul className="text-xs text-muted list-disc list-inside space-y-1">
+                        {result.warnings.map((w, idx) => (
+                          <li key={idx}>{w}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  <div className="gate-action-box mt-6">
+                    <div className="badge-pill-success mb-3 flex items-center justify-center gap-1.5">
+                      <Unlock size={14} /> Counter-Offer Sending Unlocked
+                    </div>
+                    {onChecklistPassed && (
+                      <button 
+                        type="button" 
+                        className="btn-primary flex items-center justify-center gap-2 w-full"
+                        onClick={onChecklistPassed}
+                      >
+                        Proceed to Negotiation Drafter
+                        <ArrowRight size={16} />
+                      </button>
+                    )}
+                  </div>
                 </div>
               ) : (
-                <div className="error-message" style={{ flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginTop: 0 }}>
-                  <AlertCircle size={48} style={{ color: '#f87171', marginBottom: '1rem' }} />
-                  <h3 style={{ fontSize: '1.25rem', color: '#f87171' }}>Checklist Failed</h3>
-                  <p style={{ opacity: 0.9, marginTop: '0.5rem' }}>{result.message}</p>
-                  
-                  <div style={{ marginTop: '1rem', width: '100%', textAlign: 'left', background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '8px' }}>
-                    <strong style={{ display: 'block', marginBottom: '0.5rem', color: '#fca5a5' }}>Missing Fields:</strong>
-                    <ul style={{ listStyle: 'disc', paddingLeft: '1.5rem', color: 'var(--text-main)' }}>
-                      {result.missingFields.map((field: string) => (
-                        <li key={field} style={{ marginBottom: '0.25rem' }}>{field.replace(/_/g, ' ')}</li>
+                <div className="gate-locked-panel">
+                  <div className="icon-badge-danger mb-3">
+                    <XCircle size={48} className="text-danger" />
+                  </div>
+                  <h3 className="text-lg font-bold text-danger">Checklist Gate Failed</h3>
+                  <p className="text-sm text-muted mt-1">{result.message}</p>
+
+                  <div className="missing-fields-box mt-4">
+                    <span className="text-xs font-semibold text-danger block mb-2">Missing Mandatory Clauses:</span>
+                    <div className="missing-pills flex flex-wrap gap-2">
+                      {result.missingFields.map((field) => (
+                        <span key={field} className="badge-danger text-xs">
+                          {field.replace(/_/g, ' ')}
+                        </span>
                       ))}
-                    </ul>
+                    </div>
                   </div>
                 </div>
               )}
             </div>
-          )}
-          {result?.error && (
-             <div className="error-message">Error: {result.error}</div>
           )}
         </div>
       </div>

@@ -1,127 +1,216 @@
-import React, { useState } from 'react'
-import { AlertCircle } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Mail, Sparkles, Copy, Check, FileText, Send, Zap } from 'lucide-react'
+import { api } from '../services/api'
 
-export default function NegotiationDrafter() {
+interface NegotiationDrafterProps {
+  initialAsk?: number;
+  initialBrand?: string;
+  initialOffer?: number;
+  initialNiche?: string;
+}
+
+export default function NegotiationDrafter({ 
+  initialAsk, 
+  initialBrand, 
+  initialOffer, 
+  initialNiche 
+}: NegotiationDrafterProps) {
   const [loading, setLoading] = useState(false)
-  const [result, setResult] = useState<any>(null)
+  const [copied, setCopied] = useState(false)
+  const [result, setResult] = useState<{ script: string; source: string } | null>(null)
   
-  const [brand, setBrand] = useState('Nike')
-  const [niche, setNiche] = useState('fitness')
-  const [offer, setOffer] = useState(5000)
-  const [ask, setAsk] = useState(8500)
+  const [brand, setBrand] = useState(initialBrand || 'Nike Running')
+  const [niche, setNiche] = useState(initialNiche || 'fitness')
+  const [offer, setOffer] = useState(initialOffer || 3500)
+  const [ask, setAsk] = useState(initialAsk || 6500)
   const [tone, setTone] = useState('polite but firm')
+  const [scenario, setScenario] = useState('counter')
+
+  useEffect(() => {
+    if (initialBrand) setBrand(initialBrand);
+    if (initialAsk) setAsk(initialAsk);
+    if (initialOffer) setOffer(initialOffer);
+    if (initialNiche) setNiche(initialNiche);
+  }, [initialBrand, initialAsk, initialOffer, initialNiche]);
 
   const handleDraft = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     try {
-      const res = await fetch('http://127.0.0.1:54321/functions/v1/negotiation-script-drafter', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          brandName: brand,
-          creatorNiche: niche,
-          initialOffer: offer,
-          desiredRate: ask,
-          tone: tone
-        })
+      const data = await api.draftNegotiationScript({
+        brandName: brand,
+        creatorNiche: niche,
+        initialOffer: offer,
+        desiredRate: ask,
+        tone,
+        scenario
       })
-      const data = await res.json()
       setResult(data)
     } catch (err) {
       console.error(err)
-      setResult({ error: "Failed to connect to backend API." })
     } finally {
       setLoading(false)
     }
   }
 
+  const handleCopy = () => {
+    if (!result?.script) return
+    navigator.clipboard.writeText(result.script)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2500)
+  }
+
   return (
-    <div className="glass-card" style={{ maxWidth: '900px', margin: '0 auto' }}>
+    <div className="tool-container">
       <header className="page-header">
-        <h1 className="page-title">AI Script Drafter</h1>
-        <p className="page-subtitle">Automatically generate negotiation counter-offers powered by OpenAI.</p>
+        <div className="badge-pill mb-2">Phase 1 — Deterministic Negotiation Engine</div>
+        <h1 className="page-title">Ready-to-Send Negotiation Scripts</h1>
+        <p className="page-subtitle">
+          Generate battle-tested counter-offer scripts for lowball openers, exposure pitches, and scope creep requests using deterministic talent agency templates.
+        </p>
       </header>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3rem' }}>
-        <form onSubmit={handleDraft}>
-          <div className="form-group">
-            <label className="form-label">Brand Name</label>
-            <input 
-              type="text" 
-              className="form-input" 
-              value={brand} 
-              onChange={e => setBrand(e.target.value)} 
-            />
-          </div>
-          
-          <div className="form-group">
-            <label className="form-label">Creator Niche</label>
-            <input 
-              type="text" 
-              className="form-input" 
-              value={niche} 
-              onChange={e => setNiche(e.target.value)} 
-            />
-          </div>
+      {/* Scenario Selector Pills */}
+      <div className="scenario-pills-container mb-6">
+        <button
+          type="button"
+          className={`scenario-pill ${scenario === 'counter' ? 'active' : ''}`}
+          onClick={() => setScenario('counter')}
+        >
+          <Zap size={14} /> Lowball / Standard Counter
+        </button>
+        <button
+          type="button"
+          className={`scenario-pill ${scenario === 'exposure' ? 'active' : ''}`}
+          onClick={() => setScenario('exposure')}
+        >
+          <Sparkles size={14} /> "Exposure Instead of Pay"
+        </button>
+        <button
+          type="button"
+          className={`scenario-pill ${scenario === 'scope_creep' ? 'active' : ''}`}
+          onClick={() => setScenario('scope_creep')}
+        >
+          <FileText size={14} /> Scope Creep & Add-on Rights
+        </button>
+      </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+      <div className="grid-2-col">
+        {/* Deal Input Form */}
+        <div className="glass-card">
+          <h2 className="card-title mb-4 flex items-center gap-2">
+            <Mail size={20} className="text-accent" />
+            Negotiation Parameters
+          </h2>
+
+          <form onSubmit={handleDraft}>
             <div className="form-group">
-              <label className="form-label">Initial Offer ($)</label>
+              <label className="form-label">Brand / Sponsor Name</label>
               <input 
-                type="number" 
+                type="text" 
                 className="form-input" 
-                value={offer} 
-                onChange={e => setOffer(Number(e.target.value))} 
+                value={brand} 
+                onChange={e => setBrand(e.target.value)} 
+                placeholder="e.g. Nike, Gymshark, Notion"
+                required
               />
             </div>
+            
             <div className="form-group">
-              <label className="form-label">Counter Ask ($)</label>
+              <label className="form-label">Creator Niche / Community</label>
               <input 
-                type="number" 
+                type="text" 
                 className="form-input" 
-                value={ask} 
-                onChange={e => setAsk(Number(e.target.value))} 
+                value={niche} 
+                onChange={e => setNiche(e.target.value)} 
+                placeholder="e.g. Tech, Fitness, Finance"
+                required
               />
             </div>
-          </div>
 
-          <div className="form-group">
-            <label className="form-label">Tone</label>
-            <select className="form-input" value={tone} onChange={e => setTone(e.target.value)}>
-              <option value="polite but firm">Polite but firm</option>
-              <option value="friendly and collaborative">Friendly & Collaborative</option>
-              <option value="data-driven and analytical">Data-driven & Analytical</option>
-            </select>
-          </div>
-
-          <button type="submit" className="btn-primary" disabled={loading}>
-            {loading ? 'Generating Script...' : 'Generate Script'}
-          </button>
-        </form>
-
-        <div className="results-panel">
-          {!result && (
-            <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', border: '1px dashed var(--border-color)', borderRadius: '8px' }}>
-              Fill details to draft a script
-            </div>
-          )}
-          {result && result.script && (
-            <div className="results-container" style={{ marginTop: 0, paddingTop: 0, border: 'none' }}>
-              <div className="result-label" style={{ marginBottom: '0.5rem' }}>Drafted Response:</div>
-              <div className="ai-script-output">
-                {result.script}
+            <div className="grid-2-col-compact">
+              <div className="form-group">
+                <label className="form-label">Initial Brand Offer ($)</label>
+                <input 
+                  type="number" 
+                  className="form-input" 
+                  value={offer} 
+                  onChange={e => setOffer(Number(e.target.value))} 
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Target Counter Ask ($)</label>
+                <input 
+                  type="number" 
+                  className="form-input" 
+                  value={ask} 
+                  onChange={e => setAsk(Number(e.target.value))} 
+                />
               </div>
             </div>
+
+            <div className="form-group">
+              <label className="form-label">Response Tone & Framing</label>
+              <select className="form-input" value={tone} onChange={e => setTone(e.target.value)}>
+                <option value="polite but firm">Polite but Firm (Recommended)</option>
+                <option value="friendly and collaborative">Friendly & Collaborative</option>
+                <option value="data-driven and analytical">Data-Driven & Analytical (CPM focused)</option>
+              </select>
+            </div>
+
+            <button type="submit" className="btn-primary mt-4 flex items-center justify-center gap-2" disabled={loading}>
+              <Zap size={16} />
+              {loading ? 'Drafting Counter-Offer...' : 'Generate Ready-to-Send Script'}
+            </button>
+          </form>
+        </div>
+
+        {/* Script Output Panel */}
+        <div className="glass-card result-panel-card">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="card-title">Generated Counter Email</h2>
+            {result && (
+              <span className="badge-pill text-xs">
+                ⚡ Deterministic Template (Phase 1)
+              </span>
+            )}
+          </div>
+
+          {!result && (
+            <div className="empty-state-box">
+              <Mail size={48} className="text-muted mb-2" />
+              <p className="text-sm text-muted">Configure negotiation parameters to generate your ready-to-send counter script.</p>
+            </div>
           )}
-          {result?.error && (
-             <div className="error-message">
-               <AlertCircle size={20} style={{ flexShrink: 0 }} />
-               <div>
-                 <strong>AI Provider Error</strong>
-                 <p style={{ marginTop: '0.25rem', opacity: 0.9 }}>{result.error}</p>
-               </div>
-             </div>
+
+          {result && (
+            <div className="script-output-container">
+              <div className="script-text-box">
+                {result.script}
+              </div>
+
+              <div className="script-actions-bar mt-4 flex justify-between items-center">
+                <button 
+                  type="button" 
+                  className={`btn-secondary flex items-center gap-2 ${copied ? 'btn-copied' : ''}`}
+                  onClick={handleCopy}
+                >
+                  {copied ? <Check size={16} className="text-success" /> : <Copy size={16} />}
+                  {copied ? 'Copied to Clipboard!' : 'Copy Script'}
+                </button>
+
+                <button
+                  type="button"
+                  className="btn-primary flex items-center gap-2"
+                  onClick={() => {
+                    const mailtoUrl = `mailto:?subject=${encodeURIComponent(`Partnership Proposal: ${brand} x Creator`)}&body=${encodeURIComponent(result.script)}`;
+                    window.open(mailtoUrl, '_blank');
+                  }}
+                >
+                  <Send size={16} /> Open in Email Client
+                </button>
+              </div>
+            </div>
           )}
         </div>
       </div>
