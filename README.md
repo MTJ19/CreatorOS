@@ -140,3 +140,17 @@ Three evaluator agents run per draft, each a distinct persona, followed by one s
 4. **Orchestration / workflow engine** — event-triggered state machine (upload → scan → gate → escalate/clear → log); owns the e-sign lock
 5. **Channel layer** — WhatsApp Business API + email for notifications/approvals; magic-link auth for the brand portal
 6. **Presentation layer** — React, three role-based views sharing one activity log
+
+---
+
+## 📚 Documentation & Technical Journals
+
+- **Project Documentation:** Located in [`docs/`](docs/)
+  - [Documentation Portal Home](docs/index.md)
+  - [System Architecture & Multi-Layer Specs](docs/architecture.md)
+  - [Feature Specifications & Formulas](docs/features.md)
+  - [Developer Setup & Installation Guide](docs/setup.md)
+- **Team Weekly Journals:** Located in [`journals/`](journals/)
+  - [Journal Guidelines & Rules](journals/README.md)
+  - [Weekly Submission Template](journals/TEMPLATE.md)
+  - [Mrityunjay's Technical Journal](journals/mrityunjay/)

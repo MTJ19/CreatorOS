@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import { MessageSquare, Award, RefreshCw, CheckCircle2, AlertCircle, ArrowRight, User, Building2 } from 'lucide-react'
+import { MessageSquare, Award, RefreshCw, CheckCircle2, AlertCircle, ArrowRight, User, Building2, Gamepad2 } from 'lucide-react'
 
 interface NegotiationScenario {
   id: string;
   brandName: string;
   brandAvatar: string;
   campaign: string;
+  difficulty: 'Beginner' | 'Intermediate' | 'Masterclass';
   initialBrandMessage: string;
   options: {
     id: string;
@@ -23,6 +24,7 @@ const SCENARIOS: NegotiationScenario[] = [
     brandName: 'Apex Nutrition',
     brandAvatar: '⚡',
     campaign: 'Q3 Protein Shake Launch',
+    difficulty: 'Beginner',
     initialBrandMessage: "Hi! We love your fitness content. Our budget for this campaign is strictly capped at $2,000 for 1 Dedicated YouTube Video + 3 IG Reels. We can't go higher because we are allocating most ad spend to paid search.",
     options: [
       {
@@ -30,7 +32,7 @@ const SCENARIOS: NegotiationScenario[] = [
         text: "Okay, I understand. I can do the dedicated video and 3 reels for $2,000 just this once to build the relationship.",
         score: 2,
         verdict: 'blunder',
-        feedback: "Severe Underpricing & Scope Trap. You conceded 70% of your market value without reducing deliverable scope or asking for anything in return.",
+        feedback: "Severe Underpricing & Scope Trap: You conceded 70% of your market value without reducing deliverable scope or asking for anything in return.",
         suggestedFollowUp: "Never discount price without removing deliverables or shortening usage rights."
       },
       {
@@ -38,7 +40,7 @@ const SCENARIOS: NegotiationScenario[] = [
         text: "Thanks for the context! For a $2,000 budget, I can offer 1 High-Impact IG Reel with 30 days usage rights. If you need the dedicated YouTube video + 3 Reels, my standard rate is $6,500.",
         score: 10,
         verdict: 'optimal',
-        feedback: "Masterclass Counter. You respected their budget constraint while protecting your rate integrity by restructuring the deliverable scope.",
+        feedback: "Masterclass Counter: You respected their budget constraint while protecting your rate integrity by restructuring the deliverable scope.",
         suggestedFollowUp: "Brand will usually either take the single Reel or find budget from another line item."
       },
       {
@@ -46,7 +48,7 @@ const SCENARIOS: NegotiationScenario[] = [
         text: "No thanks, that's way too low for my numbers. Let me know when you have a real budget.",
         score: 4,
         verdict: 'blunder',
-        feedback: "Too confrontational. Burns bridges and eliminates the possibility of future campaigns when their budget expands.",
+        feedback: "Too confrontational: Burns bridges and eliminates the possibility of future campaigns when their budget expands.",
         suggestedFollowUp: "Always remain polite and suggest a trimmed deliverable package."
       }
     ]
@@ -56,6 +58,7 @@ const SCENARIOS: NegotiationScenario[] = [
     brandName: 'GlowSkin Co.',
     brandAvatar: '✨',
     campaign: 'Summer Hydration Serum',
+    difficulty: 'Intermediate',
     initialBrandMessage: "We agree to your $4,000 rate! We just need standard dark-posting & Meta ad whitelisting access to your Instagram account in perpetuity included in the agreement.",
     options: [
       {
@@ -71,8 +74,34 @@ const SCENARIOS: NegotiationScenario[] = [
         text: "Awesome to partner! My $4,000 rate includes standard organic posting with 60 days digital usage. For Meta ad whitelisting/boosting, my rate is +$1,200 per 30-day window. Let me know if you'd like to add that on!",
         score: 10,
         verdict: 'optimal',
-        feedback: "Flawless Defense. You separated organic rights from paid ad whitelisting and captured an extra 30% add-on fee.",
+        feedback: "Flawless Defense: You separated organic rights from paid ad whitelisting and captured an extra 30% add-on fee.",
         suggestedFollowUp: "Brands with media spend will almost always pay the $1,200 boosting add-on."
+      }
+    ]
+  },
+  {
+    id: 'scope_creep_surprise',
+    brandName: 'SaaS Suite Pro',
+    brandAvatar: '💼',
+    campaign: 'Annual Product Launch',
+    difficulty: 'Masterclass',
+    initialBrandMessage: "Hey! We just drafted the agreement. We also included 3 TikTok cutdowns, 6 months raw footage access for our internal sales deck, and unlimited review rounds so our legal team can approve.",
+    options: [
+      {
+        id: 'opt_1',
+        text: "Thanks for the draft! To include the 3 TikTok cutdowns and raw footage licensing, our adjusted package rate is $8,500 (up from $5,000). Also, our standard agreement includes 2 rounds of review, with additional rounds at $350/ea.",
+        score: 10,
+        verdict: 'optimal',
+        feedback: "Perfect Scope Boundary: You monetized the add-on deliverables immediately and established firm revision boundaries before signing.",
+        suggestedFollowUp: "Keeps production timeline on schedule and prevents scope bleed."
+      },
+      {
+        id: 'opt_2',
+        text: "Sure, as long as the cutdowns are short and the raw footage isn't posted publicly, that's fine.",
+        score: 3,
+        verdict: 'blunder',
+        feedback: "Gave away valuable raw commercial assets and opened the door to endless revision cycles for zero extra compensation.",
+        suggestedFollowUp: "Raw footage has immense commercial value for brands; always charge a licensing multiplier."
       }
     ]
   }
@@ -94,15 +123,23 @@ export default function PracticeMode() {
     setActiveScenarioIdx((prev) => (prev + 1) % SCENARIOS.length)
   }
 
-
   return (
     <div className="tool-container">
-      <header className="page-header">
-        <div className="badge-pill mb-2">Simulated Back-and-Forth</div>
-        <h1 className="page-title">Negotiation Practice Arena</h1>
-        <p className="page-subtitle">
-          Test your negotiation instincts against simulated real-world brand pushbacks, lowball budgets, and sneaky contract trapdoors.
-        </p>
+      <header className="page-header flex justify-between items-start">
+        <div>
+          <div className="badge-pill mb-2">Phase 1 — Interactive Arena</div>
+          <h1 className="page-title">
+            <Gamepad2 size={28} className="text-accent" />
+            Negotiation Practice Arena
+          </h1>
+          <p className="page-subtitle">
+            Sharpen your counter-offer instincts against simulated real-world brand pushbacks, lowball budgets, and hidden contract trapdoors.
+          </p>
+        </div>
+
+        <span className="badge-pill text-xs">
+          Scenario {activeScenarioIdx + 1} of {SCENARIOS.length}
+        </span>
       </header>
 
       <div className="grid-2-col">
@@ -117,22 +154,27 @@ export default function PracticeMode() {
                   <span className="text-xs text-muted">{scenario.campaign}</span>
                 </div>
               </div>
-              <span className="badge-pill text-xs">Scenario {activeScenarioIdx + 1} of {SCENARIOS.length}</span>
+              <span className={`badge-pill text-2xs ${
+                scenario.difficulty === 'Beginner' ? 'badge-primary' :
+                scenario.difficulty === 'Intermediate' ? 'badge-warning' : 'badge-danger'
+              }`}>
+                {scenario.difficulty}
+              </span>
             </div>
 
             {/* Brand Message Bubble */}
-            <div className="chat-bubble brand-bubble mb-6">
+            <div className="chat-bubble brand-bubble mb-5">
               <div className="bubble-header flex items-center gap-1.5 text-xs text-muted mb-1">
                 <Building2 size={14} className="text-accent" />
-                <span>Brand Partner</span>
+                <span>Brand Partner Outreach:</span>
               </div>
-              <p className="bubble-text text-sm leading-relaxed">{scenario.initialBrandMessage}</p>
+              <p className="bubble-text text-sm leading-relaxed text-main">{scenario.initialBrandMessage}</p>
             </div>
 
             {/* Response Options */}
-            <div className="response-options-list space-y-3">
-              <span className="text-xs font-semibold text-muted block mb-2 flex items-center gap-1">
-                <User size={14} /> Choose Your Counter Response:
+            <div className="response-options-list space-y-2.5">
+              <span className="text-xs font-semibold text-muted block mb-1 flex items-center gap-1">
+                <User size={14} /> Select Your Tactical Response:
               </span>
               {scenario.options.map((option, idx) => (
                 <button
@@ -141,7 +183,7 @@ export default function PracticeMode() {
                   className={`practice-option-btn ${selectedOptionId === option.id ? 'selected' : ''}`}
                   onClick={() => handleSelectOption(option.id)}
                 >
-                  <span className="option-number">Option {String.fromCharCode(65 + idx)}</span>
+                  <span className="option-number">Response Option {String.fromCharCode(65 + idx)}</span>
                   <span className="option-text">{option.text}</span>
                 </button>
               ))}
@@ -157,78 +199,79 @@ export default function PracticeMode() {
                 setActiveScenarioIdx(0);
               }}
             >
-              <RefreshCw size={14} /> Reset Scenarios
+              <RefreshCw size={13} /> Reset Arena
             </button>
-
 
             <button
               type="button"
               className="btn-primary text-xs flex items-center gap-1.5"
               onClick={handleNextScenario}
             >
-              Next Scenario <ArrowRight size={14} />
+              Next Scenario <ArrowRight size={13} />
             </button>
           </div>
         </div>
 
         {/* Talent Manager Feedback Panel */}
-        <div className="glass-card result-panel-card">
-          <h2 className="card-title mb-4 flex items-center justify-between">
-            <span>Talent Manager Evaluation</span>
-            <span className="badge-primary flex items-center gap-1">
-              <Award size={14} /> Instant Coaching
-            </span>
-          </h2>
+        <div className="glass-card result-panel-card flex flex-col justify-between">
+          <div>
+            <h2 className="card-title mb-4 flex items-center justify-between">
+              <span>Talent Manager Evaluation</span>
+              <span className="badge-primary flex items-center gap-1 text-2xs">
+                <Award size={13} /> Instant Coaching
+              </span>
+            </h2>
 
-          {!selectedOption && (
-            <div className="empty-state-box">
-              <MessageSquare size={48} className="text-muted mb-2" />
-              <p className="text-sm text-muted">Select a counter response option to see instant talent management scoring and coaching.</p>
-            </div>
-          )}
+            {!selectedOption && (
+              <div className="empty-state-box py-12">
+                <MessageSquare size={48} className="text-muted mb-2" />
+                <p className="text-xs text-muted max-w-xs">Select a counter response option to view immediate strategic evaluation and coaching notes.</p>
+              </div>
+            )}
 
-          {selectedOption && (
-            <div className="coaching-feedback-container">
-              {/* Score Badge */}
-              <div className="feedback-hero-score mb-4 flex items-center justify-between p-4 rounded-xl bg-card border border-border">
-                <div>
-                  <span className="text-xs text-muted block">Negotiation Score</span>
-                  <span className={`text-3xl font-extrabold ${selectedOption.score >= 8 ? 'text-success' : selectedOption.score >= 5 ? 'text-warning' : 'text-danger'}`}>
-                    {selectedOption.score} / 10
-                  </span>
+            {selectedOption && (
+              <div className="coaching-feedback-container">
+                {/* Score Header */}
+                <div className="feedback-hero-score mb-4 flex items-center justify-between p-4 rounded-xl bg-card border border-border">
+                  <div>
+                    <span className="text-2xs text-muted uppercase font-bold block mb-0.5">Negotiation Score</span>
+                    <span className={`text-3xl font-extrabold font-mono ${selectedOption.score >= 8 ? 'text-success' : selectedOption.score >= 5 ? 'text-warning' : 'text-danger'}`}>
+                      {selectedOption.score} / 10
+                    </span>
+                  </div>
+                  <div className="verdict-tag">
+                    {selectedOption.verdict === 'optimal' && (
+                      <span className="badge-success flex items-center gap-1 text-xs py-1 px-3">
+                        <CheckCircle2 size={14} /> Optimal Move
+                      </span>
+                    )}
+                    {selectedOption.verdict === 'acceptable' && (
+                      <span className="badge-warning flex items-center gap-1 text-xs py-1 px-3">
+                        <AlertCircle size={14} /> Acceptable
+                      </span>
+                    )}
+                    {selectedOption.verdict === 'blunder' && (
+                      <span className="badge-danger flex items-center gap-1 text-xs py-1 px-3">
+                        <AlertCircle size={14} /> Tactical Blunder
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <div className="verdict-tag">
-                  {selectedOption.verdict === 'optimal' && (
-                    <span className="badge-success flex items-center gap-1 text-sm py-1 px-3">
-                      <CheckCircle2 size={16} /> Optimal Move
-                    </span>
-                  )}
-                  {selectedOption.verdict === 'acceptable' && (
-                    <span className="badge-warning flex items-center gap-1 text-sm py-1 px-3">
-                      <AlertCircle size={16} /> Acceptable
-                    </span>
-                  )}
-                  {selectedOption.verdict === 'blunder' && (
-                    <span className="badge-danger flex items-center gap-1 text-sm py-1 px-3">
-                      <AlertCircle size={16} /> Tactical Blunder
-                    </span>
-                  )}
+
+                {/* Coaching Insight */}
+                <div className="coaching-card mb-3">
+                  <h4 className="text-2xs font-bold text-accent uppercase tracking-wider mb-1">Strategic Breakdown</h4>
+                  <p className="text-xs text-main leading-relaxed">{selectedOption.feedback}</p>
+                </div>
+
+                {/* Follow-up Playbook */}
+                <div className="playbook-card">
+                  <h4 className="text-2xs font-bold text-success uppercase tracking-wider mb-1">Talent Manager Playbook</h4>
+                  <p className="text-xs text-secondary leading-relaxed">{selectedOption.suggestedFollowUp}</p>
                 </div>
               </div>
-
-              {/* Coaching Insight */}
-              <div className="coaching-card mb-4">
-                <h4 className="text-xs font-semibold text-accent uppercase tracking-wider mb-1">Strategic Breakdown</h4>
-                <p className="text-sm text-main leading-relaxed">{selectedOption.feedback}</p>
-              </div>
-
-              {/* Follow-up Playbook */}
-              <div className="playbook-card">
-                <h4 className="text-xs font-semibold text-success uppercase tracking-wider mb-1">Talent Manager Playbook</h4>
-                <p className="text-sm text-muted leading-relaxed">{selectedOption.suggestedFollowUp}</p>
-              </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </div>

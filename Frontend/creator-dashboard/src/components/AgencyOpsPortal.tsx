@@ -9,7 +9,8 @@ import {
   Eye, 
   CheckCircle2, 
   ExternalLink,
-  RefreshCw
+  RefreshCw,
+  Layers
 } from 'lucide-react'
 import { api } from '../services/api'
 
@@ -61,7 +62,7 @@ export default function AgencyOpsPortal({ onPreviewBrandPortal }: { onPreviewBra
   // Creator Onboarding State
   const [newCreatorName, setNewCreatorName] = useState('')
   const [newCreatorEmail, setNewCreatorEmail] = useState('')
-  const [newCreatorNiche, setNewCreatorNiche] = useState('Tech')
+  const [newCreatorNiche, setNewCreatorNiche] = useState('Tech & AI')
   const [newCreatorTier, setNewCreatorTier] = useState('micro')
 
   const loadData = async () => {
@@ -123,7 +124,6 @@ export default function AgencyOpsPortal({ onPreviewBrandPortal }: { onPreviewBra
     }
   }
 
-
   useEffect(() => {
     loadData()
   }, [])
@@ -171,10 +171,13 @@ export default function AgencyOpsPortal({ onPreviewBrandPortal }: { onPreviewBra
     <div className="tool-container">
       <header className="page-header flex justify-between items-start">
         <div>
-          <div className="badge-pill mb-2">Phase 1 — Agency Ops Core (Supabase Live)</div>
-          <h1 className="page-title">Agency Command Center</h1>
+          <div className="badge-pill mb-2">Agency Ops Core — Command Center</div>
+          <h1 className="page-title">
+            <Layers size={28} className="text-accent" />
+            Agency Talent & Operations Portal
+          </h1>
           <p className="page-subtitle">
-            Manage creator rosters, execute contract e-sign flows with stub envelope tracking, supervise deliverable approvals, and issue brand magic links.
+            Manage creator rosters, execute contract e-sign flows with envelope tracking, supervise deliverable approvals, and issue magic links.
           </p>
         </div>
         <button 
@@ -184,7 +187,7 @@ export default function AgencyOpsPortal({ onPreviewBrandPortal }: { onPreviewBra
           disabled={loading}
         >
           <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
-          <span>{loading ? 'Syncing...' : 'Sync with Supabase'}</span>
+          <span>{loading ? 'Syncing...' : 'Sync Supabase'}</span>
         </button>
       </header>
 
@@ -192,24 +195,24 @@ export default function AgencyOpsPortal({ onPreviewBrandPortal }: { onPreviewBra
       <div className="agency-subtabs-bar mb-6 flex gap-2 border-b border-border pb-3">
         <button
           type="button"
-          className={`agency-subtab-btn ${activeSubTab === 'contracts' ? 'active' : ''}`}
+          className={`agency-subtab-btn preset-chip ${activeSubTab === 'contracts' ? 'active' : ''}`}
           onClick={() => setActiveSubTab('contracts')}
         >
-          <FileCheck size={16} /> Contracts & E-Sign ({contracts.length})
+          <FileCheck size={15} /> Contracts & E-Sign ({contracts.length})
         </button>
         <button
           type="button"
-          className={`agency-subtab-btn ${activeSubTab === 'deliverables' ? 'active' : ''}`}
+          className={`agency-subtab-btn preset-chip ${activeSubTab === 'deliverables' ? 'active' : ''}`}
           onClick={() => setActiveSubTab('deliverables')}
         >
-          <CheckCircle2 size={16} /> Deliverables & Approvals ({deliverables.length})
+          <CheckCircle2 size={15} /> Deliverables & Approvals ({deliverables.length})
         </button>
         <button
           type="button"
-          className={`agency-subtab-btn ${activeSubTab === 'creators' ? 'active' : ''}`}
+          className={`agency-subtab-btn preset-chip ${activeSubTab === 'creators' ? 'active' : ''}`}
           onClick={() => setActiveSubTab('creators')}
         >
-          <Users size={16} /> Creator Roster & Onboarding ({creators.length})
+          <Users size={15} /> Creator Roster ({creators.length})
         </button>
       </div>
 
@@ -218,8 +221,8 @@ export default function AgencyOpsPortal({ onPreviewBrandPortal }: { onPreviewBra
         <div className="space-y-4">
           <div className="glass-card">
             <h2 className="card-title mb-4 flex items-center justify-between">
-              <span>Active Deal Contracts & E-Sign Envelopes</span>
-              <span className="text-xs text-muted">Fetched from Supabase `contracts` table</span>
+              <span>Active Sponsorship Contracts & Envelopes</span>
+              <span className="text-2xs text-muted">Supabase `contracts` table</span>
             </h2>
 
             <div className="contracts-table-wrapper overflow-x-auto">
@@ -231,17 +234,17 @@ export default function AgencyOpsPortal({ onPreviewBrandPortal }: { onPreviewBra
                     <th className="pb-3">Brand Partner</th>
                     <th className="pb-3">Deal Value</th>
                     <th className="pb-3">E-Sign Status</th>
-                    <th className="pb-3">Brand Portal Magic Link</th>
+                    <th className="pb-3">Magic Link Portal</th>
                     <th className="pb-3 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/50">
                   {contracts.map(cnt => (
                     <tr key={cnt.id} className="hover:bg-card/50">
-                      <td className="py-3 font-mono font-semibold text-main">{cnt.id.substring(0, 12)}...</td>
+                      <td className="py-3 font-mono font-semibold text-main">{cnt.id.substring(0, 10)}...</td>
                       <td className="py-3 text-main font-medium">{cnt.creatorName || 'Alex Rivera'}</td>
                       <td className="py-3 text-muted">{cnt.brandName || 'Titan Tech Corp'}</td>
-                      <td className="py-3 font-bold text-success">${(cnt.rate || 8500).toLocaleString()}</td>
+                      <td className="py-3 font-bold text-success font-mono">${(cnt.rate || 8500).toLocaleString()}</td>
                       <td className="py-3">
                         <span className={`badge-pill text-2xs ${cnt.esignStatus === 'signed' ? 'badge-success' : cnt.esignStatus === 'sent' ? 'badge-warning' : 'badge-muted'}`}>
                           {cnt.esignStatus === 'signed' ? '✓ Signed' : cnt.esignStatus === 'sent' ? '✉️ Sent for Signature' : 'Drafted'}
@@ -257,7 +260,7 @@ export default function AgencyOpsPortal({ onPreviewBrandPortal }: { onPreviewBra
                               title="Copy Magic Link"
                             >
                               {copiedToken === cnt.magicLinkToken ? <Check size={12} className="text-success" /> : <Copy size={12} />}
-                              {copiedToken === cnt.magicLinkToken ? 'Copied' : 'Copy Link'}
+                              {copiedToken === cnt.magicLinkToken ? 'Copied' : 'Copy'}
                             </button>
                             {onPreviewBrandPortal && (
                               <button
@@ -266,7 +269,7 @@ export default function AgencyOpsPortal({ onPreviewBrandPortal }: { onPreviewBra
                                 onClick={() => onPreviewBrandPortal(cnt.magicLinkToken!)}
                                 title="Open Brand Portal Preview"
                               >
-                                <ExternalLink size={12} /> Open
+                                <ExternalLink size={12} /> View
                               </button>
                             )}
                           </div>
@@ -304,7 +307,7 @@ export default function AgencyOpsPortal({ onPreviewBrandPortal }: { onPreviewBra
           <h2 className="card-title mb-4">Deliverable Review & Approval Chain</h2>
           <div className="deliverables-grid space-y-3">
             {deliverables.map(del => (
-              <div key={del.id} className="deliverable-card p-4 rounded-xl border border-border bg-card flex justify-between items-center">
+              <div key={del.id} className="deliverable-card p-4 rounded-xl border border-border bg-card flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <span className="font-bold text-main text-sm">{del.title}</span>
@@ -318,7 +321,7 @@ export default function AgencyOpsPortal({ onPreviewBrandPortal }: { onPreviewBra
                   </div>
                   {del.url && (
                     <a href={del.url} target="_blank" rel="noreferrer" className="text-xs text-accent hover:underline flex items-center gap-1 mt-1.5">
-                      <Eye size={12} /> View Submission Link
+                      <Eye size={12} /> Preview Draft Link
                     </a>
                   )}
                 </div>
@@ -349,7 +352,7 @@ export default function AgencyOpsPortal({ onPreviewBrandPortal }: { onPreviewBra
           <div className="glass-card">
             <h2 className="card-title mb-4 flex items-center justify-between">
               <span>Live Creator Roster</span>
-              <span className="text-2xs text-muted">Fetched from Supabase ({creators.length})</span>
+              <span className="text-2xs text-muted font-mono">{creators.length} Creators</span>
             </h2>
             <div className="space-y-3">
               {creators.map(c => (
@@ -392,7 +395,7 @@ export default function AgencyOpsPortal({ onPreviewBrandPortal }: { onPreviewBra
                   className="form-input"
                   value={newCreatorEmail}
                   onChange={e => setNewCreatorEmail(e.target.value)}
-                  placeholder="sarah@content.com"
+                  placeholder="sarah@creator.io"
                   required
                 />
               </div>
@@ -421,8 +424,8 @@ export default function AgencyOpsPortal({ onPreviewBrandPortal }: { onPreviewBra
                   </select>
                 </div>
               </div>
-              <button type="submit" className="btn-primary mt-4 w-full">
-                Complete Onboarding Profile
+              <button type="submit" className="btn-primary mt-2 w-full">
+                Complete Creator Onboarding Profile
               </button>
             </form>
           </div>
