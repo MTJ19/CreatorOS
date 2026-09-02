@@ -6,9 +6,9 @@ import {
   MessageSquare, 
   FileCheck, 
   CreditCard,
-  Lock
+  Lock,
+  ArrowLeft
 } from 'lucide-react'
-
 
 interface BrandPortalProps {
   token?: string;
@@ -55,27 +55,32 @@ export default function BrandPortalView({ token = 'token_titan_magic_9831', onEx
   }
 
   return (
-    <div className="brand-portal-container max-w-5xl mx-auto py-6">
+    <div className="brand-portal-container max-w-5xl mx-auto py-4">
       {/* Brand Header */}
-      <header className="brand-portal-header glass-card mb-6 flex justify-between items-center">
-        <div className="flex items-center gap-3">
-          <div className="brand-avatar-box">
-            <Building2 size={24} className="text-accent" />
+      <header className="brand-portal-header glass-card mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="flex items-center gap-3.5">
+          <div className="p-3 rounded-xl bg-cyan/15 border border-cyan/40 text-cyan">
+            <Building2 size={26} />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold text-main">Titan Tech Corp — Campaign Portal</h1>
-              <span className="badge-pill text-2xs flex items-center gap-1">
-                <Lock size={10} /> Magic Link Verified
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-xl font-extrabold text-main">Titan Tech Corp — Brand Portal</h1>
+              <span className="badge-success text-2xs flex items-center gap-1">
+                <Lock size={10} /> Verified Magic Link
               </span>
             </div>
-            <p className="text-xs text-muted">White-labeled portal • Token: <code className="text-accent">{token}</code></p>
+            <p className="text-xs text-muted mt-0.5">White-labeled sponsor portal • Session Token: <code className="text-accent font-mono">{token}</code></p>
           </div>
         </div>
 
         {onExitPortal && (
-          <button type="button" className="btn-secondary text-xs" onClick={onExitPortal}>
-            Back to Dashboard
+          <button 
+            type="button" 
+            className="btn-secondary text-xs flex items-center gap-1.5" 
+            onClick={onExitPortal}
+          >
+            <ArrowLeft size={13} />
+            <span>Return to Workspace</span>
           </button>
         )}
       </header>
@@ -86,7 +91,7 @@ export default function BrandPortalView({ token = 'token_titan_magic_9831', onEx
           <div className="glass-card">
             <h2 className="card-title mb-4 flex items-center justify-between">
               <span>Campaign Deliverables Review</span>
-              <span className="text-xs text-muted">{deliverables.filter(d => d.status === 'approved').length} of {deliverables.length} Approved</span>
+              <span className="text-2xs text-muted font-mono">{deliverables.filter(d => d.status === 'approved').length} of {deliverables.length} Approved</span>
             </h2>
 
             <div className="space-y-3">
@@ -95,7 +100,7 @@ export default function BrandPortalView({ token = 'token_titan_magic_9831', onEx
                   <div className="flex justify-between items-start mb-2">
                     <div>
                       <h3 className="text-sm font-bold text-main">{del.title}</h3>
-                      <span className="text-xs text-muted">Submitted by {del.creator} • {del.submittedAt}</span>
+                      <span className="text-2xs text-muted">Submitted by {del.creator} • {del.submittedAt}</span>
                     </div>
                     <span className={`badge-pill text-2xs ${del.status === 'approved' ? 'badge-success' : del.status === 'changes_requested' ? 'badge-warning' : 'badge-primary'}`}>
                       {del.status === 'approved' ? '✓ Approved' : del.status === 'changes_requested' ? '📝 Changes Requested' : '⏳ Ready for Review'}
@@ -103,8 +108,8 @@ export default function BrandPortalView({ token = 'token_titan_magic_9831', onEx
                   </div>
 
                   {/* Submission Link Preview */}
-                  <div className="p-3 bg-dark/60 rounded-lg border border-border/60 my-3 flex justify-between items-center">
-                    <span className="text-xs text-muted truncate max-w-xs">{del.submissionUrl}</span>
+                  <div className="p-3 bg-dark/70 rounded-lg border border-border/60 my-3 flex justify-between items-center">
+                    <span className="text-xs text-muted truncate max-w-xs font-mono">{del.submissionUrl}</span>
                     <a 
                       href={del.submissionUrl} 
                       target="_blank" 
@@ -139,8 +144,8 @@ export default function BrandPortalView({ token = 'token_titan_magic_9831', onEx
 
                   {/* Inline Revisions Feedback Form */}
                   {activeDelivIdForFeedback === del.id && (
-                    <div className="revisions-feedback-box mt-3 p-3 bg-dark/80 rounded-xl border border-warning/30">
-                      <label className="text-xs font-semibold text-warning block mb-1">Specify Required Changes (Round 1 of 2):</label>
+                    <div className="revisions-feedback-box mt-3 p-3 bg-dark/90 rounded-xl border border-warning/40">
+                      <label className="text-xs font-bold text-warning block mb-1">Specify Required Edits (Round 1 of 2):</label>
                       <textarea
                         className="form-textarea w-full text-xs"
                         rows={3}
@@ -158,7 +163,7 @@ export default function BrandPortalView({ token = 'token_titan_magic_9831', onEx
                         </button>
                       </div>
                       {feedbackSent && (
-                        <span className="text-2xs text-success block mt-1">Changes sent to talent team!</span>
+                        <span className="text-2xs text-success block mt-1">✓ Changes sent to talent operations team!</span>
                       )}
                     </div>
                   )}
@@ -168,12 +173,12 @@ export default function BrandPortalView({ token = 'token_titan_magic_9831', onEx
           </div>
         </div>
 
-        {/* Contract & Payment Overview */}
+        {/* Contract & Invoicing Overview */}
         <div className="space-y-4">
           <div className="glass-card">
             <h2 className="card-title mb-4 flex items-center gap-2">
               <FileCheck size={18} className="text-accent" />
-              Sponsorship Terms Overview
+              Sponsorship Agreement Terms
             </h2>
 
             <div className="terms-summary-list text-xs space-y-2.5">
@@ -197,7 +202,7 @@ export default function BrandPortalView({ token = 'token_titan_magic_9831', onEx
               </div>
               <div className="flex justify-between py-1.5">
                 <span className="text-muted">Agreed Compensation</span>
-                <span className="font-bold text-success">$8,500 USD (Net 30)</span>
+                <span className="font-bold text-success font-mono">$8,500 USD (Net 30)</span>
               </div>
             </div>
           </div>
@@ -207,12 +212,12 @@ export default function BrandPortalView({ token = 'token_titan_magic_9831', onEx
               <CreditCard size={18} className="text-accent" />
               Invoicing & Payment Rail
             </h2>
-            <div className="p-3 rounded-xl bg-card border border-border flex justify-between items-center text-xs">
+            <div className="p-3.5 rounded-xl bg-card border border-border flex justify-between items-center text-xs">
               <div>
                 <strong className="text-main block">Invoice #INV-2026-904</strong>
-                <span className="text-muted">Net 30 • Due post-deliverable approval</span>
+                <span className="text-muted">Net 30 terms • Due upon milestone signoff</span>
               </div>
-              <span className="badge-pill-success text-2xs">Pending Approval</span>
+              <span className="badge-pill-success text-2xs">Pending Final Approval</span>
             </div>
           </div>
         </div>

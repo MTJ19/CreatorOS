@@ -13,24 +13,31 @@ import {
   Briefcase,
   Sparkles,
   Wifi,
-  WifiOff
+  WifiOff,
+  ShieldAlert,
+  BarChart2,
+  Compass
 } from 'lucide-react'
 
+import LandingShowcase from './components/LandingShowcase'
 import OpportunityIntake, { type DealOpportunity } from './components/OpportunityIntake'
 import RateCalculator from './components/RateCalculator'
 import GrowthForecaster from './components/GrowthForecaster'
 import NegotiationDrafter from './components/NegotiationDrafter'
 import ChecklistGate from './components/ChecklistGate'
 import PracticeMode from './components/PracticeMode'
+import ContractIntelligence from './components/ContractIntelligence'
+import RateBenchmarking from './components/RateBenchmarking'
+import ContentHealthScore from './components/ContentHealthScore'
 import AgencyOpsPortal from './components/AgencyOpsPortal'
 import BrandPortalView from './components/BrandPortalView'
 import ActivityLogView from './components/ActivityLogView'
 import { api } from './services/api'
 
-type RoleMode = 'creator' | 'agency' | 'brand';
+type RoleMode = 'showcase' | 'creator' | 'agency' | 'brand';
 
 export default function App() {
-  const [roleMode, setRoleMode] = useState<RoleMode>('creator')
+  const [roleMode, setRoleMode] = useState<RoleMode>('showcase')
   const [activeTab, setActiveTab] = useState('intake')
   
   // Cross-tool State Hand-off
@@ -66,23 +73,54 @@ export default function App() {
     setRoleMode('brand');
   };
 
+  const handleLaunchWorkspaceFromLanding = (tab?: string) => {
+    setRoleMode('creator')
+    if (tab) setActiveTab(tab)
+  };
+
+  if (roleMode === 'showcase') {
+    return (
+      <LandingShowcase 
+        onLaunchWorkspace={handleLaunchWorkspaceFromLanding}
+        onLaunchAgency={() => {
+          setRoleMode('agency')
+          setActiveTab('agency_ops')
+        }}
+        onLaunchBrand={() => setRoleMode('brand')}
+      />
+    );
+  }
+
   return (
     <div className="app-container">
       {/* Sidebar Navigation */}
       <aside className="sidebar">
         <div className="sidebar-brand">
           <div className="sidebar-logo">
-            <Sparkles size={22} className="text-accent" />
+            <Sparkles size={22} className="text-white" />
           </div>
           <div>
-            <span className="brand-title">CreatorOS</span>
-            <span className="brand-badge">PHASE 1</span>
+            <div className="flex items-center">
+              <span className="brand-title">CreatorOS</span>
+              <span className="brand-badge">V2.4</span>
+            </div>
+            <span className="text-2xs text-muted block">Talent Operating System</span>
           </div>
         </div>
 
-        {/* Role Switcher */}
+        {/* Back to Showcase Button */}
+        <button
+          type="button"
+          className="btn-secondary text-2xs py-2 px-3 mb-3 flex items-center justify-center gap-1.5 w-full text-accent border-accent/30 hover:bg-accent/10"
+          onClick={() => setRoleMode('showcase')}
+        >
+          <Compass size={13} />
+          <span>✨ View Futuristic Landing</span>
+        </button>
+
+        {/* Role Switcher Card */}
         <div className="role-switcher-card">
-          <span className="text-2xs text-muted uppercase tracking-wider font-semibold block mb-2">Active Workspace Role</span>
+          <span className="text-2xs text-muted uppercase tracking-wider font-bold block mb-2">Active Role View</span>
           <div className="role-selector-pills">
             <button
               type="button"
@@ -92,7 +130,7 @@ export default function App() {
                 setActiveTab('intake')
               }}
             >
-              <User size={13} /> Creator Portal
+              <User size={14} /> Creator Dashboard
             </button>
             <button
               type="button"
@@ -102,7 +140,7 @@ export default function App() {
                 setActiveTab('agency_ops')
               }}
             >
-              <Briefcase size={13} /> Agency Ops Core
+              <Briefcase size={14} /> Agency Ops Core
             </button>
             <button
               type="button"
@@ -111,21 +149,21 @@ export default function App() {
                 setRoleMode('brand')
               }}
             >
-              <Building2 size={13} /> Brand Portal (Magic Link)
+              <Building2 size={14} /> Brand Magic Portal
             </button>
           </div>
         </div>
 
         {/* Creator Navigation */}
         {roleMode === 'creator' && (
-          <nav className="nav-group mt-3">
-            <span className="nav-group-heading">Negotiation Flow</span>
+          <nav className="nav-group">
+            <span className="nav-group-heading">Phase 1: Deal Flow</span>
             
             <div 
               className={`nav-item ${activeTab === 'intake' ? 'active' : ''}`}
               onClick={() => setActiveTab('intake')}
             >
-              <Inbox size={18} />
+              <Inbox size={17} />
               <span>1. Opportunity Intake</span>
             </div>
 
@@ -133,7 +171,7 @@ export default function App() {
               className={`nav-item ${activeTab === 'rate' ? 'active' : ''}`}
               onClick={() => setActiveTab('rate')}
             >
-              <Calculator size={18} />
+              <Calculator size={17} />
               <span>2. Rate Calculator</span>
             </div>
             
@@ -141,7 +179,7 @@ export default function App() {
               className={`nav-item ${activeTab === 'growth' ? 'active' : ''}`}
               onClick={() => setActiveTab('growth')}
             >
-              <TrendingUp size={18} />
+              <TrendingUp size={17} />
               <span>3. Growth Forecast</span>
             </div>
             
@@ -149,7 +187,7 @@ export default function App() {
               className={`nav-item ${activeTab === 'checklist' ? 'active' : ''}`}
               onClick={() => setActiveTab('checklist')}
             >
-              <CheckSquare size={18} />
+              <CheckSquare size={17} />
               <span>4. Checklist Gate</span>
             </div>
             
@@ -157,7 +195,7 @@ export default function App() {
               className={`nav-item ${activeTab === 'negotiation' ? 'active' : ''}`}
               onClick={() => setActiveTab('negotiation')}
             >
-              <Mail size={18} />
+              <Mail size={17} />
               <span>5. Script Drafter</span>
             </div>
 
@@ -165,16 +203,46 @@ export default function App() {
               className={`nav-item ${activeTab === 'practice' ? 'active' : ''}`}
               onClick={() => setActiveTab('practice')}
             >
-              <Gamepad2 size={18} />
+              <Gamepad2 size={17} />
               <span>Practice Arena</span>
             </div>
 
-            <span className="nav-group-heading mt-4">System of Record</span>
+            <span className="nav-group-heading mt-3">Phase 2: Trust & Intelligence</span>
+
+            <div 
+              className={`nav-item ${activeTab === 'contracts_intelligence' ? 'active' : ''}`}
+              onClick={() => setActiveTab('contracts_intelligence')}
+            >
+              <ShieldAlert size={17} />
+              <span>Contract Intelligence</span>
+              <span className="nav-item-badge">AI</span>
+            </div>
+
+            <div 
+              className={`nav-item ${activeTab === 'benchmarking' ? 'active' : ''}`}
+              onClick={() => setActiveTab('benchmarking')}
+            >
+              <BarChart2 size={17} />
+              <span>Rate Benchmarking</span>
+            </div>
+
+            <span className="nav-group-heading mt-3">Phase 3: Retention</span>
+
+            <div 
+              className={`nav-item ${activeTab === 'content_health' ? 'active' : ''}`}
+              onClick={() => setActiveTab('content_health')}
+            >
+              <Sparkles size={17} />
+              <span>Content Health Score</span>
+              <span className="nav-item-badge">Agentic</span>
+            </div>
+
+            <span className="nav-group-heading mt-3">Audit Trail</span>
             <div 
               className={`nav-item ${activeTab === 'activity' ? 'active' : ''}`}
               onClick={() => setActiveTab('activity')}
             >
-              <Activity size={18} />
+              <Activity size={17} />
               <span>Shared Activity Feed</span>
             </div>
           </nav>
@@ -182,21 +250,37 @@ export default function App() {
 
         {/* Agency Navigation */}
         {roleMode === 'agency' && (
-          <nav className="nav-group mt-3">
-            <span className="nav-group-heading">Agency Ops Core</span>
+          <nav className="nav-group">
+            <span className="nav-group-heading">Agency Operations</span>
             <div 
               className={`nav-item ${activeTab === 'agency_ops' ? 'active' : ''}`}
               onClick={() => setActiveTab('agency_ops')}
             >
-              <Layers size={18} />
+              <Layers size={17} />
               <span>Agency Command Center</span>
+            </div>
+
+            <div 
+              className={`nav-item ${activeTab === 'contracts_intelligence' ? 'active' : ''}`}
+              onClick={() => setActiveTab('contracts_intelligence')}
+            >
+              <ShieldAlert size={17} />
+              <span>Compliance Hard Gate</span>
+            </div>
+
+            <div 
+              className={`nav-item ${activeTab === 'benchmarking' ? 'active' : ''}`}
+              onClick={() => setActiveTab('benchmarking')}
+            >
+              <BarChart2 size={17} />
+              <span>Market Rate Comps</span>
             </div>
 
             <div 
               className={`nav-item ${activeTab === 'activity' ? 'active' : ''}`}
               onClick={() => setActiveTab('activity')}
             >
-              <Activity size={18} />
+              <Activity size={17} />
               <span>Shared Activity Feed</span>
             </div>
           </nav>
@@ -204,25 +288,25 @@ export default function App() {
 
         {/* Brand Navigation */}
         {roleMode === 'brand' && (
-          <nav className="nav-group mt-3">
-            <span className="nav-group-heading">Brand Portal Access</span>
+          <nav className="nav-group">
+            <span className="nav-group-heading">Brand Magic Portal</span>
             <div className="nav-item active">
-              <Building2 size={18} />
+              <Building2 size={17} />
               <span>Deliverables Review</span>
             </div>
           </nav>
         )}
 
         {/* System Health Status Indicator */}
-        <div className="sidebar-footer mt-auto pt-4 border-t border-border">
-          <div className="system-health-pill">
+        <div className="sidebar-footer mt-auto pt-3 border-t border-border">
+          <div className="system-health-pill text-xs">
             {isBackendLive ? (
-              <span className="health-live flex items-center gap-1.5 text-success">
-                <Wifi size={13} /> Supabase Functions Live
+              <span className="health-live flex items-center gap-1.5 text-success font-semibold">
+                <Wifi size={13} /> Supabase Live
               </span>
             ) : (
-              <span className="health-sim flex items-center gap-1.5 text-accent">
-                <WifiOff size={13} /> Phase 1 Local Simulation
+              <span className="health-sim flex items-center gap-1.5 text-accent font-semibold">
+                <WifiOff size={13} /> Local Deterministic
               </span>
             )}
           </div>
@@ -245,7 +329,11 @@ export default function App() {
               <OpportunityIntake onSelectDealForNegotiation={handleSelectDealForNegotiation} />
             )}
             {activeTab === 'rate' && (
-              <RateCalculator onApplyRate={handleApplyRateToDrafter} />
+              <RateCalculator 
+                onApplyRate={handleApplyRateToDrafter} 
+                selectedBrandName={selectedBrand}
+                selectedInitialOffer={selectedOffer}
+              />
             )}
             {activeTab === 'growth' && (
               <GrowthForecaster />
@@ -263,6 +351,15 @@ export default function App() {
             )}
             {activeTab === 'practice' && (
               <PracticeMode />
+            )}
+            {activeTab === 'contracts_intelligence' && (
+              <ContractIntelligence />
+            )}
+            {activeTab === 'benchmarking' && (
+              <RateBenchmarking />
+            )}
+            {activeTab === 'content_health' && (
+              <ContentHealthScore />
             )}
             {activeTab === 'agency_ops' && (
               <AgencyOpsPortal onPreviewBrandPortal={handlePreviewBrandPortal} />

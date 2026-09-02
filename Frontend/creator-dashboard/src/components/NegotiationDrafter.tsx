@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Mail, Sparkles, Copy, Check, FileText, Send, Zap } from 'lucide-react'
+import { Mail, Sparkles, Copy, Check, FileText, Send, Zap, MessageSquare, Share2 } from 'lucide-react'
 import { api } from '../services/api'
 
 interface NegotiationDrafterProps {
@@ -60,11 +60,20 @@ export default function NegotiationDrafter({
     setTimeout(() => setCopied(false), 2500)
   }
 
+  const handleShareWhatsApp = () => {
+    if (!result?.script) return
+    const waUrl = `https://wa.me/?text=${encodeURIComponent(result.script)}`
+    window.open(waUrl, '_blank')
+  }
+
   return (
     <div className="tool-container">
       <header className="page-header">
-        <div className="badge-pill mb-2">Phase 1 — Deterministic Negotiation Engine</div>
-        <h1 className="page-title">Ready-to-Send Negotiation Scripts</h1>
+        <div className="badge-pill mb-2">Phase 1 — Flow Step 5 (Ready-to-Send)</div>
+        <h1 className="page-title">
+          <Mail size={28} className="text-accent" />
+          Ready-to-Send Negotiation Scripts
+        </h1>
         <p className="page-subtitle">
           Generate battle-tested counter-offer scripts for lowball openers, exposure pitches, and scope creep requests using deterministic talent agency templates.
         </p>
@@ -91,7 +100,7 @@ export default function NegotiationDrafter({
           className={`scenario-pill ${scenario === 'scope_creep' ? 'active' : ''}`}
           onClick={() => setScenario('scope_creep')}
         >
-          <FileText size={14} /> Scope Creep & Add-on Rights
+          <FileText size={14} /> Scope Creep & Add-On Rights
         </button>
       </div>
 
@@ -99,19 +108,19 @@ export default function NegotiationDrafter({
         {/* Deal Input Form */}
         <div className="glass-card">
           <h2 className="card-title mb-4 flex items-center gap-2">
-            <Mail size={20} className="text-accent" />
+            <MessageSquare size={20} className="text-accent" />
             Negotiation Parameters
           </h2>
 
           <form onSubmit={handleDraft}>
             <div className="form-group">
-              <label className="form-label">Brand / Sponsor Name</label>
+              <label className="form-label">Brand / Sponsor Partner</label>
               <input 
                 type="text" 
                 className="form-input" 
                 value={brand} 
                 onChange={e => setBrand(e.target.value)} 
-                placeholder="e.g. Nike, Gymshark, Notion"
+                placeholder="e.g. Nike, Notion, Gymshark"
                 required
               />
             </div>
@@ -123,7 +132,7 @@ export default function NegotiationDrafter({
                 className="form-input" 
                 value={niche} 
                 onChange={e => setNiche(e.target.value)} 
-                placeholder="e.g. Tech, Fitness, Finance"
+                placeholder="e.g. Tech & AI, Fitness, Finance"
                 required
               />
             </div>
@@ -133,7 +142,7 @@ export default function NegotiationDrafter({
                 <label className="form-label">Initial Brand Offer ($)</label>
                 <input 
                   type="number" 
-                  className="form-input" 
+                  className="form-input font-mono" 
                   value={offer} 
                   onChange={e => setOffer(Number(e.target.value))} 
                 />
@@ -142,7 +151,7 @@ export default function NegotiationDrafter({
                 <label className="form-label">Target Counter Ask ($)</label>
                 <input 
                   type="number" 
-                  className="form-input" 
+                  className="form-input font-mono" 
                   value={ask} 
                   onChange={e => setAsk(Number(e.target.value))} 
                 />
@@ -150,64 +159,79 @@ export default function NegotiationDrafter({
             </div>
 
             <div className="form-group">
-              <label className="form-label">Response Tone & Framing</label>
+              <label className="form-label">Response Tone & Strategic Framing</label>
               <select className="form-input" value={tone} onChange={e => setTone(e.target.value)}>
-                <option value="polite but firm">Polite but Firm (Recommended)</option>
-                <option value="friendly and collaborative">Friendly & Collaborative</option>
-                <option value="data-driven and analytical">Data-Driven & Analytical (CPM focused)</option>
+                <option value="polite but firm">Polite but Firm (Agency Standard)</option>
+                <option value="friendly and collaborative">Friendly & Collaborative (Relationship First)</option>
+                <option value="data-driven and analytical">Data-Driven & Analytical (CPM & Benchmarks)</option>
               </select>
             </div>
 
-            <button type="submit" className="btn-primary mt-4 flex items-center justify-center gap-2" disabled={loading}>
+            <button type="submit" className="btn-primary mt-2 w-full flex items-center justify-center gap-2" disabled={loading}>
               <Zap size={16} />
-              {loading ? 'Drafting Counter-Offer...' : 'Generate Ready-to-Send Script'}
+              {loading ? 'Drafting Script...' : 'Generate Ready-to-Send Counter Script'}
             </button>
           </form>
         </div>
 
         {/* Script Output Panel */}
-        <div className="glass-card result-panel-card">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="card-title">Generated Counter Email</h2>
+        <div className="glass-card result-panel-card flex flex-col justify-between">
+          <div>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="card-title">Generated Counter Email</h2>
+              {result && (
+                <span className="badge-pill text-2xs">
+                  ⚡ Deterministic Template (Phase 1)
+                </span>
+              )}
+            </div>
+
+            {!result && (
+              <div className="empty-state-box py-12">
+                <Mail size={48} className="text-muted mb-2" />
+                <p className="text-xs text-muted">Click generate to produce your tailored negotiation counter script.</p>
+              </div>
+            )}
+
             {result && (
-              <span className="badge-pill text-xs">
-                ⚡ Deterministic Template (Phase 1)
-              </span>
+              <div className="script-output-container">
+                <div className="script-text-box">
+                  {result.script}
+                </div>
+              </div>
             )}
           </div>
 
-          {!result && (
-            <div className="empty-state-box">
-              <Mail size={48} className="text-muted mb-2" />
-              <p className="text-sm text-muted">Configure negotiation parameters to generate your ready-to-send counter script.</p>
-            </div>
-          )}
-
           {result && (
-            <div className="script-output-container">
-              <div className="script-text-box">
-                {result.script}
-              </div>
+            <div className="mt-6 pt-4 border-t border-border flex flex-wrap gap-2 justify-between items-center">
+              <button 
+                type="button" 
+                className={`btn-secondary text-xs flex items-center gap-1.5 ${copied ? 'text-success border-success' : ''}`}
+                onClick={handleCopy}
+              >
+                {copied ? <Check size={14} className="text-success" /> : <Copy size={14} />}
+                {copied ? 'Copied to Clipboard!' : 'Copy Script'}
+              </button>
 
-              <div className="script-actions-bar mt-4 flex justify-between items-center">
-                <button 
-                  type="button" 
-                  className={`btn-secondary flex items-center gap-2 ${copied ? 'btn-copied' : ''}`}
-                  onClick={handleCopy}
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  className="btn-secondary text-xs flex items-center gap-1.5 text-success border-success/30 hover:bg-success/10"
+                  onClick={handleShareWhatsApp}
+                  title="Share via WhatsApp Business"
                 >
-                  {copied ? <Check size={16} className="text-success" /> : <Copy size={16} />}
-                  {copied ? 'Copied to Clipboard!' : 'Copy Script'}
+                  <Share2 size={13} /> WhatsApp
                 </button>
 
                 <button
                   type="button"
-                  className="btn-primary flex items-center gap-2"
+                  className="btn-primary text-xs flex items-center gap-1.5"
                   onClick={() => {
                     const mailtoUrl = `mailto:?subject=${encodeURIComponent(`Partnership Proposal: ${brand} x Creator`)}&body=${encodeURIComponent(result.script)}`;
                     window.open(mailtoUrl, '_blank');
                   }}
                 >
-                  <Send size={16} /> Open in Email Client
+                  <Send size={13} /> Open in Email
                 </button>
               </div>
             </div>
