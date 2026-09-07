@@ -26,6 +26,7 @@ import {
   Moon,
   User,
   LogOut,
+  Sparkles,
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -64,6 +65,12 @@ const NAV_LINKS: NavLink[] = [
     label: 'Performance',
     icon: LineChart,
     description: 'Track content analytics',
+  },
+  {
+    href: '/retention',
+    label: 'Retention AI',
+    icon: Sparkles,
+    description: 'Multi-agent persona & health score',
   },
   {
     href: '/contracts',

@@ -236,6 +236,7 @@ model User {
   rateIntelligenceRequests RateIntelligenceRequest[]
   financialSettings  FinancialSettings?
   instagramSyncLogs  InstagramSyncLog[]
+  contents           Content[]
 
   igUserId           String?   @unique
   igAccessToken      String?
@@ -716,3 +717,146 @@ model RateIntelligenceOutcome {
 
   @@map("rate_intelligence_outcomes")
 }
+
+// ─── Phase 3: Content Health Score & Multi-Agent Audience Evaluation ───
+
+enum PersonaSegment {
+  NICHE
+  COLD_OUTSIDER
+  PLATFORM_NATIVE
+}
+
+enum ContentScoreRunStatus {
+  QUEUED
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+/// Content submitted for virality/health scoring
+model Content {
+  id              String   @id @default(cuid())
+  creatorId       String
+  creator         User     @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  title           String
+  caption         String   @default("")
+  platform        SocialPlatform @default(INSTAGRAM)
+  contentType     String   @default("REEL")
+  niche           String   @default("Tech")
+  targetAudience  String?
+  videoUrl        String?
+  durationSeconds Int      @default(45)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  runs            ContentScoreRun[]
+
+  @@index([creatorId])
+  @@map("contents")
+}
+
+/// Audience personas dynamically seeded for multi-agent evaluation
+model EvaluatorPersona {
+  id               String         @id @default(cuid())
+  name             String
+  segment          PersonaSegment
+  avatar           String?
+  demographics     String
+  bio              String
+  evaluationPrompt String
+  active           Boolean        @default(true)
+  createdAt        DateTime       @default(now())
+
+  results          ContentScorePersonaResult[]
+
+  @@index([segment])
+  @@map("evaluator_personas")
+}
+
+/// Evaluation execution run lifecycle
+model ContentScoreRun {
+  id             String                @id @default(cuid())
+  contentId      String
+  content        Content               @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  status         ContentScoreRunStatus @default(QUEUED)
+  progress       Int                   @default(0) // 0-100%
+  startedAt      DateTime              @default(now())
+  completedAt    DateTime?
+  errorMsg       String?
+
+  score          ContentScore?
+  personaResults ContentScorePersonaResult[]
+
+  @@index([contentId])
+  @@index([status])
+  @@map("content_score_runs")
+}
+
+/// Raw individual persona evaluation result
+model ContentScorePersonaResult {
+  id                String           @id @default(cuid())
+  runId             String
+  run               ContentScoreRun  @relation(fields: [runId], references: [id], onDelete: Cascade)
+  personaId         String
+  persona           EvaluatorPersona @relation(fields: [personaId], references: [id], onDelete: Cascade)
+
+  hookScore         Float
+  clarityScore      Float
+  engagementScore   Float
+  relevanceScore    Float
+  shareabilityScore Float
+  overallScore      Float
+  reason            String
+  strengths         String[]         @default([])
+  weaknesses        String[]         @default([])
+
+  createdAt         DateTime         @default(now())
+
+  @@unique([runId, personaId])
+  @@index([runId])
+  @@map("content_score_persona_results")
+}
+
+/// Aggregated content health score and metrics
+model ContentScore {
+  id                   String          @id @default(cuid())
+  runId                String          @unique
+  run                  ContentScoreRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  overallScore         Float
+  viralityPotential    String          // HIGH, GOOD, MODERATE, LOW
+
+  // 5 dimensions
+  hookScore            Float
+  engagementScore      Float
+  clarityScore         Float
+  relevanceScore       Float
+  shareabilityScore    Float
+
+  // Segments
+  nicheScore           Float
+  coldOutsiderScore    Float
+  platformNativeScore  Float
+
+  // Percentiles
+  p25                  Float
+  p50                  Float
+  p75                  Float
+
+  // Disagreement
+  disagreementDetected Boolean         @default(false)
+  disagreementVariance Float           @default(0)
+  disagreementInsight  String?
+
+  // Platform pattern analysis (JSON)
+  platformPatterns     Json
+
+  // Strategic recommendations
+  recommendations      String[]        @default([])
+
+  createdAt            DateTime        @default(now())
+
+  @@map("content_scores")
+}
+

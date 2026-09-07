@@ -32,6 +32,8 @@ const mockPrisma = {
 const mockRedis = {
   get: jest.fn(),
   set: jest.fn(),
+  getJson: jest.fn(),
+  setJson: jest.fn(),
   del: jest.fn(),
 };
 
@@ -245,7 +247,7 @@ describe('DealsService', () => {
       expect(result.stageBreakdown.ACTIVE).toBe(1);
       expect(result.stageBreakdown.COMPLETED).toBe(1);
 
-      expect(mockRedis.set).toHaveBeenCalledWith(
+      expect(mockRedis.setJson).toHaveBeenCalledWith(
         'creator:dashboard:stats:creator-1',
         expect.any(Object),
         3600,

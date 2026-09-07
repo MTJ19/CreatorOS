@@ -106,6 +106,7 @@ async function bootstrap() {
     .addTag('portal-public', 'Public brand portal (brand-side, token-authenticated)')
     .addTag('invisible-tax', 'Invisible tax & hidden cost analysis')
     .addTag('financial-runway', 'Financial runway projections')
+    .addTag('content-health', 'Phase 3: Content Health Score & Multi-Agent Audience Evaluation')
     .build();
 
   const document = SwaggerModule.createDocument(app, swaggerConfig);

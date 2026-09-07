@@ -8,7 +8,7 @@ import { InvoiceReminderProcessor } from './invoice-reminder.processor';
 import { InvoicesController } from './invoices.controller';
 import { InvoicesService } from './invoices.service';
 
-const isRedisConfigured = !!process.env.UPSTASH_REDIS_REST_URL || !!process.env.REDIS_HOST;
+const isRedisConfigured = process.env.ENABLE_BULLMQ === 'true';
 
 const bullModuleQueue = isRedisConfigured
   ? BullModule.registerQueue({ name: 'invoice-reminders' })

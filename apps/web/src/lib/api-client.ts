@@ -435,3 +435,54 @@ export const instagramApi = {
       accessToken,
     }),
 };
+
+// ── Content Health & Retention endpoints ─────────────────────────
+
+export const contentHealthApi = {
+  analyze: (
+    accessToken: string,
+    data: {
+      title: string;
+      caption?: string;
+      platform?: string;
+      contentType?: string;
+      niche?: string;
+      targetAudience?: string;
+      videoUrl?: string;
+      durationSeconds?: number;
+    },
+  ) =>
+    request<{
+      message: string;
+      runId: string;
+      contentId: string;
+      status: string;
+    }>('/api/v1/content-health/analyze', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      accessToken,
+    }),
+
+  getRunStatus: (accessToken: string, runId: string) =>
+    request<{
+      runId: string;
+      status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED';
+      totalPersonas: number;
+      completedPersonas: number;
+      progress: number;
+      error?: string;
+    }>(`/api/v1/content-health/runs/${runId}/status`, { accessToken }),
+
+  getScore: (accessToken: string, runId: string) =>
+    request<any>(`/api/v1/content-health/score/${runId}`, { accessToken }),
+
+  getPersonaResults: (accessToken: string, runId: string, segment?: string) =>
+    request<any[]>(
+      `/api/v1/content-health/score/${runId}/personas${segment ? `?segment=${segment}` : ''}`,
+      { accessToken },
+    ),
+
+  getRecentRuns: (accessToken: string) =>
+    request<any[]>('/api/v1/content-health/recent', { accessToken }),
+};
+

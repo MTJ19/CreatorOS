@@ -232,7 +232,7 @@ export class DealsService {
 
   async getDashboardStats(creatorId: string) {
     const cacheKey = `creator:dashboard:stats:${creatorId}`;
-    const cached = await this.redis.get<any>(cacheKey);
+    const cached = await this.redis.getJson<any>(cacheKey);
     if (cached) return cached;
 
     // 1. Fetch all deals for stats calculations
@@ -316,7 +316,7 @@ export class DealsService {
     };
 
     // Cache in Redis for 1 hour (3600 seconds)
-    await this.redis.set(cacheKey, stats, 3600);
+    await this.redis.setJson(cacheKey, stats, 3600);
 
     return stats;
   }

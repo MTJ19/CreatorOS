@@ -151,3 +151,22 @@ export type {
 } from './schemas/contract.schema';
 
 export type { BriefParsedDataInput } from './schemas/brief.schema';
+
+// ─── Phase 3 Schemas & Types (Retention & Content Health) ──────
+export {
+  PersonaSegmentEnum,
+  ContentScoreRunStatusEnum,
+  CreateContentIntakeSchema,
+  PersonaEvaluationResultSchema,
+  PlatformPatternAnalysisSchema,
+  ContentHealthScoreResponseSchema,
+} from './schemas/content-health.schema';
+
+export type {
+  PersonaSegment,
+  ContentScoreRunStatus,
+  CreateContentIntakeInput,
+  PersonaEvaluationResult,
+  PlatformPatternAnalysis,
+  ContentHealthScoreResponse,
+} from './schemas/content-health.schema';

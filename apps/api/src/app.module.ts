@@ -23,6 +23,7 @@ import { RateIntelligenceModule } from './rate-intelligence/rate-intelligence.mo
 import { RedisModule } from './redis/redis.module';
 import { StorageModule } from './storage/storage.module';
 import { InstagramModule } from './instagram/instagram.module';
+import { ContentHealthModule } from './content-health/content-health.module';
 
 @Module({
   imports: [
@@ -42,7 +43,7 @@ import { InstagramModule } from './instagram/instagram.module';
     ]),
 
     // BullMQ — connects to same Redis as cache (Optional in Dev)
-    ...(process.env.UPSTASH_REDIS_REST_URL || process.env.REDIS_HOST
+    ...(process.env.ENABLE_BULLMQ === 'true'
       ? [
           BullModule.forRootAsync({
             inject: [ConfigService],
@@ -84,6 +85,7 @@ import { InstagramModule } from './instagram/instagram.module';
     InvisibleTaxModule,
     FinancialRunwayModule,
     InstagramModule,
+    ContentHealthModule,
   ],
   providers: [
     // Global rate-limiting guard
