@@ -32,9 +32,15 @@ import {
   Clock,
   Check,
   Copy,
+  AlertCircle,
+  Briefcase,
+  MessageSquare,
+  Activity,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { NegotiationModal } from '@/components/deals/NegotiationModal';
+import { ActivityLogModal } from '@/components/deals/ActivityLogModal';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { GlowBackground } from '@/components/ui/glow-background';
@@ -95,6 +101,8 @@ function KanbanColumn({
   deals,
   onEdit,
   onDelete,
+  onNegotiate,
+  onActivity,
   activeDragStage,
 }: {
   stage: string;
@@ -102,7 +110,10 @@ function KanbanColumn({
   deals: any[];
   onEdit: (deal: any) => void;
   onDelete: (id: string) => void;
+  onNegotiate: (deal: any) => void;
+  onActivity: (deal: any) => void;
   activeDragStage: string | null;
+  userRole?: string;
 }) {
   const { isOver, setNodeRef } = useDroppable({
     id: stage,
@@ -133,7 +144,15 @@ function KanbanColumn({
       {/* Cards List */}
       <div className="scrollbar-thin flex-1 space-y-3 overflow-y-auto pr-1">
         {deals.map((deal) => (
-          <DraggableCard key={deal.id} deal={deal} onEdit={onEdit} onDelete={onDelete} />
+          <DraggableCard 
+            key={deal.id} 
+            deal={deal} 
+            onEdit={onEdit} 
+            onDelete={onDelete} 
+            onNegotiate={onNegotiate}
+            onActivity={onActivity}
+            userRole={userRole}
+          />
         ))}
         {deals.length === 0 && (
           <div className="flex h-24 items-center justify-center rounded-lg border border-dashed border-border/20 text-xs text-foreground-subtle">
@@ -150,10 +169,15 @@ function DraggableCard({
   deal,
   onEdit,
   onDelete,
+  onNegotiate,
+  onActivity,
 }: {
   deal: any;
   onEdit: (deal: any) => void;
   onDelete: (id: string) => void;
+  onNegotiate: (deal: any) => void;
+  onActivity: (deal: any) => void;
+  userRole?: string;
 }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: deal.id,
@@ -211,10 +235,35 @@ function DraggableCard({
           <span className="max-w-[130px] truncate text-xs font-semibold text-foreground-muted">
             {deal.brandName}
           </span>
+          {userRole === 'BRAND' && deal.brandReadStatus === 'UNREAD' && (
+            <span className="h-2 w-2 rounded-full bg-primary" title="Unread Update" />
+          )}
         </div>
 
         {/* Action buttons (hidden by default, shown on hover) */}
         <div className="absolute right-2 top-2 flex items-center gap-1 rounded bg-background-elevated/90 pl-1.5 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onActivity(deal);
+            }}
+            className="rounded p-1 text-foreground-muted hover:bg-background/40 hover:text-white"
+            aria-label="Activity Log"
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            <Activity className="h-3 w-3" />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onNegotiate(deal);
+            }}
+            className="rounded p-1 text-foreground-muted hover:bg-background/40 hover:text-white"
+            aria-label="Negotiation"
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            <MessageSquare className="h-3 w-3" />
+          </button>
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -295,6 +344,8 @@ function DealsContent() {
   // Form Panel
   const [panelOpen, setPanelOpen] = React.useState(false);
   const [editingDeal, setEditingDeal] = React.useState<any | null>(null);
+  const [negotiatingDeal, setNegotiatingDeal] = React.useState<any | null>(null);
+  const [activityDeal, setActivityDeal] = React.useState<any | null>(null);
   const [formError, setFormError] = React.useState<string | null>(null);
   const [formLoading, setFormLoading] = React.useState(false);
 
@@ -311,6 +362,7 @@ function DealsContent() {
   const [brandWebsite, setBrandWebsite] = React.useState('');
   const [brandInstagram, setBrandInstagram] = React.useState('');
   const [dealSource, setDealSource] = React.useState('INBOUND');
+  const [isUnlinked, setIsUnlinked] = React.useState(false);
   const [title, setTitle] = React.useState('');
   const [description, setDescription] = React.useState('');
   const [amount, setAmount] = React.useState(0);
@@ -421,6 +473,7 @@ function DealsContent() {
     setBrandWebsite('');
     setBrandInstagram('');
     setDealSource('INBOUND');
+    setIsUnlinked(false);
     setTitle('');
     setDescription('');
     setAmount(0);
@@ -451,6 +504,7 @@ function DealsContent() {
     setBrandWebsite(deal.brandWebsite || '');
     setBrandInstagram(deal.brandInstagram || '');
     setDealSource(deal.dealSource || 'INBOUND');
+    setIsUnlinked(deal.isUnlinked || false);
     setTitle(deal.title || '');
     setDescription(deal.description || '');
     setAmount(Number(deal.amount) || 0);
@@ -499,6 +553,7 @@ function DealsContent() {
       setBrandWebsite(editingDeal.brandWebsite || '');
       setBrandInstagram(editingDeal.brandInstagram || '');
       setDealSource(editingDeal.dealSource || 'INBOUND');
+      setIsUnlinked(editingDeal.isUnlinked || false);
       setTitle(editingDeal.title || '');
       setDescription(editingDeal.description || '');
       setAmount(Number(editingDeal.amount) || 0);
@@ -654,6 +709,7 @@ function DealsContent() {
         .split(',')
         .map((t) => t.trim())
         .filter(Boolean),
+      isUnlinked,
       deliverables,
     };
 
@@ -844,7 +900,10 @@ function DealsContent() {
                       deals={stageDeals}
                       onEdit={handleOpenEdit}
                       onDelete={handleDelete}
+                      onNegotiate={setNegotiatingDeal}
+                      onActivity={setActivityDeal}
                       activeDragStage={activeDragStage}
+                      userRole={(session?.user as any)?.role}
                     />
                   );
                 })}
@@ -878,12 +937,17 @@ function DealsContent() {
                           return (
                             <tr
                               key={deal.id}
-                              className="group transition-colors duration-150 hover:bg-background-elevated/40"
+                              className={`group transition-colors duration-150 hover:bg-background-elevated/40 ${deal.isUnlinked ? 'opacity-70' : ''}`}
                             >
                               <td className="p-4">
                                 <div className="space-y-0.5">
-                                  <div className="text-sm font-semibold text-white">
+                                  <div className="text-sm font-semibold text-white flex items-center gap-2">
                                     {deal.title}
+                                    {deal.isUnlinked && (
+                                      <span className="rounded-full bg-foreground-muted/10 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-foreground-muted">
+                                        Unlinked
+                                      </span>
+                                    )}
                                   </div>
                                   <div className="text-xs text-foreground-muted">
                                     {deal.brandName}
@@ -942,10 +1006,24 @@ function DealsContent() {
                                 )}
                               </td>
                               <td className="p-4 text-center">
-                                <div className="inline-flex gap-1.5 opacity-80 transition-opacity group-hover:opacity-100">
+                                <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                                  <button
+                                    onClick={() => setActivityDeal(deal)}
+                                    className="rounded p-1 text-foreground-muted hover:bg-background-elevated hover:text-white"
+                                    aria-label="Activity Log"
+                                  >
+                                    <Activity className="h-3.5 w-3.5" />
+                                  </button>
+                                  <button
+                                    onClick={() => setNegotiatingDeal(deal)}
+                                    className="rounded p-1 text-foreground-muted hover:bg-background-elevated hover:text-white"
+                                    aria-label="Negotiate"
+                                  >
+                                    <MessageSquare className="h-3.5 w-3.5" />
+                                  </button>
                                   <button
                                     onClick={() => handleOpenEdit(deal)}
-                                    className="rounded-lg border border-border bg-input/40 p-1.5 text-foreground-muted transition-all hover:border-primary/40 hover:bg-background-elevated hover:text-white"
+                                    className="rounded p-1 text-foreground-muted hover:bg-background-elevated hover:text-white"
                                     aria-label="Edit deal"
                                   >
                                     <Edit2 className="h-3.5 w-3.5" />
@@ -1038,6 +1116,22 @@ function DealsContent() {
                     />
                   </div>
 
+                  <div className="flex items-center space-x-2 pt-1">
+                    <input
+                      type="checkbox"
+                      id="form-is-unlinked"
+                      checked={isUnlinked}
+                      onChange={(e) => setIsUnlinked(e.target.checked)}
+                      className="h-4 w-4 rounded border-border bg-input text-primary focus:ring-primary focus:ring-offset-background"
+                    />
+                    <label
+                      htmlFor="form-is-unlinked"
+                      className="text-sm font-medium leading-none text-foreground peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      Unlinked Deal (Opaque to Brand)
+                    </label>
+                  </div>
+
                   <div className="space-y-1.5">
                     <label
                       htmlFor="form-brand-email"
@@ -1092,6 +1186,32 @@ function DealsContent() {
                     />
                   </div>
                 </div>
+                
+                {/* Invoice Status */}
+                {editingDeal && editingDeal.invoices && editingDeal.invoices.length > 0 && (
+                  <div className="pt-2">
+                    <span className="block border-b border-border/20 pb-1 text-xs font-bold uppercase tracking-widest text-primary mt-4 mb-2">
+                      Invoice Status
+                    </span>
+                    <div className="flex flex-col gap-2">
+                      {editingDeal.invoices.map((inv: any) => (
+                        <div key={inv.id} className="flex justify-between items-center rounded-lg border border-border/40 p-3 bg-background-elevated/40">
+                          <div>
+                            <span className="text-sm font-semibold text-white">{inv.invoiceNumber}</span>
+                            <span className="text-xs text-foreground-muted block">Amount: {new Intl.NumberFormat(undefined, { style: 'currency', currency: editingDeal.currency || 'USD' }).format(Number(inv.totalAmount))}</span>
+                          </div>
+                          <Badge variant={
+                            inv.status === 'PAID' ? 'success' :
+                            inv.status === 'OVERDUE' ? 'destructive' :
+                            inv.status === 'PARTIALLY_PAID' ? 'warning' : 'secondary'
+                          }>
+                            {inv.status}
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Campaign Info */}

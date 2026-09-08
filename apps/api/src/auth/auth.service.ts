@@ -47,12 +47,27 @@ export class AuthService {
     }
 
     const hashedPassword = await bcrypt.hash(dto.password, SALT_ROUNDS);
+    const role = (dto as any).role || 'CREATOR';
+    
     const user = await this.prisma.user.create({
       data: {
         email: dto.email,
         name: dto.name,
         password: hashedPassword,
-        role: 'CREATOR',
+        role,
+        ...(role === 'CREATOR' && {
+          igUsername: (dto as any).igUsername,
+          igFollowersCount: (dto as any).igFollowersCount,
+        }),
+        ...(role === 'BRAND' && {
+          brandProfile: {
+            create: {
+              description: (dto as any).brandDescription,
+              website: (dto as any).brandWebsite,
+              niche: (dto as any).brandNiche || [],
+            }
+          }
+        }),
       },
     });
 

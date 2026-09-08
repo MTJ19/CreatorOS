@@ -53,4 +53,10 @@ export class HealthController {
   readiness() {
     return this.health.check([() => this.prismaHealth.pingCheck('database', this.prisma)]);
   }
+
+  @Get('error')
+  @ApiOperation({ summary: 'Simulate an internal server error' })
+  triggerError() {
+    throw new Error('This is a simulated internal server error.');
+  }
 }

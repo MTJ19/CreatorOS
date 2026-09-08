@@ -88,6 +88,7 @@ export const DealSchema = z.object({
   usageRights: z.string().max(2000).nullable().optional(),
   notes: z.string().max(5000).nullable().optional(),
   tags: z.array(z.string()).default([]),
+  isUnlinked: z.boolean().default(false),
   deliverables: z.array(DeliverableSchema).default([]),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),

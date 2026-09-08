@@ -1,0 +1,46 @@
+from uuid import UUID
+
+from fastapi import APIRouter, Depends, HTTPException
+
+from application.services.messages import MessageService
+from domain.models.message import Message, MessageCreateRequest
+from infrastructure.supabase.client import get_supabase_client
+from infrastructure.supabase.repos import SupabaseCreatorRepo, SupabaseMessageRepo
+from interface.dependencies import ActorContext, get_current_actor
+
+router = APIRouter(prefix="/messages", tags=["messages"])
+
+def get_message_service() -> MessageService:
+    return MessageService(SupabaseMessageRepo(get_supabase_client(service_role=True)))
+
+async def _resolve_thread(with_id: UUID, actor: ActorContext) -> tuple[UUID, UUID]:
+    """Returns (brand_id, creator_id) for the thread, after checking the
+    caller is actually linked to the other party — a creator or brand can't
+    message someone they have no relationship with."""
+    creator_repo = SupabaseCreatorRepo(get_supabase_client(service_role=True))
+    if actor.actor_type == "brand":
+        brand_id, creator_id = actor.brand_id, with_id
+    else:
+        brand_id, creator_id = with_id, actor.creator_id
+    if not await creator_repo.is_linked_to_brand(creator_id, brand_id):
+        raise HTTPException(status_code=403, detail="No relationship with that account")
+    return brand_id, creator_id
+
+@router.get("", response_model=list[Message])
+async def list_messages(
+    with_id: UUID,
+    actor: ActorContext = Depends(get_current_actor),
+    service: MessageService = Depends(get_message_service)
+):
+    brand_id, creator_id = await _resolve_thread(with_id, actor)
+    return await service.list_thread(brand_id, creator_id)
+
+@router.post("", response_model=Message)
+async def send_message(
+    with_id: UUID,
+    request: MessageCreateRequest,
+    actor: ActorContext = Depends(get_current_actor),
+    service: MessageService = Depends(get_message_service)
+):
+    brand_id, creator_id = await _resolve_thread(with_id, actor)
+    return await service.send(brand_id, creator_id, actor.actor_type, request.body)

@@ -7,7 +7,7 @@ import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Mail, Lock, User, Eye, EyeOff, ArrowRight, AlertCircle, Check } from 'lucide-react';
+import { Mail, Lock, User, Eye, EyeOff, ArrowRight, AlertCircle, Check, Instagram, Users, Building, Link as LinkIcon, Briefcase } from 'lucide-react';
 import { RegisterSchema, type RegisterInput } from '@creator-os/shared';
 import { Button } from '@/components/ui/button';
 import { authApi } from '@/lib/api-client';
@@ -34,6 +34,7 @@ export function RegisterForm() {
   });
 
   const password = watch('password', '');
+  const role = watch('role', 'CREATOR');
 
   const onSubmit = async (data: RegisterInput) => {
     setServerError(null);
@@ -130,6 +131,17 @@ export function RegisterForm() {
       )}
 
       <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
+        {/* Role Toggle */}
+        <div className="flex gap-4 mb-4">
+          <label className={cn("flex-1 cursor-pointer rounded-lg border p-4 text-center transition-all", role === 'CREATOR' ? "border-primary bg-primary/5 text-primary" : "border-border bg-background-elevated hover:bg-background-overlay")}>
+            <input type="radio" value="CREATOR" className="sr-only" {...register('role')} />
+            <span className="font-medium">I'm a Creator</span>
+          </label>
+          <label className={cn("flex-1 cursor-pointer rounded-lg border p-4 text-center transition-all", role === 'BRAND' ? "border-primary bg-primary/5 text-primary" : "border-border bg-background-elevated hover:bg-background-overlay")}>
+            <input type="radio" value="BRAND" className="sr-only" {...register('role')} />
+            <span className="font-medium">I'm a Brand</span>
+          </label>
+        </div>
         {/* Name */}
         <div className="space-y-1.5">
           <label htmlFor="register-name" className="text-sm font-medium text-foreground">
@@ -156,6 +168,97 @@ export function RegisterForm() {
           </div>
           {errors.name && <p className="text-xs text-danger">{errors.name.message}</p>}
         </div>
+
+        {/* Conditional Fields based on Role */}
+        {role === 'CREATOR' ? (
+          <>
+            <div className="space-y-1.5">
+              <label htmlFor="register-igUsername" className="text-sm font-medium text-foreground">
+                Instagram Username
+              </label>
+              <div className="relative">
+                <Instagram className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground-muted" />
+                <input
+                  {...register('igUsername')}
+                  id="register-igUsername"
+                  type="text"
+                  placeholder="@yourusername"
+                  className={cn(
+                    'w-full rounded-lg border bg-input py-2.5 pl-10 pr-4 text-sm text-foreground',
+                    'placeholder:text-foreground-subtle focus:outline-none focus:ring-2 focus:ring-ring',
+                    'transition-all duration-150 focus:border-transparent',
+                    errors.igUsername ? 'border-danger' : 'border-border'
+                  )}
+                />
+              </div>
+            </div>
+            
+            <div className="space-y-1.5">
+              <label htmlFor="register-igFollowers" className="text-sm font-medium text-foreground">
+                Follower Count
+              </label>
+              <div className="relative">
+                <Users className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground-muted" />
+                <input
+                  {...register('igFollowersCount')}
+                  id="register-igFollowers"
+                  type="number"
+                  placeholder="e.g. 50000"
+                  className={cn(
+                    'w-full rounded-lg border bg-input py-2.5 pl-10 pr-4 text-sm text-foreground',
+                    'placeholder:text-foreground-subtle focus:outline-none focus:ring-2 focus:ring-ring',
+                    'transition-all duration-150 focus:border-transparent',
+                    errors.igFollowersCount ? 'border-danger' : 'border-border'
+                  )}
+                />
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="space-y-1.5">
+              <label htmlFor="register-brandDesc" className="text-sm font-medium text-foreground">
+                Brand Description
+              </label>
+              <div className="relative">
+                <Building className="absolute left-3 top-3 h-4 w-4 text-foreground-muted" />
+                <textarea
+                  {...register('brandDescription')}
+                  id="register-brandDesc"
+                  placeholder="Tell us about your brand..."
+                  rows={2}
+                  className={cn(
+                    'w-full rounded-lg border bg-input py-2.5 pl-10 pr-4 text-sm text-foreground',
+                    'placeholder:text-foreground-subtle focus:outline-none focus:ring-2 focus:ring-ring',
+                    'transition-all duration-150 focus:border-transparent resize-none',
+                    errors.brandDescription ? 'border-danger' : 'border-border'
+                  )}
+                />
+              </div>
+            </div>
+            
+            <div className="space-y-1.5">
+              <label htmlFor="register-brandWebsite" className="text-sm font-medium text-foreground">
+                Website
+              </label>
+              <div className="relative">
+                <LinkIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground-muted" />
+                <input
+                  {...register('brandWebsite')}
+                  id="register-brandWebsite"
+                  type="url"
+                  placeholder="https://example.com"
+                  className={cn(
+                    'w-full rounded-lg border bg-input py-2.5 pl-10 pr-4 text-sm text-foreground',
+                    'placeholder:text-foreground-subtle focus:outline-none focus:ring-2 focus:ring-ring',
+                    'transition-all duration-150 focus:border-transparent',
+                    errors.brandWebsite ? 'border-danger' : 'border-border'
+                  )}
+                />
+              </div>
+            </div>
+          </>
+        )}
 
         {/* Email */}
         <div className="space-y-1.5">

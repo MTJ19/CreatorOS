@@ -9,6 +9,13 @@ export const ContractStatusSchema = z.enum([
   'TERMINATED',
 ]);
 
+export const CreatorContractReadStatusSchema = z.enum([
+  'UNREAD',
+  'READ',
+  'ONGOING',
+  'COMPLETED',
+]);
+
 export const RiskSeveritySchema = z.enum(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']);
 
 export const ContractRiskFlagSchema = z.object({
@@ -42,6 +49,7 @@ export const ContractSchema = z.object({
   governingLaw: z.string().max(255).nullable().optional(),
   aiSummary: z.string().nullable().optional(),
   overallRiskScore: z.number().min(0).max(100).nullable().optional(),
+  creatorReadStatus: CreatorContractReadStatusSchema.default('UNREAD'),
   riskFlags: z.array(ContractRiskFlagSchema).default([]),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),

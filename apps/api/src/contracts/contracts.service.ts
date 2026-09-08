@@ -39,6 +39,14 @@ export class ContractsService {
     return contract;
   }
 
+  async updateReadStatus(id: string, creatorId: string, creatorReadStatus: string) {
+    const contract = await this.findOne(id, creatorId);
+    return this.prisma.contract.update({
+      where: { id: contract.id },
+      data: { creatorReadStatus: creatorReadStatus as any },
+    });
+  }
+
   /**
    * Programmatically generate a DOCX contract based on creator input
    */

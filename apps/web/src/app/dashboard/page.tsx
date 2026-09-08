@@ -44,6 +44,7 @@ import {
 export default function DashboardPage() {
   const { data: session, status } = useSession();
   const accessToken = (session as any)?.accessToken;
+  const userRole = (session?.user as any)?.role || 'CREATOR';
   const router = useRouter();
 
   // Data states
@@ -159,10 +160,12 @@ export default function DashboardPage() {
             <span className="inline-flex rounded-xl bg-primary-muted p-2 shadow-glow-sm">
               <LayoutDashboard className="h-6 w-6 text-primary" />
             </span>
-            Dashboard
+            {userRole === 'BRAND' ? 'Agency Dashboard' : 'Dashboard'}
           </h1>
           <p className="mt-2 text-foreground-muted">
-            Overview of your brand partnerships, negotiation pipelines, and post-performance.
+            {userRole === 'BRAND'
+              ? 'Overview of your creator partnerships, negotiation pipelines, and spend.'
+              : 'Overview of your brand partnerships, negotiation pipelines, and post-performance.'}
           </p>
         </div>
       </div>
@@ -203,7 +206,7 @@ export default function DashboardPage() {
         <>
           {/* StatBand: Premium Gradient summary band */}
           <section aria-label="Key performance metrics" className="relative z-10">
-            <div className="to-accent-muted/10 grid grid-cols-2 gap-4 rounded-xl border border-primary/20 bg-gradient-to-r from-primary-muted/15 p-5 shadow-glow-sm lg:grid-cols-5">
+            <div className="to-accent-muted/10 grid grid-cols-2 gap-4 rounded-xl border border-primary/20 bg-gradient-to-r from-primary-muted/15 p-5 shadow-glow-sm lg:grid-cols-7">
               {/* Active Deals */}
               <div className="space-y-1 p-2.5">
                 <span className="block text-[11px] font-semibold uppercase tracking-wider text-primary">
@@ -215,49 +218,77 @@ export default function DashboardPage() {
                 <span className="block text-xs text-foreground-muted">In progress</span>
               </div>
 
-              {/* Monthly Contracted Value */}
+              {/* Completed Projects */}
               <div className="space-y-1 p-2.5">
                 <span className="block text-[11px] font-semibold uppercase tracking-wider text-primary">
-                  Monthly Value
+                  Completed Deals
                 </span>
                 <span className="block text-3xl font-extrabold tracking-tight text-white">
-                  {formatCurrency(stats?.monthlyContractedValue || 0)}
+                  {stats?.completedProjectCount || 0}
                 </span>
-                <span className="block text-xs text-foreground-muted">Contracted this month</span>
+                <span className="block text-xs text-foreground-muted">All time</span>
+              </div>
+
+              {userRole === 'CREATOR' && (
+                <div className="space-y-1 p-2.5">
+                  <span className="block text-[11px] font-semibold uppercase tracking-wider text-primary">
+                    Monthly Value
+                  </span>
+                  <span className="block text-3xl font-extrabold tracking-tight text-white">
+                    {formatCurrency(stats?.monthlyContractedValue || 0)}
+                  </span>
+                  <span className="block text-xs text-foreground-muted">Contracted this month</span>
+                </div>
+              )}
+
+              {/* Total Earnings / Spend */}
+              <div className="space-y-1 p-2.5">
+                <span className="block text-[11px] font-semibold uppercase tracking-wider text-primary">
+                  {userRole === 'BRAND' ? 'Total Spend' : 'Total Earnings'}
+                </span>
+                <span className="block text-3xl font-extrabold tracking-tight text-white">
+                  {formatCurrency((userRole === 'BRAND' ? stats?.totalSpend : stats?.totalEarnings) || 0)}
+                </span>
+                <span className="block text-xs text-foreground-muted">All time</span>
               </div>
 
               {/* Flagged Clauses */}
-              <div className="space-y-1 p-2.5">
-                <span className="block text-[11px] font-semibold uppercase tracking-wider text-primary">
-                  Flagged Clauses
-                </span>
-                <span className="block flex items-center gap-1.5 text-3xl font-extrabold tracking-tight text-white">
-                  {stats?.flaggedClauseCount || 0}
-                  {stats?.flaggedClauseCount > 0 && (
-                    <ShieldAlert className="h-5 w-5 animate-pulse text-rose-500" />
-                  )}
-                </span>
-                <span className="block text-xs text-foreground-muted">Requires review</span>
-              </div>
+              {userRole === 'CREATOR' && (
+                <div className="space-y-1 p-2.5 border-l border-border/40">
+                  <span className="block text-[11px] font-semibold uppercase tracking-wider text-primary">
+                    Flagged Clauses
+                  </span>
+                  <span className="flex items-center gap-1.5 block text-3xl font-extrabold tracking-tight text-white">
+                    {stats?.flaggedClauseCount || 0}
+                    {stats?.flaggedClauseCount > 0 && (
+                      <ShieldAlert className="h-5 w-5 animate-pulse text-rose-500" />
+                    )}
+                  </span>
+                  <span className="block text-xs text-foreground-muted">Requires review</span>
+                </div>
+              )}
 
               {/* Overdue Invoices */}
-              <div className="space-y-1 p-2.5">
-                <span className="block text-[11px] font-semibold uppercase tracking-wider text-primary">
-                  Overdue Invoices
-                </span>
-                <span className="block text-3xl font-extrabold tracking-tight text-rose-500 text-white">
-                  {stats?.overdueInvoices || 0}
-                </span>
-                <span className="block text-xs text-foreground-muted">Awaiting payment</span>
-              </div>
+              {userRole === 'CREATOR' && (
+                <div className="space-y-1 p-2.5">
+                  <span className="block text-[11px] font-semibold uppercase tracking-wider text-primary">
+                    Overdue Invoices
+                  </span>
+                  <span className="block text-3xl font-extrabold tracking-tight text-rose-500 text-white">
+                    {stats?.overdueInvoices || 0}
+                  </span>
+                  <span className="block text-xs text-foreground-muted">Awaiting payment</span>
+                </div>
+              )}
 
               {/* Average CPV */}
-              <div className="col-span-2 space-y-1 p-2.5 lg:col-span-1">
-                <span className="block text-[11px] font-semibold uppercase tracking-wider text-primary">
-                  Avg. CPV
-                </span>
-                <span className="block font-mono text-3xl font-extrabold tracking-tight text-white">
-                  {stats?.avgCpv !== null && stats?.avgCpv !== undefined
+              {userRole === 'CREATOR' && (
+                <div className="col-span-2 space-y-1 p-2.5 lg:col-span-1">
+                  <span className="block text-[11px] font-semibold uppercase tracking-wider text-primary">
+                    Avg. CPV
+                  </span>
+                  <span className="block font-mono text-3xl font-extrabold tracking-tight text-white">
+                    {stats?.avgCpv !== null && stats?.avgCpv !== undefined
                     ? `$${stats.avgCpv.toFixed(3)}`
                     : 'N/A'}
                 </span>
@@ -365,16 +396,16 @@ export default function DashboardPage() {
           <section aria-label="Active partnerships breakdown" className="relative z-10 space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-bold text-white">Active Partnerships & Performance</h2>
+                <h2 className="text-lg font-bold text-white">Recent Pipeline & Performance</h2>
                 <p className="text-xs text-foreground-muted">
-                  Overview of metrics, invoices, and performance ratings per deal
+                  Overview of metrics, invoices, and pipeline stages per deal
                 </p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
               {deals
-                .filter((d) => d.stage === 'ACTIVE')
+                .filter((d) => !['LOST', 'COMPLETED'].includes(d.stage))
                 .slice(0, 6)
                 .map((deal) => {
                   const views = deal.computed?.views || 0;
@@ -395,9 +426,14 @@ export default function DashboardPage() {
                           </CardTitle>
                           <CardDescription className="text-xs">{deal.brandName}</CardDescription>
                         </div>
-                        <Badge variant="deal-active" className="text-[10px]">
-                          Active
-                        </Badge>
+                        <div className="flex flex-col items-end gap-1">
+                          <Badge variant={dealStatusVariant[deal.status as keyof typeof dealStatusVariant]} className="text-[9px]">
+                            {deal.status}
+                          </Badge>
+                          <Badge variant="deal-active" className="text-[9px] bg-primary/20 text-primary border-primary/30">
+                            {deal.stage.replace(/_/g, ' ')}
+                          </Badge>
+                        </div>
                       </CardHeader>
                       <CardContent className="space-y-3.5 pt-4">
                         {/* Rating Banner */}
@@ -481,13 +517,12 @@ export default function DashboardPage() {
                   );
                 })}
 
-              {deals.filter((d) => d.stage === 'ACTIVE').length === 0 && (
+              {deals.filter((d) => !['LOST', 'COMPLETED'].includes(d.stage)).length === 0 && (
                 <div className="col-span-full rounded-xl border border-dashed border-border/20 bg-background-surface/30 py-12 text-center text-foreground-muted">
                   <Inbox className="mx-auto mb-3 h-10 w-10 text-foreground-subtle" />
-                  <p className="text-base font-semibold text-white">No active deals right now</p>
+                  <p className="text-base font-semibold text-white">No active pipeline right now</p>
                   <p className="mx-auto mt-1 max-w-xs text-xs">
-                    Once you update a deal stage to &quot;Active&quot; in the CRM, it will appear
-                    here with live metrics.
+                    Create a new deal in the CRM to see it tracked here.
                   </p>
                 </div>
               )}

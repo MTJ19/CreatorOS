@@ -10,6 +10,7 @@ import { StorageService } from '../storage/storage.service';
 import { extractTextFromFile } from '../storage/text-extractor';
 
 import { CreateDealDto, UpdateDealDto } from './deals.dto';
+import { DealNegotiationMessage } from '@prisma/client';
 
 @Injectable()
 export class DealsService {
@@ -26,6 +27,21 @@ export class DealsService {
   async findAll(creatorId: string) {
     const deals = await this.prisma.deal.findMany({
       where: { creatorId },
+      include: {
+        deliverables: true,
+        contract: { include: { riskFlags: true } },
+        invoices: true,
+        performanceLogs: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return deals.map((d) => this.enrichDealComputedFields(d));
+  }
+
+  async findAllForBrand(brandEmail: string) {
+    const deals = await this.prisma.deal.findMany({
+      where: { brandEmail },
       include: {
         deliverables: true,
         contract: { include: { riskFlags: true } },
@@ -247,6 +263,14 @@ export class DealsService {
 
     // Active Deals count
     const activeDeals = deals.filter((d) => d.stage === DealStage.ACTIVE).length;
+    
+    // Completed Project Count
+    const completedProjectCount = deals.filter((d) => d.stage === DealStage.COMPLETED).length;
+
+    // Total Earnings (Sum of COMPLETED deal amounts)
+    const totalEarnings = deals
+      .filter((d) => d.stage === DealStage.COMPLETED)
+      .reduce((sum, d) => sum + Number(d.amount), 0);
 
     // Monthly Contracted Value (Sum of ACTIVE/COMPLETED deal amounts starting in the current month)
     const now = new Date();
@@ -306,8 +330,10 @@ export class DealsService {
       {} as Record<string, number>,
     );
 
-    const stats = {
+    const result = {
       activeDeals,
+      totalEarnings,
+      completedProjectCount,
       monthlyContractedValue,
       flaggedClauseCount,
       overdueInvoices,
@@ -315,13 +341,42 @@ export class DealsService {
       stageBreakdown,
     };
 
-    // Cache in Redis for 1 hour (3600 seconds)
-    await this.redis.set(cacheKey, stats, 3600);
-
-    return stats;
+    // Cache for 10 minutes
+    await this.redis.set(cacheKey, result, 600);
+    return result;
   }
 
-  // ─── Helpers ──────────────────────────────────────────────────
+  async getDashboardStatsForBrand(brandEmail: string) {
+    const cacheKey = `brand:dashboard:stats:${brandEmail}`;
+    const cached = await this.redis.get<any>(cacheKey);
+    if (cached) return cached;
+
+    const deals = await this.findAllForBrand(brandEmail);
+
+    const activeDeals = deals.filter((d) => d.stage === DealStage.ACTIVE).length;
+    const completedProjectCount = deals.filter((d) => d.stage === DealStage.COMPLETED).length;
+
+    const totalSpend = deals
+      .filter((d) => d.stage === DealStage.COMPLETED)
+      .reduce((sum, d) => sum + Number(d.amount), 0);
+
+    const stageBreakdown = deals.reduce((acc: any, deal) => {
+      acc[deal.stage] = (acc[deal.stage] || 0) + 1;
+      return acc;
+    }, {});
+
+    const result = {
+      activeDeals,
+      completedProjectCount,
+      totalSpend,
+      stageBreakdown,
+    };
+
+    await this.redis.set(cacheKey, result, 600);
+    return result;
+  }
+
+  // ─── External / Webhook Integrations ──────────────────────────────────────────────────
 
   private validateStageTransition(from: DealStage, to: DealStage) {
     if (from === to) return;

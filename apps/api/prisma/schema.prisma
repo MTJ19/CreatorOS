@@ -141,8 +141,8 @@ enum PostingFrequency {
 }
 
 enum ContentFormat {
-  SHORT_FORM_VIDEO    // Reels, TikToks, Shorts
-  LONG_FORM_VIDEO     // YouTube videos
+  SHORT_FORM_VIDEO // Reels, TikToks, Shorts
+  LONG_FORM_VIDEO // YouTube videos
   STATIC_IMAGE
   CAROUSEL
   STORIES
@@ -163,12 +163,12 @@ enum AudienceAgeRange {
 }
 
 enum BrandTier {
-  NANO        // < 1K followers brand audience
-  MICRO       // 1K–10K
-  MID         // 10K–100K
-  MACRO       // 100K–1M
-  MEGA        // 1M+
-  ENTERPRISE  // Fortune 500 / global brand
+  NANO // < 1K followers brand audience
+  MICRO // 1K–10K
+  MID // 10K–100K
+  MACRO // 100K–1M
+  MEGA // 1M+
+  ENTERPRISE // Fortune 500 / global brand
 }
 
 enum DealType {
@@ -208,6 +208,24 @@ enum ContentFormatPerf {
   UGC_RAW_FOOTAGE
 }
 
+enum CreatorContractReadStatus {
+  UNREAD
+  READ
+  ONGOING
+  COMPLETED
+}
+
+enum BrandDealReadStatus {
+  UNREAD
+  READ
+}
+
+enum ActivityLogType {
+  SYSTEM
+  MANUAL_BRAND
+  MANUAL_CREATOR
+}
+
 // ─── Models ──────────────────────────────────────────────────
 
 /// Creator / brand user account
@@ -225,29 +243,33 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  profile            CreatorProfile?
-  deals              Deal[]
-  contracts          Contract[]
-  invoices           Invoice[]
-  performanceLogs    PerformanceLog[]
-  brandPortalTokens  BrandPortalToken[]
-  refreshTokens      RefreshToken[]
-  auditLogs          AuditLog[]
+  profile                  CreatorProfile?
+  deals                    Deal[]
+  contracts                Contract[]
+  invoices                 Invoice[]
+  performanceLogs          PerformanceLog[]
+  brandPortalTokens        BrandPortalToken[]
+  refreshTokens            RefreshToken[]
+  auditLogs                AuditLog[]
   rateIntelligenceRequests RateIntelligenceRequest[]
-  financialSettings  FinancialSettings?
-  instagramSyncLogs  InstagramSyncLog[]
+  financialSettings        FinancialSettings?
+  instagramSyncLogs        InstagramSyncLog[]
 
-  igUserId           String?   @unique
-  igAccessToken      String?
-  igTokenExpiresAt   DateTime?
-  igUsername         String?
-  igAccountType      String?
-  igFollowersCount   Int?
-  igFollowsCount     Int?
-  igMediaCount       Int?
-  igProfilePicUrl    String?
-  igConnectedAt      DateTime?
-  igLastSyncedAt     DateTime?
+  igUserId         String?   @unique
+  igAccessToken    String?
+  igTokenExpiresAt DateTime?
+  igUsername       String?
+  igAccountType    String?
+  igFollowersCount Int?
+  igFollowsCount   Int?
+  igMediaCount     Int?
+  igProfilePicUrl  String?
+  igConnectedAt    DateTime?
+  igLastSyncedAt   DateTime?
+
+  brandProfile     BrandProfile?
+  metricHistory    CreatorMetricHistory[]
+  dealActivityLogs DealActivityLog[]
 
   @@map("users")
 }
@@ -258,23 +280,23 @@ model CreatorProfile {
   userId String @unique
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  bio               String?
-  niche             String[]
-  location          String?
-  website           String?
+  bio                  String?
+  niche                String[]
+  location             String?
+  website              String?
   /// JSON array of { platform, handle, url, followerCount, verified }
-  platformHandles   Json              @default("[]")
-  primaryPlatform   SocialPlatform?
-  avgEngagementRate Float?
-  avgViews          Int?
-  totalFollowers    Int               @default(0)
-  postingFrequency  PostingFrequency?
-  contentFormats    ContentFormat[]
-  audienceGeography String[]
-  audienceAgeRange  AudienceAgeRange[]
-  currency          String            @default("USD") @db.Char(3)
-  baseRate          Decimal?          @db.Decimal(12, 2)
-  isOnboardingComplete Boolean        @default(false)
+  platformHandles      Json               @default("[]")
+  primaryPlatform      SocialPlatform?
+  avgEngagementRate    Float?
+  avgViews             Int?
+  totalFollowers       Int                @default(0)
+  postingFrequency     PostingFrequency?
+  contentFormats       ContentFormat[]
+  audienceGeography    String[]
+  audienceAgeRange     AudienceAgeRange[]
+  currency             String             @default("USD") @db.Char(3)
+  baseRate             Decimal?           @db.Decimal(12, 2)
+  isOnboardingComplete Boolean            @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -284,9 +306,9 @@ model CreatorProfile {
 
 /// JWT refresh token store for rotation
 model RefreshToken {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   token     String   @unique
   expiresAt DateTime
@@ -303,14 +325,14 @@ model RefreshToken {
 
 /// Audit log for security-sensitive operations
 model AuditLog {
-  id         String   @id @default(cuid())
-  userId     String?
-  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  id     String  @id @default(cuid())
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
 
-  action     String   // e.g. "profile.create", "profile.update", "auth.login"
-  resource   String?  // e.g. "CreatorProfile"
+  action     String // e.g. "profile.create", "profile.update", "auth.login"
+  resource   String? // e.g. "CreatorProfile"
   resourceId String?
-  metadata   Json?    // additional context
+  metadata   Json? // additional context
   ipAddress  String?
   userAgent  String?
 
@@ -328,14 +350,14 @@ model Deal {
   creatorId String
   creator   User   @relation(fields: [creatorId], references: [id], onDelete: Cascade)
 
-  brandName    String
-  brandEmail   String?
-  brandWebsite String?
-  title        String
-  description  String?
-  amount       Decimal    @db.Decimal(12, 2)
-  currency     String     @default("USD") @db.Char(3)
-  status       DealStatus @default(DRAFT)
+  brandName        String
+  brandEmail       String?
+  brandWebsite     String?
+  title            String
+  description      String?
+  amount           Decimal    @db.Decimal(12, 2)
+  currency         String     @default("USD") @db.Char(3)
+  status           DealStatus @default(DRAFT)
   brandInstagram   String?
   dealSource       String?
   stage            DealStage  @default(NEW_INQUIRY)
@@ -351,17 +373,21 @@ model Deal {
   usageRights      String?
   notes            String?
   tags             String[]
-  confidence       DealConfidence @default(LIKELY)
+  confidence       DealConfidence      @default(LIKELY)
+  isUnlinked       Boolean             @default(false)
+  brandReadStatus  BrandDealReadStatus @default(UNREAD)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  deliverables    Deliverable[]
-  contract        Contract?
-  brief           Brief?
-  invoices        Invoice[]
-  performanceLogs PerformanceLog[]
-  brandPortalTokens BrandPortalToken[]
+  deliverables        Deliverable[]
+  contract            Contract?
+  brief               Brief?
+  invoices            Invoice[]
+  performanceLogs     PerformanceLog[]
+  brandPortalTokens   BrandPortalToken[]
+  negotiationMessages DealNegotiationMessage[]
+  activityLogs        DealActivityLog[]
 
   @@index([creatorId])
   @@index([creatorId, stage])
@@ -388,7 +414,7 @@ model Deliverable {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  performanceLogs PerformanceLog[]
+  performanceLogs  PerformanceLog[]
   invoiceLineItems InvoiceLineItem[]
 
   @@index([dealId])
@@ -404,17 +430,18 @@ model Contract {
   creatorId String
   creator   User   @relation(fields: [creatorId], references: [id])
 
-  title            String
-  fileUrl          String?
-  fileKey          String?
-  status           ContractStatus @default(DRAFT)
-  signedAt         DateTime?
-  expiresAt        DateTime?
-  parties          String[]
-  jurisdiction     String?
-  governingLaw     String?
-  aiSummary        String?
-  overallRiskScore Float?
+  title             String
+  fileUrl           String?
+  fileKey           String?
+  status            ContractStatus            @default(DRAFT)
+  signedAt          DateTime?
+  expiresAt         DateTime?
+  parties           String[]
+  jurisdiction      String?
+  governingLaw      String?
+  aiSummary         String?
+  overallRiskScore  Float?
+  creatorReadStatus CreatorContractReadStatus @default(UNREAD)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -440,7 +467,7 @@ model ContractRiskFlag {
   scenario        String?
   suggestedClause String?
   pageNumber      Int?
-  isAcknowledged  Boolean   @default(false)
+  isAcknowledged  Boolean      @default(false)
   acknowledgedAt  DateTime?
 
   createdAt DateTime @default(now())
@@ -452,45 +479,45 @@ model ContractRiskFlag {
 
 /// Brand brief document linked to a deal
 model Brief {
-  id         String   @id @default(cuid())
-  dealId     String   @unique
-  deal       Deal     @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  id         String  @id @default(cuid())
+  dealId     String  @unique
+  deal       Deal    @relation(fields: [dealId], references: [id], onDelete: Cascade)
   fileUrl    String?
   fileKey    String?
-  parsedData Json?    // JSON structure: { deliverables: [], deadlines: [], dos: [], donts: [], ftcFlags: [] }
+  parsedData Json? // JSON structure: { deliverables: [], deadlines: [], dos: [], donts: [], ftcFlags: [] }
 
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("briefs")
 }
 
 /// Invoice for a deal or standalone
 model Invoice {
-  id        String @id @default(cuid())
+  id        String  @id @default(cuid())
   creatorId String
-  creator   User   @relation(fields: [creatorId], references: [id])
+  creator   User    @relation(fields: [creatorId], references: [id])
   dealId    String?
-  deal      Deal?  @relation(fields: [dealId], references: [id])
+  deal      Deal?   @relation(fields: [dealId], references: [id])
 
-  invoiceNumber            String        @unique
-  brandName                String
-  brandEmail               String
-  brandAddress             String?
-  status                   InvoiceStatus @default(DRAFT)
-  paymentTerms             PaymentTerms  @default(NET_30)
-  subtotal                 Decimal       @db.Decimal(12, 2)
-  taxRate                  Float?
-  taxAmount                Decimal?      @db.Decimal(12, 2)
-  totalAmount              Decimal       @db.Decimal(12, 2)
-  currency                 String        @default("USD") @db.Char(3)
-  issuedAt                 DateTime?
-  dueDate                  DateTime?
-  paidAt                   DateTime?
-  paidAmount               Decimal?      @db.Decimal(12, 2)
-  stripePaymentIntentId    String?
-  notes                    String?
-  termsAndConditions       String?
+  invoiceNumber         String        @unique
+  brandName             String
+  brandEmail            String
+  brandAddress          String?
+  status                InvoiceStatus @default(DRAFT)
+  paymentTerms          PaymentTerms  @default(NET_30)
+  subtotal              Decimal       @db.Decimal(12, 2)
+  taxRate               Float?
+  taxAmount             Decimal?      @db.Decimal(12, 2)
+  totalAmount           Decimal       @db.Decimal(12, 2)
+  currency              String        @default("USD") @db.Char(3)
+  issuedAt              DateTime?
+  dueDate               DateTime?
+  paidAt                DateTime?
+  paidAmount            Decimal?      @db.Decimal(12, 2)
+  stripePaymentIntentId String?
+  notes                 String?
+  termsAndConditions    String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -505,9 +532,9 @@ model Invoice {
 
 /// Line items on an invoice
 model InvoiceLineItem {
-  id          String  @id @default(cuid())
-  invoiceId   String
-  invoice     Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  id            String       @id @default(cuid())
+  invoiceId     String
+  invoice       Invoice      @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
   deliverableId String?
   deliverable   Deliverable? @relation(fields: [deliverableId], references: [id])
 
@@ -522,13 +549,13 @@ model InvoiceLineItem {
 
 /// Performance metrics for a deal / deliverable
 model PerformanceLog {
-  id            String @id @default(cuid())
+  id            String       @id @default(cuid())
   dealId        String?
-  deal          Deal?  @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  deal          Deal?        @relation(fields: [dealId], references: [id], onDelete: Cascade)
   deliverableId String?
   deliverable   Deliverable? @relation(fields: [deliverableId], references: [id])
   creatorId     String
-  creator       User   @relation(fields: [creatorId], references: [id])
+  creator       User         @relation(fields: [creatorId], references: [id])
 
   recordedAt DateTime
   /// JSON blob with { views, impressions, reach, likes, comments, shares, saves, clicks, conversions, revenue, engagementRate, ctr, conversionRate }
@@ -550,21 +577,21 @@ model PerformanceLog {
 
 /// Secure access token granting a brand access to the creator portal
 model BrandPortalToken {
-  id        String @id @default(cuid())
+  id        String  @id @default(cuid())
   creatorId String
-  creator   User   @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  creator   User    @relation(fields: [creatorId], references: [id], onDelete: Cascade)
   dealId    String?
-  deal      Deal?  @relation(fields: [dealId], references: [id])
+  deal      Deal?   @relation(fields: [dealId], references: [id])
 
-  token          String            @unique
+  token          String             @unique
   brandName      String
   brandEmail     String
   brandNote      String?
   permissions    PortalPermission[]
   expiresAt      DateTime
   lastAccessedAt DateTime?
-  accessCount    Int               @default(0)
-  isRevoked      Boolean           @default(false)
+  accessCount    Int                @default(0)
+  isRevoked      Boolean            @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -614,28 +641,28 @@ model PortalComment {
 // NOTE: You must manually run CREATE EXTENSION IF NOT EXISTS vector; in the Supabase SQL editor before migrating.
 /// Market-rate reference data for comparable creator deals (seed data)
 model ComparableDeal {
-  id            String         @id @default(cuid())
-  platform      SocialPlatform
-  contentFormat ContentFormat
+  id              String         @id @default(cuid())
+  platform        SocialPlatform
+  contentFormat   ContentFormat
   /// Follower range bucket e.g. "1K-10K", "10K-50K", "50K-200K", "200K-1M", "1M+"
-  followerRange String
-  niche         String
-  dealType      DealType
-  brandTier     BrandTier
+  followerRange   String
+  niche           String
+  dealType        DealType
+  brandTier       BrandTier
   /// e.g. ["ORGANIC_ONLY", "PAID_ADS", "WHITELISTING", "EXCLUSIVITY"]
-  usageRights   String[]
-  exclusivityDays Int          @default(0)
-  baseRate      Decimal        @db.Decimal(12, 2)
-  currency      String         @default("USD") @db.Char(3)
-  engagementRate Float?
-  country       String         @default("US")
-  year          Int
-  isVerified    Boolean        @default(false)
-  source        String?
+  usageRights     String[]
+  exclusivityDays Int            @default(0)
+  baseRate        Decimal        @db.Decimal(12, 2)
+  currency        String         @default("USD") @db.Char(3)
+  engagementRate  Float?
+  country         String         @default("US")
+  year            Int
+  isVerified      Boolean        @default(false)
+  source          String?
 
   /// 768-dim embedding vector (Gemini text-embedding-004) of a composed text summary of this deal
-  embedding     Unsupported("vector(768)")?
-  summaryText   String? /// the exact text that was embedded, for debugging/re-embedding
+  embedding   Unsupported("vector(768)")?
+  summaryText String? /// the exact text that was embedded, for debugging/re-embedding
 
   createdAt DateTime @default(now())
 
@@ -680,13 +707,13 @@ model FinancialSettings {
 
 /// Log of Instagram metric synchronization
 model InstagramSyncLog {
-  id          String   @id @default(cuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  syncedAt    DateTime @default(now())
-  postsCount  Int      @default(0)
-  status      String   @default("success")
-  errorMsg    String?
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  syncedAt   DateTime @default(now())
+  postsCount Int      @default(0)
+  status     String   @default("success")
+  errorMsg   String?
 
   @@index([userId])
   @@map("instagram_sync_logs")
@@ -696,9 +723,9 @@ model BrandIntelCache {
   id            String   @id @default(cuid())
   brandName     String   @unique
   brandCategory String?
-  summary       String   /// AI-synthesized summary of brand size, industry, sponsorship history
+  summary       String /// AI-synthesized summary of brand size, industry, sponsorship history
   sourceUrls    String[] /// URLs used to build the summary
-  estimatedTier String?  /// "STARTUP" | "MID_MARKET" | "ENTERPRISE" | "LUXURY" — inferred
+  estimatedTier String? /// "STARTUP" | "MID_MARKET" | "ENTERPRISE" | "LUXURY" — inferred
   refreshedAt   DateTime @default(now())
 
   @@index([brandName])
@@ -706,13 +733,66 @@ model BrandIntelCache {
 }
 
 model RateIntelligenceOutcome {
-  id          String   @id @default(cuid())
-  requestId   String   @unique
+  id          String                  @id @default(cuid())
+  requestId   String                  @unique
   request     RateIntelligenceRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
-  actualRate  Decimal? @db.Decimal(12, 2)
+  actualRate  Decimal?                @db.Decimal(12, 2)
   wasAccepted Boolean?
   notes       String?
-  createdAt   DateTime @default(now())
+  createdAt   DateTime                @default(now())
 
   @@map("rate_intelligence_outcomes")
+}
+
+model BrandProfile {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  description String?
+  companyName String?
+  website     String?
+  niche       String[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("brand_profiles")
+}
+
+model CreatorMetricHistory {
+  id             String   @id @default(cuid())
+  creatorId      String
+  creator        User     @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  followerCount  Int
+  engagementRate Float?
+  recordedAt     DateTime @default(now())
+
+  @@index([creatorId, recordedAt])
+  @@map("creator_metric_history")
+}
+
+model DealNegotiationMessage {
+  id        String   @id @default(cuid())
+  dealId    String
+  deal      Deal     @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  role      String // e.g. "CREATOR", "BRAND", "AI_ASSISTANT"
+  content   String
+  createdAt DateTime @default(now())
+
+  @@index([dealId, createdAt])
+  @@map("deal_negotiation_messages")
+}
+
+model DealActivityLog {
+  id        String          @id @default(cuid())
+  dealId    String
+  deal      Deal            @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  userId    String?
+  user      User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+  type      ActivityLogType @default(SYSTEM)
+  action    String
+  metadata  Json?
+  createdAt DateTime        @default(now())
+
+  @@index([dealId, createdAt])
+  @@map("deal_activity_logs")
 }

@@ -33,8 +33,11 @@ export class DealsController {
 
   @Get('dashboard/stats')
   @Version('1')
-  @ApiOperation({ summary: 'Get cached dashboard stats for creator' })
+  @ApiOperation({ summary: 'Get cached dashboard stats for creator or brand' })
   getDashboardStats(@CurrentUser() user: JwtPayload) {
+    if (user.role === 'BRAND') {
+      return this.dealsService.getDashboardStatsForBrand(user.email);
+    }
     return this.dealsService.getDashboardStats(user.sub);
   }
 
@@ -47,8 +50,11 @@ export class DealsController {
 
   @Get()
   @Version('1')
-  @ApiOperation({ summary: 'List all deals for the authenticated creator' })
+  @ApiOperation({ summary: 'List all deals for the authenticated creator or brand' })
   findAll(@CurrentUser() user: JwtPayload) {
+    if (user.role === 'BRAND') {
+      return this.dealsService.findAllForBrand(user.email);
+    }
     return this.dealsService.findAll(user.sub);
   }
 
@@ -110,5 +116,52 @@ export class DealsController {
     @Body() parsedData: any,
   ) {
     return this.dealsService.updateBriefParsedData(id, user.sub, parsedData);
+  }
+
+  // ─── Negotiation Messages ─────────────────────────────────────
+
+  @Get(':id/negotiation')
+  @Version('1')
+  @ApiOperation({ summary: 'Get negotiation messages for a deal' })
+  getNegotiationMessages(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
+    return this.dealsService.getNegotiationMessages(id, user.sub);
+  }
+
+  @Post(':id/negotiation')
+  @Version('1')
+  @ApiOperation({ summary: 'Add a negotiation message' })
+  addNegotiationMessage(
+    @Param('id') id: string,
+    @CurrentUser() user: JwtPayload,
+    @Body() body: { role: string; content: string },
+  ) {
+    return this.dealsService.addNegotiationMessage(id, user.sub, body.role, body.content);
+  }
+
+  @Post(':id/negotiation/suggest')
+  @Version('1')
+  @ApiOperation({ summary: 'Generate a suggestion for negotiation' })
+  generateNegotiationSuggestion(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
+    return this.dealsService.generateNegotiationSuggestion(id, user.sub);
+  }
+
+  // ─── Shared Activity Log ──────────────────────────────────────
+
+  @Get(':id/activity')
+  @Version('1')
+  @ApiOperation({ summary: 'Get activity logs for a deal' })
+  getActivityLogs(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
+    return this.dealsService.getActivityLogs(id, user.sub);
+  }
+
+  @Post(':id/activity')
+  @Version('1')
+  @ApiOperation({ summary: 'Add a manual activity log entry' })
+  addActivityLog(
+    @Param('id') id: string,
+    @CurrentUser() user: JwtPayload,
+    @Body() body: { action: string; type?: string },
+  ) {
+    return this.dealsService.addActivityLog(id, user.sub, body.action, body.type);
   }
 }

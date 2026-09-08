@@ -43,6 +43,8 @@ export default function ContractReviewPage() {
   // UI States
   const [copiedFlagId, setCopiedFlagId] = React.useState<string | null>(null);
   const [expandedFlagId, setExpandedFlagId] = React.useState<string | null>(null);
+  const [readStatus, setReadStatus] = React.useState<string>('UNREAD');
+  const [updatingReadStatus, setUpdatingReadStatus] = React.useState(false);
 
   const fetchContract = React.useCallback(async () => {
     if (!accessToken || !id) return;
@@ -50,6 +52,9 @@ export default function ContractReviewPage() {
       setLoading(true);
       const data = await contractsApi.getOne(accessToken, id);
       setContract(data);
+      if (data.creatorReadStatus) {
+        setReadStatus(data.creatorReadStatus);
+      }
       if (data.riskFlags && data.riskFlags.length > 0) {
         // Expand first flag by default
         setExpandedFlagId(data.riskFlags[0].id);
@@ -85,6 +90,22 @@ export default function ContractReviewPage() {
       });
     } catch (err) {
       console.error('Failed to acknowledge flag', err);
+    }
+  };
+
+  const handleReadStatusChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newStatus = e.target.value;
+    if (!accessToken || !id) return;
+    
+    setUpdatingReadStatus(true);
+    try {
+      await contractsApi.updateReadStatus(accessToken, id, newStatus);
+      setReadStatus(newStatus);
+      setContract((prev: any) => prev ? { ...prev, creatorReadStatus: newStatus } : prev);
+    } catch (err) {
+      console.error('Failed to update read status', err);
+    } finally {
+      setUpdatingReadStatus(false);
     }
   };
 
@@ -203,8 +224,39 @@ export default function ContractReviewPage() {
             </span>
           </div>
           <div className="text-right">
-            <span className="text-xxs block font-semibold uppercase tracking-wider text-zinc-500">
-              Status
+            <span className="text-xxs block font-semibold uppercase tracking-wider text-zinc-500 mb-1">
+              My Review Status
+            </span>
+            <div className="relative inline-block">
+              <select
+                value={readStatus}
+                onChange={handleReadStatusChange}
+                disabled={updatingReadStatus}
+                className={cn(
+                  "block w-full appearance-none rounded-lg border bg-zinc-900 px-3 py-1 pr-8 text-sm font-bold shadow-sm transition-colors focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500 disabled:opacity-50",
+                  {
+                    'border-zinc-800 text-zinc-400': readStatus === 'UNREAD',
+                    'border-info-500/30 text-info-400 bg-info-950/20': readStatus === 'READ',
+                    'border-warning-500/30 text-warning-400 bg-warning-950/20': readStatus === 'ONGOING',
+                    'border-success-500/30 text-success-400 bg-success-950/20': readStatus === 'COMPLETED',
+                  }
+                )}
+              >
+                <option value="UNREAD">Unread</option>
+                <option value="READ">Read</option>
+                <option value="ONGOING">Ongoing</option>
+                <option value="COMPLETED">Completed</option>
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-zinc-400">
+                <svg className="h-4 w-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                  <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                </svg>
+              </div>
+            </div>
+          </div>
+          <div className="text-right">
+            <span className="text-xxs block font-semibold uppercase tracking-wider text-zinc-500 mb-1">
+              Audit Status
             </span>
             <span className="mt-1.5 block rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1 text-sm font-bold text-zinc-100">
               {unacknowledgedFlags.length > 0 ? (

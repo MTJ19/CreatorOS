@@ -151,6 +151,34 @@ export const dealsApi = {
       body: JSON.stringify(parsedData),
       accessToken,
     }),
+
+  // Negotiation
+  getNegotiationMessages: (accessToken: string, id: string) =>
+    request<any[]>(`/api/v1/deals/${id}/negotiation`, { accessToken }),
+  
+  addNegotiationMessage: (accessToken: string, id: string, role: string, content: string) =>
+    request<any>(`/api/v1/deals/${id}/negotiation`, {
+      method: 'POST',
+      body: JSON.stringify({ role, content }),
+      accessToken,
+    }),
+
+  suggestNegotiationMessage: (accessToken: string, id: string) =>
+    request<any>(`/api/v1/deals/${id}/negotiation/suggest`, {
+      method: 'POST',
+      accessToken,
+    }),
+
+  // Activity Log
+  getActivityLogs: (accessToken: string, id: string) =>
+    request<any[]>(`/api/v1/deals/${id}/activity`, { accessToken }),
+
+  addActivityLog: (accessToken: string, id: string, action: string, type?: string) =>
+    request<any>(`/api/v1/deals/${id}/activity`, {
+      method: 'POST',
+      body: JSON.stringify({ action, type }),
+      accessToken,
+    }),
 };
 
 // ── Rate Intelligence endpoints ───────────────────────────────
@@ -209,6 +237,13 @@ export const contractsApi = {
 
   getOne: (accessToken: string, id: string) =>
     request<any>(`/api/v1/contracts/${id}`, { accessToken }),
+
+  updateReadStatus: (accessToken: string, id: string, status: string) =>
+    request<any>(`/api/v1/contracts/${id}/read-status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ creatorReadStatus: status }),
+      accessToken,
+    }),
 
   generate: async (accessToken: string, data: any): Promise<Blob> => {
     const res = await fetch(`${API_BASE}/api/v1/contracts/generate`, {

@@ -57,6 +57,12 @@ export const RegisterSchema = z.object({
     .max(128)
     .regex(/[A-Z]/, 'Must contain at least one uppercase letter')
     .regex(/[0-9]/, 'Must contain at least one number'),
+  role: UserRoleSchema.default('CREATOR'),
+  igUsername: z.string().optional(),
+  igFollowersCount: z.coerce.number().int().nonnegative().optional(),
+  brandDescription: z.string().optional(),
+  brandNiche: z.array(z.string()).optional(),
+  brandWebsite: z.string().url('Invalid URL').optional().or(z.literal('')),
 });
 
 export const LoginSchema = z.object({

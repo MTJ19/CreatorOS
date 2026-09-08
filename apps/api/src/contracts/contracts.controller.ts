@@ -79,4 +79,15 @@ export class ContractsController {
   acknowledgeFlag(@Param('flagId') flagId: string, @CurrentUser() user: JwtPayload) {
     return this.contractsService.acknowledgeFlag(flagId, user.sub);
   }
+
+  @Patch(':id/read-status')
+  @Version('1')
+  @ApiOperation({ summary: 'Update creator read status of a contract' })
+  updateReadStatus(
+    @Param('id') id: string,
+    @Body('creatorReadStatus') status: string,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.contractsService.updateReadStatus(id, user.sub, status);
+  }
 }

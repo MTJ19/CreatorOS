@@ -29,16 +29,21 @@ export class RateIntelligenceService {
       include: { user: { select: { name: true } } },
     });
 
-    // 2. RAG retrieval: vector-search comparables + web-researched brand intel, in parallel
-    const [comparables, brandIntel] = await Promise.all([
+    // 2. RAG retrieval: vector-search comparables + web-researched brand intel + historical metrics, in parallel
+    const [comparables, brandIntel, metricHistory] = await Promise.all([
       this.vectorSearch.findSimilarComparables(dto, 8),
       dto.brandName
         ? this.brandIntel.getBrandIntel(dto.brandName, dto.brandCategory)
         : Promise.resolve(null),
+      this.prisma.creatorMetricHistory.findMany({
+        where: { creatorId: userId },
+        orderBy: { recordedAt: 'desc' },
+        take: 5,
+      })
     ]);
 
     // 3. Build prompt and call Gemini
-    const prompt = this.buildPrompt(dto, profile, comparables, brandIntel);
+    const prompt = this.buildPrompt(dto, profile, comparables, brandIntel, metricHistory);
     let result;
     try {
       result = await this.gemini.generateStructured(prompt, RateIntelligenceResultSchema, {
@@ -130,6 +135,7 @@ export class RateIntelligenceService {
     profile: Awaited<ReturnType<typeof this.prisma.creatorProfile.findUnique>>,
     comparables: any[],
     brandIntel: { summary: string; sourceUrls: string[]; estimatedTier: string | null } | null,
+    metricHistory: any[] = []
   ): string {
     const followerRange = this.followerBucket(dto.followers);
     const niches = (profile?.niche ?? []).join(', ') || 'general';
@@ -167,6 +173,10 @@ export class RateIntelligenceService {
       ? `\n- Monthly Dashboard / Performance Details: ${dto.dashboardDetails}`
       : '';
 
+    const historicalDataSummary = metricHistory.length > 0 
+      ? `\n- Historical Metric Trends (last ${metricHistory.length} records): ` + metricHistory.map(m => `[${new Date(m.recordedAt).toLocaleDateString()}: ${m.followerCount} followers, ${m.engagementRate?.toFixed(2) || '?'}% ER]`).reverse().join(' -> ')
+      : '';
+
     return `You are a senior brand deal rate advisor for digital creators. Provide a professional rate recommendation.
 
 CREATOR PROFILE:
@@ -174,7 +184,7 @@ CREATOR PROFILE:
 - Follower count/range: ${dto.followers} (${followerRange})
 - Niche(s): ${niches}
 - Avg engagement rate: ${engagementRate}
-- Avg views per post: ${avgViews}${dashboardDetailsText}
+- Avg views per post: ${avgViews}${dashboardDetailsText}${historicalDataSummary}
 
 DEAL REQUEST:
 - Content format: ${dto.contentFormat.replace(/_/g, ' ')}
