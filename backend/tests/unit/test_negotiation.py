@@ -14,13 +14,14 @@ from domain.models.negotiation import ChecklistState, NegotiationSession
 
 
 def test_calculate_base_rate():
-    # Example 1
-    res1 = calculate_base_rate(1000, 0.05, 200, 50)
-    assert res1 == 300.0
+    # CPM is cost per 1,000 views — a realistic niche CPM (₹40) on a
+    # realistic weekly view count (18,000) should land in the thousands,
+    # not multiply straight through to the lakhs.
+    res1 = calculate_base_rate(18000, 40, 6000, 3000)
+    assert res1 == 9720.0
 
-    # Example 2
-    res2 = calculate_base_rate(5000, 0.10, 500, -100)
-    assert res2 == 900.0
+    res2 = calculate_base_rate(1000, 50, 200, 50)
+    assert res2 == 300.0
 
 def test_calculate_range():
     low, high = calculate_range(100.0)

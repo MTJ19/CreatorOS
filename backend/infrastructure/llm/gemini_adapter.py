@@ -46,7 +46,10 @@ class GeminiAdapter(LLMPort):
         )
         
         response = await self.client.aio.models.generate_content(
-            model=settings.GEMINI_MODEL_PRO,
+            # Flash, not Pro — a short, grounded advisory reply doesn't need
+            # Pro's extra reasoning depth, and Flash's free-tier quota is much
+            # higher, which is what actually keeps this chat feature available.
+            model=settings.GEMINI_MODEL_FLASH,
             contents=prompt,
         )
 
@@ -88,7 +91,10 @@ class GeminiAdapter(LLMPort):
         )
 
         response = await self.client.aio.models.generate_content(
-            model=settings.GEMINI_MODEL_PRO,
+            # Flash, not Pro — a short, grounded advisory reply doesn't need
+            # Pro's extra reasoning depth, and Flash's free-tier quota is much
+            # higher, which is what actually keeps this chat feature available.
+            model=settings.GEMINI_MODEL_FLASH,
             contents=prompt,
             config=types.GenerateContentConfig(tools=[types.Tool(google_search=types.GoogleSearch())]),
         )

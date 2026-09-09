@@ -224,11 +224,16 @@ async def main() -> None:
         contract = await contract_service.create_contract(deal_id, uploaded_path, brand_id, actor_id, "brand")
         extracted = extract_text(pdf_bytes)
         contract = await contract_service.save_raw_text(contract.id, extracted)
-        # Gemini occasionally 503s ("high demand") — worth a few retries here
-        # since this is the one non-auth external call in the whole seed run.
-        clauses = await _with_retry(GeminiAdapter().segment_clauses, extracted)
-        if clauses:
-            await ci_service.scan_contract(contract.id, clauses)
+        # Gemini occasionally 503s ("high demand") — worth a few retries for
+        # that. A 429 (quota exhausted) won't clear on retry though, and
+        # shouldn't abort the whole reseed over one demo contract's clause
+        # scan — the contract itself is already created and uploaded either way.
+        try:
+            clauses = await _with_retry(GeminiAdapter().segment_clauses, extracted)
+            if clauses:
+                await ci_service.scan_contract(contract.id, clauses)
+        except Exception as e:  # noqa: BLE001 - seed script, degrade gracefully
+            print(f"    (clause scan skipped — Gemini call failed: {e})")
         return contract.id
 
     async def make_simple_contract(brand_id: UUID, actor_id: UUID, deal_id: UUID) -> UUID:
@@ -354,25 +359,25 @@ async def main() -> None:
                  email="priya.nair@mamaearth.demo", status="completed", created_days_ago=55,
                  scanned_contract_text=MAMAEARTH_CONTRACT,
                  negotiation=dict(views=18000, cpm=40, tier_mult=6000, eng_adj=3000, checklist_complete=True,
-                                   offers=[("creator", 780000, "Our standard ask for this scope"),
-                                           ("brand", 650000, "Mamaearth's initial budget"),
-                                           ("brand", 729000, "Meeting in the middle at our calculated rate")]),
+                                   offers=[("creator", 13000, "Our standard ask for this scope"),
+                                           ("brand", 8500, "Mamaearth's initial budget"),
+                                           ("brand", 9720, "Meeting in the middle at our calculated rate")]),
                  deliverable=dict(title="Instagram Reel — Glow Serum Launch", desc="1x 30s Reel + 2 Stories",
                                    status_path=["in_production", "editing", "submitted", "approved"]),
-                 payment=dict(amount=729000, due_date=TODAY - timedelta(days=10), paid=True)),
+                 payment=dict(amount=9720, due_date=TODAY - timedelta(days=10), paid=True)),
             dict(key="ananya_winter", creator="ananya", campaign="Winter Skincare Routine",
                  email="priya.nair@mamaearth.demo", status="negotiating", created_days_ago=6,
                  negotiation=dict(views=18000, cpm=30, tier_mult=4000, eng_adj=2000, checklist_complete=False,
-                                   offers=[("brand", 480000, "Mamaearth's opening offer, still negotiating terms")])),
+                                   offers=[("brand", 5000, "Mamaearth's opening offer, still negotiating terms")])),
             dict(creator="rohan", campaign="Protein-Infused Face Wash", email="priya.nair@mamaearth.demo",
                  status="contracted", created_days_ago=28,
                  simple_contract=True,
                  negotiation=dict(views=40000, cpm=25, tier_mult=8000, eng_adj=3000, checklist_complete=True,
-                                   offers=[("creator", 1050000, "Initial ask"),
-                                           ("brand", 1011000, "Final agreed rate")]),
+                                   offers=[("creator", 16000, "Initial ask"),
+                                           ("brand", 12000, "Final agreed rate")]),
                  deliverable=dict(title="Instagram Reel — Face Wash Launch", desc="1x Reel, before/after routine",
                                    status_path=["in_production", "editing", "submitted"]),
-                 payment=dict(amount=1011000, due_date=TODAY - timedelta(days=3), paid=False)),
+                 payment=dict(amount=12000, due_date=TODAY - timedelta(days=3), paid=False)),
             dict(creator="rohan", campaign="Men's Grooming Kit Teaser", email="priya.nair@mamaearth.demo",
                  status="lead", created_days_ago=2),
         ],
@@ -395,27 +400,27 @@ async def main() -> None:
                  email="karan.oberoi@nykaa.demo", status="completed", created_days_ago=50,
                  scanned_contract_text=NYKAA_CONTRACT,
                  negotiation=dict(views=12000, cpm=35, tier_mult=3000, eng_adj=1500, checklist_complete=True,
-                                   offers=[("creator", 450000, "Initial ask"),
-                                           ("brand", 400000, "Nykaa's initial budget"),
-                                           ("brand", 424500, "Final agreed rate")]),
+                                   offers=[("creator", 6600, "Initial ask"),
+                                           ("brand", 4200, "Nykaa's initial budget"),
+                                           ("brand", 4920, "Final agreed rate")]),
                  deliverable=dict(title="Instagram Reel — Festive Fashion Edit", desc="3-look styled Reel + shoppable story set",
                                    status_path=["in_production", "editing", "submitted", "approved"]),
-                 payment=dict(amount=424500, due_date=TODAY - timedelta(days=18), paid=True)),
+                 payment=dict(amount=4920, due_date=TODAY - timedelta(days=18), paid=True)),
             dict(key="zara_spring", creator="zara", campaign="Spring Capsule Wardrobe",
                  email="karan.oberoi@nykaa.demo", status="negotiating", created_days_ago=5,
                  negotiation=dict(views=12000, cpm=32, tier_mult=3000, eng_adj=1500, checklist_complete=False,
-                                   offers=[("brand", 380000, "Nykaa's opening offer")])),
+                                   offers=[("brand", 3600, "Nykaa's opening offer")])),
             dict(creator="zara", campaign="Last Season Denim Push", email="karan.oberoi@nykaa.demo",
                  status="cancelled", created_days_ago=70),
             dict(creator="ananya", campaign="Beauty Subscription Box Feature", email="karan.oberoi@nykaa.demo",
                  status="in_production", created_days_ago=15,
                  simple_contract=True,
                  negotiation=dict(views=20000, cpm=28, tier_mult=4000, eng_adj=2000, checklist_complete=True,
-                                   offers=[("creator", 560000, "Initial ask"),
-                                           ("brand", 532000, "Final agreed rate")]),
+                                   offers=[("creator", 8500, "Initial ask"),
+                                           ("brand", 6200, "Final agreed rate")]),
                  deliverable=dict(title="Unboxing Reel — Beauty Box", desc="1x unboxing + haul Reel",
                                    status_path=["in_production", "editing", "submitted", "revision_requested"]),
-                 payment=dict(amount=532000, due_date=TODAY + timedelta(days=12), paid=False)),
+                 payment=dict(amount=6200, due_date=TODAY + timedelta(days=12), paid=False)),
         ],
     )
 
@@ -436,25 +441,25 @@ async def main() -> None:
                  email="arjun.mehra@boat.demo", status="completed", created_days_ago=48,
                  scanned_contract_text=BOAT_CONTRACT,
                  negotiation=dict(views=25000, cpm=45, tier_mult=7000, eng_adj=3500, checklist_complete=True,
-                                   offers=[("creator", 1200000, "Our standard ask"),
-                                           ("brand", 1000000, "boAt's initial budget"),
-                                           ("brand", 1135500, "Final agreed rate")]),
+                                   offers=[("creator", 15500, "Our standard ask"),
+                                           ("brand", 9900, "boAt's initial budget"),
+                                           ("brand", 11625, "Final agreed rate")]),
                  deliverable=dict(title="YouTube Review — Wireless Earbuds", desc="60-90s review + 1 Reel",
                                    status_path=["in_production", "editing", "submitted", "approved"]),
-                 payment=dict(amount=1135500, due_date=TODAY - timedelta(days=12), paid=True)),
+                 payment=dict(amount=11625, due_date=TODAY - timedelta(days=12), paid=True)),
             dict(key="kabir_watch", creator="kabir", campaign="Smartwatch Launch Teaser",
                  email="arjun.mehra@boat.demo", status="negotiating", created_days_ago=4,
                  negotiation=dict(views=25000, cpm=38, tier_mult=6000, eng_adj=3000, checklist_complete=False,
-                                   offers=[("brand", 800000, "boAt's opening offer")])),
+                                   offers=[("brand", 8000, "boAt's opening offer")])),
             dict(creator="ishita", campaign="Travel Speaker Vlog", email="arjun.mehra@boat.demo",
                  status="in_production", created_days_ago=20,
                  simple_contract=True,
                  negotiation=dict(views=15000, cpm=28, tier_mult=4000, eng_adj=2000, checklist_complete=True,
-                                   offers=[("creator", 470000, "Initial ask"),
-                                           ("brand", 440000, "Final agreed rate")]),
+                                   offers=[("creator", 8500, "Initial ask"),
+                                           ("brand", 6600, "Final agreed rate")]),
                  deliverable=dict(title="Travel Vlog — Travel Speaker", desc="1x destination vlog, 3-5 min",
                                    status_path=["in_production"]),
-                 payment=dict(amount=440000, due_date=TODAY + timedelta(days=25), paid=False)),
+                 payment=dict(amount=6600, due_date=TODAY + timedelta(days=25), paid=False)),
             dict(creator="ishita", campaign="Podcast Mic Unboxing", email="arjun.mehra@boat.demo",
                  status="lead", created_days_ago=1),
         ],
@@ -473,20 +478,20 @@ async def main() -> None:
     print("\n=== AI negotiation chat history ===")
     await seed_ai_conversation(
         mamaearth_sessions["ananya_winter"], "Mamaearth",
-        "They offered ₹4,80,000 for the Winter Skincare Routine campaign but my calculated range starts higher. "
+        "They offered ₹5,000 for the Winter Skincare Routine campaign but my calculated range starts higher. "
         "How should I respond?",
         "Their offer sits below your suggested range floor. Counter close to your range's midpoint and cite your "
         "recent growth — you've room to hold firm since your engagement is well above your niche's median.",
     )
     await seed_ai_conversation(
         nykaa_sessions["zara_spring"], "Nykaa",
-        "Nykaa opened at ₹3,80,000 for the Spring Capsule Wardrobe Reel. They mentioned budget is tight this quarter.",
+        "Nykaa opened at ₹3,600 for the Spring Capsule Wardrobe Reel. They mentioned budget is tight this quarter.",
         "A tight-budget line is a common opener, not a ceiling — ask what specifically is driving the number before "
         "moving. If they won't budge on rate, trade scope instead: fewer looks or a shorter usage window for the same price.",
     )
     await seed_ai_conversation(
         boat_sessions["kabir_watch"], "boAt",
-        "boAt offered ₹8,00,000 for the Smartwatch Launch Teaser. Is that fair for a mid-tier tech creator?",
+        "boAt offered ₹8,000 for the Smartwatch Launch Teaser. Is that fair for a mid-tier tech creator?",
         "That's roughly 30% under your suggested range. Since this is a launch teaser (high-visibility, time-sensitive "
         "for them), you have leverage — counter near your range's low end and flag the tight turnaround as added value.",
     )

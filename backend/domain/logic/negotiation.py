@@ -5,12 +5,17 @@ from domain.models.negotiation import ChecklistState, ForecastPoint, Negotiation
 
 
 def calculate_base_rate(
-    views_per_week: float, 
-    niche_cpm: float, 
-    follower_tier_multiplier: float, 
+    views_per_week: float,
+    niche_cpm: float,
+    follower_tier_multiplier: float,
     engagement_rate_adjustment: float
 ) -> float:
-    return (views_per_week * niche_cpm) + follower_tier_multiplier + engagement_rate_adjustment
+    # CPM = cost per mille (per 1,000 views) — the standard ad-industry unit,
+    # and what the "Niche CPM (₹)" field in the UI is labeled as. Multiplying
+    # the raw weekly view count by CPM directly (no /1000) inflated every
+    # rate ~1000x — e.g. 18,000 views/week × ₹40 CPM read as ₹7.2L instead of
+    # the correct ₹720, making every calculated rate wildly unrealistic.
+    return (views_per_week / 1000 * niche_cpm) + follower_tier_multiplier + engagement_rate_adjustment
 
 def calculate_range(base_rate: float) -> tuple[float, float]:
     return base_rate * 0.85, base_rate * 1.35

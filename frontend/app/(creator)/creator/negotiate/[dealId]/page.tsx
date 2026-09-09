@@ -157,6 +157,10 @@ export default function NegotiatePage({ params }: { params: Promise<{ dealId: st
           <div className="lbl" style={{ marginBottom: "8px" }}>Set up your rate calculator</div>
           <div style={{ fontSize: "12px", color: "var(--color-ink-soft)", marginBottom: "12px" }}>
             Enter your numbers to get a suggested range, a 12-week forecast, and the AI negotiation chat for this deal.
+            {profile?.followers_count != null && (
+              <> Currently at <strong>{profile.followers_count.toLocaleString()}</strong> followers
+              {profile.engagement_rate != null && <> and <strong>{profile.engagement_rate}%</strong> engagement</>}.</>
+            )}
           </div>
           <RateCalculatorForm defaultViewsPerWeek={profile?.avg_views_per_week ?? undefined} busy={busy} onSubmit={createSession} />
         </div>
@@ -165,6 +169,38 @@ export default function NegotiatePage({ params }: { params: Promise<{ dealId: st
           <div className="mtile">
             <div className="lbl">Suggested range</div>
             <div className="val" style={{ fontSize: "17px" }}>{money(session.range_low)}–{money(session.range_high)}</div>
+            <div style={{ fontSize: "11px", color: "var(--color-ink-faint)", marginTop: "4px" }}>
+              Base rate {money(session.base_rate)} (range is base ± 15–35%)
+            </div>
+            <div style={{ marginTop: "10px", paddingTop: "10px", borderTop: "1px solid var(--color-border)" }}>
+              <div className="lbl" style={{ marginBottom: "6px" }}>Why this rate — the numbers behind it</div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px", fontSize: "12.5px" }}>
+                <div>
+                  <div style={{ color: "var(--color-ink-faint)", fontSize: "10.5px" }}>Followers</div>
+                  <div>{profile?.followers_count?.toLocaleString() ?? "—"}</div>
+                </div>
+                <div>
+                  <div style={{ color: "var(--color-ink-faint)", fontSize: "10.5px" }}>Engagement rate</div>
+                  <div>{profile?.engagement_rate != null ? `${profile.engagement_rate}%` : "—"}</div>
+                </div>
+                <div>
+                  <div style={{ color: "var(--color-ink-faint)", fontSize: "10.5px" }}>Views/week (used)</div>
+                  <div>{session.views_per_week.toLocaleString()}</div>
+                </div>
+                <div>
+                  <div style={{ color: "var(--color-ink-faint)", fontSize: "10.5px" }}>Niche CPM</div>
+                  <div>₹{session.niche_cpm} / 1,000 views</div>
+                </div>
+                <div>
+                  <div style={{ color: "var(--color-ink-faint)", fontSize: "10.5px" }}>Tier multiplier</div>
+                  <div>{money(session.follower_tier_multiplier)}</div>
+                </div>
+                <div>
+                  <div style={{ color: "var(--color-ink-faint)", fontSize: "10.5px" }}>Engagement adjustment</div>
+                  <div>{money(session.engagement_rate_adjustment)}</div>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div className="mtile">
