@@ -62,7 +62,7 @@ export function DataTable<T>({
                       key={colIndex}
                       className={`py-[var(--spacing-4)] px-[var(--spacing-4)] text-body text-[var(--color-ink)] ${col.align === "right" ? "text-right" : ""}`}
                     >
-                      {col.cell ? col.cell(item) : col.accessorKey ? (item[col.accessorKey] as any) : null}
+                      {col.cell ? col.cell(item) : col.accessorKey ? (item[col.accessorKey] as React.ReactNode) : null}
                     </td>
                   ))}
                 </tr>
