@@ -1,5 +1,6 @@
 packages:
   - 'packages/*'
+  - 'frontend'
 
 allowBuilds:
   '@nestjs/core': true
