@@ -22,11 +22,7 @@ export default function BrandSignupPage() {
     e.preventDefault();
     setPending(true);
     setError(null);
-    if (password !== confirm) {
-      setError("Passwords do not match");
-      setPending(false);
-      return;
-    }
+
 
     try {
       const { data, error: apiError } = await client.POST("/auth/brand/signup", {
