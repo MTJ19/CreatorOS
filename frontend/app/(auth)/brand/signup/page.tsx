@@ -29,7 +29,8 @@ export default function BrandSignupPage() {
         body: { brand_name: brandName, description: description || null, email, password },
       });
       if (apiError || !data) {
-        setError(apiError?.detail || "Could not create account");
+        const msg = typeof apiError?.detail === 'string' ? apiError.detail : "Could not create account";
+        setError(msg);
       } else {
         saveSession(data);
         setSession(data);

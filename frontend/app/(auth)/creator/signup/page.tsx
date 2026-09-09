@@ -39,7 +39,8 @@ export default function CreatorSignupPage() {
         },
       });
       if (apiError || !data) {
-        setError("Couldn't create that account. Try again.");
+        const msg = typeof apiError?.detail === 'string' ? apiError.detail : "Couldn't create that account. Try again.";
+        setError(msg);
       } else {
         saveSession(data);
         router.push("/creator");
