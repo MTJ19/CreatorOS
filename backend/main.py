@@ -20,22 +20,12 @@ from interface.routers import (
 
 app = FastAPI(title="Creator OS")
 
-# Always allow the known Vercel deployment URL and localhost
-frontend_origins = [
-    "http://localhost:3000",
-    "https://ucs503p-202627-creator-os.vercel.app",
-]
-# Support additional comma-separated origins via env var (e.g. for preview deployments)
-if extra := os.getenv("FRONTEND_URL"):
-    for origin in extra.split(","):
-        origin = origin.strip()
-        if origin and origin not in frontend_origins:
-            frontend_origins.append(origin)
-
+# Auth uses JWT Bearer tokens (Authorization header), not cookies.
+# allow_origins="*" is safe here and avoids hardcoding Vercel preview URLs.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=frontend_origins,
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
