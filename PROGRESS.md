@@ -1,700 +1,251 @@
-# CreatorOS — Progress Log
+# Creator OS — Progress Log
+
+> This file was rewritten end-to-end to reflect the actual live application
+> (`backend/` + `frontend/`, FastAPI + Supabase + Next.js). The prior version
+> of this file documented a different, since-deleted NestJS/Prisma/Docker
+> stack (`apps/api` + `apps/web`) that is no longer part of this project —
+> those folders remain in the repo as historical leftovers only.
+
+---
 
 ## Tech Stack
 
-| Layer     | Technology                  | Version         |
-| --------- | --------------------------- | --------------- |
-| Frontend  | Next.js (App Router)        | 14.2.5          |
-| Styling   | Tailwind CSS + shadcn/ui    | 3.4.x           |
-| Backend   | NestJS                      | 10.x            |
-| Database  | PostgreSQL + Prisma ORM     | 16 + 5.x        |
-| Cache     | Redis                       | 7               |
-| Monorepo  | pnpm workspaces + Turborepo | pnpm 9, Turbo 2 |
-| Language  | TypeScript (strict)         | 5.5             |
-| CI/CD     | GitHub Actions              | —               |
-| Dev Infra | Docker Compose              | —               |
-| AI        | Google Gemini API           | —               |
+| Layer            | Technology                                    | Notes                                                                 |
+| ----------------- | ---------------------------------------------- | ----------------------------------------------------------------------- |
+| Frontend          | Next.js 16 (App Router, Turbopack)            | TypeScript, no Tailwind — hand-written CSS custom-property design tokens |
+| Backend           | FastAPI (Python 3.13)                         | Hexagonal / ports-and-adapters architecture                             |
+| Database & Auth   | Supabase (Postgres + GoTrue Auth)             | Accessed via `supabase-py`, service-role client for backend writes      |
+| AI                | Google Gemini (`gemini-*-flash`)              | Contract clause scanning, negotiation chat, script drafting — both AI paths now on Flash (switched off Pro for quota headroom) |
+| Transactional email | Resend                                       | Invite/notification emails                                              |
+| Backend package mgmt | `uv`                                        | Lockfile-based, `uv.lock` committed                                     |
+| Frontend package mgmt | `npm`                                       | `package-lock.json` committed                                           |
+| API typing bridge | `openapi-typescript`                          | Generates `frontend/lib/api-types.ts` from the FastAPI OpenAPI schema — the frontend never hand-writes API types |
+| API client        | `openapi-fetch`                               | Typed fetch wrapper (`frontend/lib/api.ts`) built on the generated types |
+| Backend tests     | `pytest` + `pytest-asyncio`                   | Unit tests against fakes, integration tests against the FastAPI app     |
+| Frontend checks   | `tsc --noEmit`, `eslint`                      | No frontend test framework configured                                   |
+| Target deploy     | Vercel (frontend) + Render (backend)          | Guide written; not yet live as of this entry                            |
 
 ---
 
-## Phase 0 Summary
+## Architecture
 
-**Completed:** 2026-06-14  
-**Scope:** Full monorepo scaffold, design system, database schema, app shell
-
----
-
-### Folder Structure
+### Backend — hexagonal (ports & adapters)
 
 ```
-creator-os/                          # Monorepo root
-├── .github/
-│   └── workflows/
-│       └── ci.yml                   # GitHub Actions: lint, type-check, test, build
-├── .husky/
-│   ├── pre-commit                   # lint-staged + type-check
-│   └── commit-msg                   # commitlint (conventional commits)
-├── apps/
-│   ├── api/                         # NestJS backend
-│   │   ├── Dockerfile.dev
-│   │   ├── nest-cli.json
-│   │   ├── jest.config.ts
-│   │   ├── tsconfig.json
-│   │   ├── tsconfig.build.json
-│   │   ├── prisma/
-│   │   │   └── schema.prisma        # Full Prisma schema (10 models)
-│   │   ├── src/
-│   │   │   ├── main.ts              # Bootstrap: CORS, Swagger, versioning
-│   │   │   ├── app.module.ts        # Root module
-│   │   │   ├── prisma/
-│   │   │   │   ├── prisma.service.ts
-│   │   │   │   └── prisma.module.ts
-│   │   │   ├── health/
-│   │   │   │   ├── health.controller.ts  # GET /health, /liveness, /readiness
-│   │   │   │   └── health.module.ts
-│   │   │   ├── deals/
-│   │   │   ├── contracts/
-│   │   │   ├── invoices/
-│   │   │   ├── performance/
-│   │   │   └── brand-portal/
-│   │   └── test/
-│   │       └── jest-e2e.json
-│   └── web/                         # Next.js 14 App Router frontend
-│       ├── Dockerfile.dev
-│       ├── next.config.mjs
-│       ├── tailwind.config.ts       # Full design system tokens
-│       ├── postcss.config.js
-│       ├── tsconfig.json
-│       └── src/
-│           ├── app/
-│           │   ├── layout.tsx       # Root layout: TopNav, GlowBackground, fonts
-│           │   ├── page.tsx         # Redirects → /dashboard
-│           │   ├── globals.css      # CSS custom properties (design tokens)
-│           │   ├── dashboard/page.tsx
-│           │   ├── deals/page.tsx
-│           │   ├── rate-intelligence/page.tsx
-│           │   ├── contracts/page.tsx
-│           │   ├── invoices/page.tsx
-│           │   ├── invisible-tax/page.tsx
-│           │   └── brand-portal/page.tsx
-│           ├── components/
-│           │   └── ui/
-│           │       ├── index.ts         # Barrel export
-│           │       ├── button.tsx
-│           │       ├── card.tsx
-│           │       ├── stat-card.tsx
-│           │       ├── badge.tsx
-│           │       ├── glow-background.tsx
-│           │       └── top-nav.tsx
-│           └── lib/
-│               └── utils.ts         # cn(), formatCurrency, formatCompact, etc.
-├── packages/
-│   └── shared/                      # Shared TS types + Zod schemas
-│       ├── package.json
-│       ├── tsconfig.json
-│       └── src/
-│           ├── index.ts             # Barrel export
-│           ├── types/
-│           │   ├── api.ts
-│           │   ├── brand-portal.ts
-│           │   ├── contract.ts
-│           │   ├── deal.ts
-│           │   ├── invoice.ts
-│           │   ├── performance.ts
-│           │   └── user.ts
-│           └── schemas/
-│               ├── brand-portal.schema.ts
-│               ├── contract.schema.ts
-│               ├── deal.schema.ts
-│               ├── invoice.schema.ts
-│               ├── performance.schema.ts
-│               └── user.schema.ts
-├── scripts/
-│   └── init-db.sql
-├── docker-compose.yml               # postgres + redis + api + web
-├── package.json                     # Root workspace + Turborepo scripts
-├── pnpm-workspace.yaml
-├── turbo.json                       # Turborepo pipeline
-├── tsconfig.json                    # Root TS config (strict)
-├── .eslintrc.js
-├── prettier.config.js
-├── commitlint.config.json
-├── .env.example                     # All required env vars documented
-├── .gitignore
-├── FEATURE_SPEC.md
-├── DESIGN_SYSTEM.md
-└── PROGRESS.md
+backend/
+├── domain/                    # Pure business logic — zero I/O, fully unit-testable
+│   ├── models/                  # Pydantic models: Deal, Contract, Payment, Deliverable,
+│   │                             # NegotiationSession/Offer/Conversation, Message,
+│   │                             # GrowthSnapshot, Creator, Brand, ActivityLog, ...
+│   ├── logic/                   # Pure functions:
+│   │                             #   negotiation.py — calculate_base_rate/range/forecast
+│   │                             #   money.py — format_inr() (Indian digit grouping)
+│   │                             #   growth.py — estimate_weekly_growth_rate()
+│   │                             #   transitions.py — contract/deliverable status state machines
+│   └── interfaces/              # Repository protocols (the "ports")
+├── application/
+│   └── services/                # Use-case orchestration: DealService, ContractService,
+│                                 # PaymentService, DeliverableService, NegotiationService,
+│                                 # CreatorService, AuthService, MessageService, ...
+├── infrastructure/              # Adapters (the "ports" implemented)
+│   ├── supabase/                  # SupabaseXRepo implementations + client.py
+│   │                               # (lru_cache'd client by default; fresh=True for any
+│   │                               #  call that mutates auth session state)
+│   ├── llm/gemini_adapter.py      # GeminiAdapter — clause segmentation, negotiation chat,
+│   │                               # script drafting (Google Search grounding on the chat path)
+│   ├── email/resend_adapter.py
+│   └── pdf/                       # Contract text extraction
+├── interface/
+│   ├── routers/                 # FastAPI routers — one per resource (auth, deals,
+│   │                             # contracts, deliverables, payments, negotiation,
+│   │                             # messages, creators, activity_log, analytics, benchmarks)
+│   └── dependencies.py          # get_current_actor/get_current_brand — JWT → ActorContext,
+│                                 # with a 30s in-memory cache to avoid re-resolving identity
+│                                 # on every request in a page load
+├── tests/
+│   ├── unit/                    # Service/domain-logic tests against fakes
+│   ├── integration/              # Full-app tests via FastAPI's TestClient
+│   └── fakes/fake_repos.py       # In-memory repo doubles implementing the domain interfaces
+├── seed_demo.py                 # Builds a full realistic demo dataset from scratch
+├── reset_demo.py                # Wipes all demo/test data (preserves any real accounts)
+└── main.py                      # FastAPI app, CORS (FRONTEND_URL env var), router registration
 ```
 
----
-
-### Prisma Schema Overview
-
-| Model              | Key Fields                                                                                 | Relations                                                                     |
-| ------------------ | ------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------- |
-| `User`             | id, email, name, role, password, avatarUrl                                                 | profile, deals, contracts, invoices, performanceLogs, brandPortalTokens       |
-| `CreatorProfile`   | bio, niche[], platformHandles(JSON), avgEngagementRate, totalFollowers, baseRate           | user                                                                          |
-| `Deal`             | brandName, amount, currency, status(DealStatus), startDate, endDate, exclusivityDays       | creator, deliverables, contract, invoices, performanceLogs, brandPortalTokens |
-| `Deliverable`      | type(DeliverableType), status(DeliverableStatus), dueDate, contentUrl                      | deal, performanceLogs, invoiceLineItems                                       |
-| `Contract`         | fileUrl, fileKey, status(ContractStatus), signedAt, expiresAt, aiSummary, overallRiskScore | deal, creator, riskFlags                                                      |
-| `ContractRiskFlag` | clause, clauseText, severity(RiskSeverity), description, recommendation, isAcknowledged    | contract                                                                      |
-| `Invoice`          | invoiceNumber, brandName, brandEmail, status(InvoiceStatus), totalAmount, dueDate, paidAt  | creator, deal, lineItems                                                      |
-| `InvoiceLineItem`  | description, quantity, unitPrice, totalPrice                                               | invoice, deliverable                                                          |
-| `PerformanceLog`   | recordedAt, metrics(JSON), source(PerformanceSource), platform                             | deal, deliverable, creator                                                    |
-| `BrandPortalToken` | token(unique), brandName, permissions(PortalPermission[]), expiresAt, isRevoked            | creator, deal                                                                 |
-
-**Enums defined:** `UserRole`, `SocialPlatform`, `DealStatus`, `DeliverableType`, `DeliverableStatus`, `ContractStatus`, `RiskSeverity`, `InvoiceStatus`, `PerformanceSource`, `PortalPermission`
-
----
-
-### Design Tokens Implemented (Tailwind Config)
-
-#### Colors
-
-- **Background scale**: `background`, `background-surface`, `background-elevated`, `background-overlay`
-- **Primary (Electric Indigo)**: `primary`, `primary-hover`, `primary-muted`, `primary-glow` + full `50–950` scale
-- **Accent (Electric Violet)**: `accent`, `accent-hover`
-- **Semantic**: `success`, `warning`, `danger`, `info` — each with DEFAULT, foreground, muted
-- **Deal status**: `deal-draft/negotiating/active/completed/cancelled/disputed`
-- **Risk severity**: `risk-low/medium/high/critical`
-- **UI chrome**: `border`, `border-subtle`, `border-strong`, `card`, `muted`, `input`, `ring`
-
-#### Typography
-
-- **Fonts**: `Inter` (sans/display), `Geist Mono` (mono) — loaded via `next/font/google`
-- **Scale**: `2xs` through `6xl` with custom line-heights
-- **Weights**: `100` through `900`
-
-#### Spacing & Radius
-
-- Custom spacing: `4.5`, `13`, `15`, `17`, `18`, `22`, `26`, `30`
-- Radius: `xs(4px)` → `sm(6px)` → `md(10px)` → `lg(14px)` → `xl(20px)` → `2xl(28px)` → `3xl(36px)`
-
-#### Shadows / Glows
-
-- `shadow-glow-sm/glow/glow-lg/glow-xl` — indigo ambient glow
-- `shadow-glow-success/danger` — semantic glows
-- `shadow-float/float-lg` — elevation shadows
-
-#### Animations
-
-- `fade-in`, `fade-out`, `slide-in-right`, `scale-in` — motion primitives
-- `shimmer` — loading skeleton
-- `glow-pulse` — animated glow effect
-- `float` — ambient floating elements
-
----
-
-### Reusable Component Library
-
-| Component        | File                                | Variants / Features                                                                                                            |
-| ---------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `Button`         | `components/ui/button.tsx`          | primary, secondary, ghost, outline, destructive, link + size: xs/sm/default/lg/xl/icon + loading state                         |
-| `Card`           | `components/ui/card.tsx`            | default, glass, elevated, outlined, glow + hover: lift/glow/scale + subcomponents: Header, Title, Description, Content, Footer |
-| `StatCard`       | `components/ui/stat-card.tsx`       | KPI value display, trend up/down/neutral badge, shimmer loading state, icon slot                                               |
-| `Badge`          | `components/ui/badge.tsx`           | 20+ variants for deal status, contract status, invoice status, risk severity + dot indicator + enumLabel auto-format           |
-| `GlowBackground` | `components/ui/glow-background.tsx` | glowPosition: 5 options, intensity: subtle/medium/strong, animated, noise texture overlay                                      |
-| `TopNav`         | `components/ui/top-nav.tsx`         | Fixed nav, logo + 7 links + notifications + user avatar + "New Deal" CTA + responsive mobile drawer                            |
-
----
-
-### How to Run Locally
-
-#### Prerequisites
-
-- Node.js ≥ 20
-- pnpm ≥ 9 (`npm install -g pnpm`)
-- Docker Desktop
-
-#### 1. Clone and install
-
-```bash
-git clone <repo>
-cd creator-os
-cp .env.example .env
-# Edit .env with your secrets
-pnpm install
-```
-
-#### 2. Start infrastructure (Postgres + Redis)
-
-```bash
-docker compose up postgres redis -d
-```
-
-#### 3. Run database migrations
-
-```bash
-pnpm db:generate    # Generate Prisma client
-pnpm db:migrate     # Run migrations
-```
-
-#### 4. Start development servers
-
-```bash
-# Option A: Start everything with Docker
-docker compose up
-
-# Option B: Start services individually (faster for dev)
-pnpm dev            # Runs both API and Web via Turborepo
-```
-
-#### 5. Access the app
-
-| Service       | URL                                          |
-| ------------- | -------------------------------------------- |
-| Web UI        | http://localhost:3000                        |
-| API           | http://localhost:3001/api                    |
-| Swagger Docs  | http://localhost:3001/api/docs               |
-| Health Check  | http://localhost:3001/api/health             |
-| Prisma Studio | Run `pnpm db:studio` → http://localhost:5555 |
-
----
-
-## Phase 1 Summary — Authentication & Creator Profile Onboarding
-
-### ✅ Completed
-
-#### A. Database Schema
-
-- Added 3 new enums: PostingFrequency, ContentFormat, AudienceAgeRange
-- Expanded CreatorProfile with 7 new onboarding fields + isOnboardingComplete flag
-- Added RefreshToken model (JWT rotation with revocation + IP/UA logging)
-- Added AuditLog model (audit trail for all security-sensitive operations)
-- Run migration after docker compose up: pnpm db:migrate
-
-#### B. packages/shared
-
-- Expanded user.ts types: PostingFrequency, ContentFormat, AudienceAgeRange, AuthTokens, AuthResponse
-- New Zod schemas: RegisterSchema, LoginSchema, RefreshTokenSchema
-- Per-step onboarding schemas: OnboardingStep1Schema through Step4Schema
-- Full CreateCreatorProfileSchema (all 4 steps merged), UpdateCreatorProfileSchema
-
-#### C. NestJS Auth Module
-
-- Strategies: JwtStrategy (Bearer header) + LocalStrategy (email/password)
-- Guards: JwtAuthGuard with @Public() decorator bypass support
-- Decorators: @Public(), @CurrentUser()
-- DTOs: RegisterDto, LoginDto, RefreshTokenDto, AuthResponseDto
-- AuthService: register (bcrypt 12 rounds), login, refreshTokens (rotation), logout, getMe
-- AuthController: POST /register, POST /login, POST /refresh, POST /logout, GET /me
-- Rate limiting: 5/min register, 10/min login
-
-#### D. NestJS CreatorProfile Module
-
-- Repository pattern with separate Prisma CreateInput/UpdateInput builders
-- Service: upsert (create-on-first-save), completeOnboarding, getByUserId, findOrNull
-- Controller: GET/PATCH /me, POST /, GET /:userId — all JWT-guarded
-- Audit logging on every create/update/complete-onboarding
-
-#### E. NestJS Security & Infrastructure
-
-- AuditLogService + AuditLogModule — non-fatal (failures swallowed)
-- main.ts: Helmet (CSP), cookie-parser, CORS, URI versioning
-- AppModule: ThrottlerModule (100 req/min global), global ThrottlerGuard
-
-#### F. Next.js Auth
-
-- NextAuth v5 config: Google OAuth + Credentials (calls NestJS API for JWT)
-- Route handler, middleware (route protection)
-- (auth) layout: minimal, no TopNav, GlowBackground
-- LoginForm: RHF + Zod, Google OAuth, show/hide password, server errors
-- RegisterForm: live password strength checklist, auto-signin, redirect to /onboarding
-- API client (lib/api-client.ts): typed fetch with Bearer auto-attach
-- Root layout: async RSC, SessionProvider wrapping entire app
-
-#### G. Onboarding Wizard (4-step Framer Motion)
-
-- StepIndicator: pill nodes, gradient connectors, glow on active
-- Step 1: platform icon grid, handle input, follower/view counts
-- Step 2: niche multi-select pills (max 5), content format cards, frequency radio
-- Step 3: country flag grid, age-range visual bar selector, engagement rate
-- Step 4: currency dropdown (8 currencies), base rate, bio, location/website
-- Per-step save to API; onboarding complete on final submit
-
-#### H. Tests
-
-- auth.service.spec.ts: 10 tests (validateUser, register, refresh, logout, getMe)
-- creator-profile.service.spec.ts: 8 tests (CRUD + audit log verification)
-- Result: 18/18 passing ✅
-
-#### I. Infrastructure Fixes Applied (2026-06-14)
-
-- **docker-compose.yml**: Removed `init-db.sql` volume mount (caused macOS Docker Desktop permission error). Removed deprecated `version` field.
-- **apps/api/package.json**: Added missing `prisma`, `db:migrate`, `db:push`, `db:generate`, `db:studio` scripts (required for `pnpm --filter` to route DB commands).
-- **root package.json**: Fixed `db:*` scripts from `pnpm --filter ... prisma <cmd>` → `pnpm --filter ... db:<cmd>` (correct pnpm recursive script pattern).
-- **apps/api/.env**: Created for Prisma CLI (reads `.env`, not `.env.local`).
-- **auth.service.ts**: Fixed `getMe` to use Prisma `select` instead of `include` — prevents password hash leaking in `/auth/me` responses.
-
-### Live Verification (2026-06-14) — ALL PASSING ✅
-
-| Check                               | Result                                                       |
-| ----------------------------------- | ------------------------------------------------------------ |
-| `docker compose up -d postgres`     | ✅ Container started, healthy                                |
-| `prisma migrate dev --name init`    | ✅ Migration `20260614150046_init` applied                   |
-| API health check (`/api/v1/health`) | ✅ `{"status":"ok","info":{"database":{"status":"up"},...}}` |
-| `POST /api/v1/auth/register`        | ✅ Returns user + JWT access/refresh tokens                  |
-| `GET /api/v1/auth/me`               | ✅ Returns user profile (no password field)                  |
-| `PATCH /api/v1/creator-profile/me`  | ✅ Creates/updates creator profile                           |
-| Next.js web (`/login`)              | ✅ HTTP 200, login page renders                              |
-| Google OAuth redirect               | ✅ Redirects to `accounts.google.com`                        |
-| Google OAuth complete               | ✅ Redirects back to `/dashboard` after consent              |
-| Route protection                    | ✅ `/dashboard` while logged out → `/login`                  |
-| Unit tests                          | ✅ 18/18 passing                                             |
-
-### How to Run Locally (Phase 1)
-
-```bash
-# 1. Create env files (copy secrets from .env.example)
-cp .env.example apps/api/.env       # Edit with real secrets
-cp .env.example apps/web/.env.local # Edit with NextAuth + Google OAuth secrets
-
-# 2. Start Postgres
-docker compose up -d postgres
-
-# 3. Run migration (first time only)
-pnpm db:migrate
-
-# 4. Start dev servers
-cd apps/api && node_modules/.bin/nest start --watch    # :3001
-cd apps/web && node_modules/.bin/next dev              # :3000
-
-# Or via pnpm (requires pnpm on PATH)
-/Users/rushil/Library/pnpm/bin/pnpm dev
-```
-
----
-
-## Phase 2 Summary — Rate Intelligence & Performance Log
-
-**Completed:** 2026-06-15  
-**Scope:** AI Rate Recommendation Engine, Seeding Reference Rates, Performance Log CRUD + Rolling Averages, Form UIs, Unit & Integration Tests.
-
-### ✅ Completed
-
-#### A. Database & Seeding
-
-- Made `dealId` nullable in `PerformanceLog` model to support organic (non-sponsored) post metric tracking.
-- Created `apps/api/prisma/seed.ts` script populating 10 detailed market-rate reference deals in the `ComparableDeal` table.
-
-#### B. Shared Packages
-
-- Split Zod validation in `performance-log.schema.ts` to separate the base `ZodObject` from its `superRefine` effect wrapper. This allows the derived `UpdatePerformanceLogSchema` (via `.partial().omit(...)`) to compile and validates `dealId`/`brandCategory` requirements dynamically when `isPaid` is `true`.
-
-#### C. NestJS Backend API
-
-- Registered `RateIntelligenceModule` in the root `AppModule` imports.
-- Updated `DealsController` to fetch deals bound to the authenticated creator's ID.
-- Created `performance.dto.ts` validating views, engagements, platform, contentFormat, isPaid, and optional deal parameters.
-- Implemented `PerformanceService` auto-calculations:
-  - `engagementRate`: `((likes + comments + saves + shares) / views) * 100` (defaults to 0 if views is 0).
-  - `cpv`: `deal.amount / views` (only for paid deals if deal exists, else null).
-- Implemented `PerformanceService` rolling averages calculator returning average views, engagement rate, and CPV across 30, 60, and 90-day windows.
-- Implemented JWT-guarded performance CRUD and averages endpoints in `PerformanceController`.
-
-#### D. Next.js Web Frontend
-
-- Added `/performance` link to navigation panel in `TopNav`.
-- Implemented typed API calls for deals, rate intelligence history, and performance logs in `api-client.ts`.
-- Built the Rate Intelligence calculator page at `/rate-intelligence` with a multi-parameter form, radial glow recommendation ranges, comparative peer/brand cards, and an expandable template card with copy-to-clipboard and regenerate actions.
-- Built the Performance Log page at `/performance` displaying 30/60/90-day rolling averages, a dark-themed table with hover highlight, and an inline slide-over form panel to create/update post metrics.
-
-#### E. Tests
-
-- Created `performance.service.spec.ts` unit testing metric calculation formulas and rolling averages logic.
-- Created `rate-intelligence.controller.spec.ts` integration testing quote generation endpoints.
-- Result: **24/24 passing** ✅
-
----
-
-### AI Prompt Template (Rate Intelligence)
+Every blocking Supabase call is wrapped in `asyncio.to_thread()` (see Milestone 6) — the
+`supabase-py` client is synchronous, and without that wrapping every request serialized
+behind the event loop instead of running concurrently.
+
+### Frontend — Next.js App Router
 
 ```
-You are a senior brand deal rate advisor for digital creators. Provide a professional rate recommendation.
-
-CREATOR PROFILE:
-- Platform: {platform}
-- Follower range: {followerRange}
-- Niche(s): {niches}
-- Avg engagement rate: {engagementRate}
-- Avg views per post: {avgViews}
-
-DEAL REQUEST:
-- Content format: {contentFormat}
-- Deal type: {dealType}
-- Brand tier: {brandTier}
-- Brand category: {brandCategory}
-- Usage rights requested: {usageRights}
-- Exclusivity: {exclusivityText}
-- Rush delivery: {rushText}
-- Revision rounds included: {revisionRounds}
-
-MARKET COMPARABLES (anonymised peer data):
-{comparablesSummary}
-
-INSTRUCTIONS:
-Analyze the creator's profile, deal parameters, and market data.
-Return a JSON object with EXACTLY this structure (no extra keys, no markdown):
-{
-  "recommendedMin": <number - minimum recommended rate in USD>,
-  "recommendedMax": <number - maximum recommended rate in USD>,
-  "rationale": "<2-3 sentence explanation of the rate range>",
-  "peerComparison": {
-    "label": "<brief label e.g. 'Mid-tier creators in your niche'>",
-    "percentile": <number 0-100 - where creator falls vs peers>,
-    "insight": "<1-2 sentence insight about peer positioning>"
-  },
-  "brandComparison": {
-    "label": "<brand tier label>",
-    "averageRate": <number - typical rate brands at this tier pay>,
-    "insight": "<1-2 sentence insight about brand budget vs your rate>"
-  },
-  "counterofferEmail": "<professional email the creator can send to the brand, max 200 words, include [BRAND NAME] placeholder>",
-  "negotiationPoints": ["<point 1>", "<point 2>", "<point 3>", "<optional point 4>", "<optional point 5>"]
-}
+frontend/
+├── app/
+│   ├── (auth)/                  # brand/creator login & signup — each login page lists
+│   │                             # every demo account as a ready-to-click quick-login button
+│   ├── (brand)/                 # Route group name is historical — pages here are SHARED
+│   │   │                        # between both roles via `isBrand` branching, not brand-only:
+│   │   ├── brand/                  # brand's deal list / dashboard
+│   │   ├── contracts/               # shared: brand sees Creator/Contract/Reviewed/Accept;
+│   │   │                            # creator sees their own full contract detail
+│   │   ├── deliverables/            # shared: creator drives production status,
+│   │   │                            # brand only approves/rejects/requests revision
+│   │   ├── payments/                # shared: binary paid/not-paid, deliverable-linked invoices
+│   │   ├── deals/[id]/              # brand's deal detail (contracts, deliverables, payments —
+│   │   │                            # no negotiation UI, that lives on the creator's own page)
+│   │   ├── creators/[id]/           # brand's view of one creator: embedded chat, contracts
+│   │   ├── chat/                    # shared brand<->creator direct-message hub (polling)
+│   │   ├── analytics/, activity/
+│   └── (creator)/
+│       ├── creator/                 # creator Dashboard: profile, linked brands, deals table,
+│       │                            # growth tracker, contracts, niche benchmarks —
+│       │                            # NO rate calculator or AI chat here anymore
+│       ├── creator/board/            # Kanban deal-stage board
+│       └── creator/negotiate/[dealId]/  # per-deal negotiation workspace: rate calculator,
+│                                        # suggested range + why-this-rate breakdown,
+│                                        # forecast chart, pre-send checklist, AI chat + history
+├── components/
+│   ├── AppShell.tsx, StatusPill.tsx, EmptyState.tsx, ...
+│   └── creator/                     # ForecastChart, RateCalculatorForm, NegotiationChat,
+│                                     # GrowthTracker, DealsTable — split out of the old
+│                                     # monolithic /creator page into single-purpose components
+└── lib/
+    ├── api.ts                       # typed client (openapi-fetch + generated types)
+    ├── api-types.ts                 # generated — never hand-edited
+    └── auth.ts                      # localStorage session read/write
 ```
 
----
+### Key design decisions
 
-### New Reusable Elements
-
-- **Slide-Over Form Panel**: Built a premium React-animated drawer backdrop and body layout to facilitate adding/updating performance statistics inline.
-- **Checklist Talking Points**: Interactive, strike-through checklist item wrappers for creator negotiation points.
-- **Copy-to-Clipboard Button**: Adaptive micro-interaction button returning checkmarks and copy animations.
-
----
-
-## Phase 3 Summary — Deal Pipeline CRM & Live Dashboard
-
-**Completed:** 2026-06-15  
-**Scope:** Drag-and-Drop Kanban Board CRM, Dashboard Statistics Caching, Recharts Visualizations, Stage Transition Validations, Audit Logs.
-
-### ✅ Completed
-
-#### A. Database Schema
-
-- Extended `Deal` model with `DealStage` enum (`NEW_INQUIRY`, `QUALIFIED`, `PITCH_SENT`, `NEGOTIATING`, `CONTRACT_SENT`, `ACTIVE`, `COMPLETED`, `LOST`), `brandInstagram`, `dealSource`, `quotedAmount`, `offeredAmount`, `deadline`, and `followUpReminder`.
-- Generated and ran migration `20260615082122_add_crm_deal_fields`.
-
-#### B. Shared Packages
-
-- Extended `Deal` schemas and types in `@creator-os/shared` to support the new database fields and enums.
-
-#### C. NestJS Backend API
-
-- Registered and configured `RedisModule` connecting to Redis cache.
-- Added class-validator input validation DTOs (`CreateDealDto`, `UpdateDealDto`, `UpdateDealStageDto`).
-- Implemented `DealsService` methods:
-  - CRUD operations enforcing creator ownership.
-  - Strict stage transition logic validation with database-backed audits (`deal.stage_change`).
-  - Cache-invalidating operations on create/update/delete.
-  - Computed performance metrics merging (total views, ER, average CPV, rating).
-  - Dashboard stats caching in Redis (active count, monthly contracted value, average CPV, flagged contract clauses, overdue invoices, stage breakdown).
-- Updated `DealsController` to expose CRUD, custom stage updates, and cached dashboard statistics endpoints, protected by JWT authentication.
-
-#### D. Next.js Web Frontend
-
-- Added deals API methods to `api-client.ts`.
-- Built the Deal Pipeline CRM page at `/deals` featuring:
-  - Drag-and-drop Kanban Board (built with `@dnd-kit/core`).
-  - Interactive stage highlighting (electric violet gradients) on active drags.
-  - Search filter and deal source category selection.
-  - Toggle to a tabular List View with sorting and actions.
-  - A slide-over edit/create form panel containing a nested deliverables sub-form checklist.
-- Built the Live Brand Deal Dashboard page at `/dashboard` featuring:
-  - Ambient radial glow header.
-  - A premium gradient summary `StatBand` showing active deals, monthly contracted value, flagged contracts, overdue invoices, and average CPV.
-  - Overview cards for active deals displaying views, engagement rate, average CPV, and invoice state.
-  - Recharts visualizations: a pipeline distribution bar chart and recent campaign valuations area chart.
-
-#### E. Tests
-
-- Created `deals.service.spec.ts` testing transition rules, aggregations, and caching.
-- Created `deals.controller.spec.ts` testing endpoints and JWT authentication overrides.
-- Result: **39/39 passing** ✅
+- **Hexagonal architecture**: `domain/` has no imports from `infrastructure/` or `interface/` —
+  every domain function is testable with plain Python objects, no mocks of Supabase needed.
+- **Shared-page pattern**: contracts/deliverables/payments/chat are each *one* route serving
+  both roles, branching on `loadSession()?.role`, rather than duplicated brand/creator pages.
+- **Money is always ₹, Indian digit grouping** (`₹5,46,000`, not `₹546,000`) via `format_inr()`.
+- **Role-gated status transitions are enforced server-side**, not just hidden in the UI — e.g.
+  a creator cannot approve their own deliverable, a brand cannot advance production status,
+  even by calling the API directly.
 
 ---
 
-## Phase 4 Summary — Brief & Contract Management
+## Timeline
 
-**Completed:** 2026-06-15  
-**Scope:** Remote S3/SSE-KMS & Local Fallback Storage, Brief Upload & Gemini-powered Parsing, Deliverables Scope Reconciliation Warnings, Programmatic DOCX Builder, Side-by-Side Legal Risk Auditing (13 risk flags), Unit & Integration Tests.
+### Source recovery
 
-### ✅ Completed
+The original `backend/`/`frontend/` source was found deleted from disk mid-session and
+restored from a GitHub backup (`Bhuvan7888/AI-Content-Manager`). This is also where a
+committed `backend/.env` was first discovered — see Security remediation below.
 
-#### A. Database Schema
+### Change-request feature build-out
 
-- Created the 1-to-1 `Brief` model linked to `Deal` with `parsedData` JSON fields.
-- Extended `ContractRiskFlag` with `scenario` and `suggestedClause` fields.
-- Applied Prisma migration `20260615090115_add_briefs_and_scenarios`.
+Implemented the creator-side and brand-side gaps from the original change-request audit,
+with matching Supabase migrations:
 
-#### B. packages/shared
+- `deals.brand_id` made nullable (creators can log their own unlinked projects)
+- `deals.value_inr`, `deals.brand_viewed_at`
+- `contracts.creator_status`
+- `payments.platform_fee_inr`, later `payments.deliverable_id`
+- `brands.description`
+- New tables: `growth_snapshots`, `negotiation_conversations`, `messages`
+- Later: `deliverables.contract_id` (link a deliverable to the contract it was scoped under)
 
-- Created Zod validation schemas for Briefs and extended Contracts schemas and type exports.
+### Negotiation feature overhaul
 
-#### C. NestJS Backend API
+- Negotiation scripts switched from hardcoded `$` to real `₹` formatting via `format_inr()`.
+- **Fixed a real rate-calculator bug**: `calculate_base_rate()` multiplied the full weekly
+  view count directly by the niche CPM instead of dividing by 1,000 first — CPM means
+  *cost per thousand views*. Every calculated rate was inflated ~1000x (a realistic
+  ₹9,720 base rate was showing as upwards of ₹7–26 lakh). Fixed the formula, updated the
+  unit test, and recomputed every seeded demo negotiation to match.
+- Added the AI negotiation chat: Gemini-backed, persistent conversation history, brand
+  auto-identification via Google Search grounding, multi-turn context, graceful 503 on
+  quota exhaustion instead of a crash.
+- Split the single, increasingly cluttered `/creator` page into a general **Dashboard**
+  (`/creator`) and a dedicated per-deal **Negotiation workspace**
+  (`/creator/negotiate/[dealId]`) with its own componentized rate calculator, forecast
+  chart, checklist, and chat.
+- Rebuilt the forecast chart from a bare unlabeled polyline into a real interactive band
+  chart: proper nice-number axis scaling (was wasting up to two-thirds of the chart height
+  on a fixed 0-based scale), real calendar-date x-axis, pointer/touch crosshair + tooltip
+  with tap-to-pin, and a dashed reference band showing today's suggested range.
+- The negotiate page now shows the creator's current follower count, engagement rate, and
+  every rate-calculator input (views/week, CPM, tier multiplier, engagement adjustment)
+  right next to the suggested range, so the number is explainable, not just asserted.
 
-- Built global `StorageModule` supporting S3 SSE-KMS uploads and cryptographic local fallback sign/verify download endpoints.
-- Implemented Mammoth / PDF-parse text extraction engine in `text-extractor.ts`.
-- Programmed customized DOCX agreement generator in `ContractsService` using the `docx` library.
-- Created Gemini brief parser extracting deliverables, deadlines, compliance checks, and FTC violations.
-- Implemented deliverables reconciliation engine warning users of scope creep.
-- Integrated side-by-side AI contract reviewer auditing 8 Immediate and 5 Future risk flags with recommendations, alternative copy-pasteable legal clauses, and real-world impact scenarios.
+### Messaging
 
-#### D. Next.js Web Frontend
+- Added direct brand↔creator messaging (distinct from the AI negotiation chat), with a
+  shared `/chat` hub page, replacing the old brand-only "Negotiate" nav item.
+- Brand's creator-detail page gained an embedded chat thread and a contracts list with
+  upload timestamps.
 
-- Created Framer Motion-animated `UploadZone` component.
-- Implemented brief and contract queries/uploads in `api-client.ts`.
-- Built the Contracts Dashboard (`/contracts`), Contract Generator Wizard (`/contracts/new`), side-by-side Contract Review Workspace (`/contracts/[id]`), and Campaign Brief Reconciliation Page (`/deals/[id]/brief`).
+### Contracts / Deliverables / Payments restructuring
 
-#### E. Tests
+- **Contracts**: brand's view simplified to Creator / Contract / Reviewed / Accept; the
+  accept flow moves the deal to `in_production` and surfaces a clean error instead of
+  corrupting deal state when a contract is stuck in `pending_review`.
+- **Deliverables**: production-status control (advance to in-progress/editing/submitted)
+  moved from the brand to the creator — enforced in the API, not just the UI, so a brand
+  can't set it via a raw request either; the brand keeps only approve / reject / request
+  revision. Deliverables can now optionally reference the contract they were scoped under.
+- **Payments**: simplified from a three-way pending/paid/overdue selector to a binary
+  paid / not-paid state; invoices can attach a specific deliverable.
+- Contract-risk and negotiation-outcome analytics moved to creator-only (removed from the
+  brand's analytics view, since negotiation is off-platform from the brand's side now).
 
-- Created `briefs.service.spec.ts` unit testing scope matching and warning notifications.
-- Result: **42/42 passing** ✅
+### Backend concurrency fix
 
----
+Diagnosed and fixed a systemic issue: every Supabase call across ~14 files (67+ call
+sites) was declared inside `async def` but was actually synchronous — each one froze
+FastAPI's single-threaded event loop for the full round-trip, so concurrent requests
+queued instead of overlapping. A single page load firing 3+ API calls could take 5–10
+seconds. Wrapped every blocking call in `asyncio.to_thread()`; verified with a
+concurrent-burst test that requests genuinely overlap afterward.
 
-## Phase 5 Summary — Invisible Tax Dashboard, Invoice & Payment Tracker, Financial Runway
+### Fresh demo data
 
-**Completed:** 2026-06-15
-**Scope:** Financial intelligence layer — invisible cost surfacing, full invoice CRUD with BullMQ reminders, confidence-weighted runway projections.
+Wiped all demo/test accounts (preserving the one real personal account found mixed in
+with the test data) and rebuilt from scratch:
 
----
+- **3 real-brand demo accounts**: Mamaearth, boAt, Nykaa
+- **5 creator accounts** across beauty/fitness/fashion/tech/travel niches, one linked to
+  two brands to demonstrate the multi-brand feature
+- **13 deals** spanning every status (lead → negotiating → contracted → in_production →
+  completed / cancelled)
+- **6 contracts** (3 scanned through the real Gemini clause-scan pipeline, 3 simple)
+- **6 deliverables** across every production/review stage
+- **6 payments/invoices**, mixed paid and unpaid (including one overdue)
+- **9 negotiation sessions** with realistic forecasts, seeded AI chat history, and
+  growth-snapshot history per creator
+- Login pages updated to list every demo account as a ready-to-click quick-login button
 
-### ✅ Completed
+Found and fixed two real bugs in the seed script along the way: a Supabase client helper
+that claimed to return a fresh client per call but didn't, silently poisoning every
+signup after the first; and two service calls still passing an argument an earlier
+API change had removed.
 
-#### A. Database Schema
+### Security remediation
 
-- Added `DealConfidence` enum (`CONFIRMED`, `LIKELY`, `SPECULATIVE`) with default `LIKELY` on all deals.
-- Added `PaymentTerms` enum (`NET_15`, `NET_30`, `NET_45`, `NET_60`, `NET_90`, `FIFTY_FIFTY`) on the `Invoice` model.
-- Added `FinancialSettings` model (per-creator monthly fixed costs + currency).
-- Applied migration `20260615115050_add_phase5_financial`.
+- Confirmed `backend/.env` (Supabase service role key, Gemini API key, Resend key) was
+  committed to git history, reachable from three remotes across two GitHub accounts.
+- Scrubbed the file from history on the two repos the user owns, using `git filter-repo`,
+  with a full pre-rewrite backup bundle and independent post-push verification via fresh
+  clones. A third remote (owned by a different account) was deliberately left untouched.
+- **Rotating the actual key values is still the user's own action item** — it requires
+  dashboard access to Supabase / Google AI Studio / Resend that this session doesn't have.
 
-#### B. NestJS — Invoices Module (full build-out)
+### Deployment prep
 
-Replaced stub service with a complete implementation:
-
-- **`invoices.dto.ts`**: `CreateInvoiceDto`, `UpdateInvoiceDto`, `MarkPaidDto` with class-validator decorators.
-- **`invoices.service.ts`**: Full CRUD + auto invoice number generation (`INV-YYYY-NNNN`) + totals calculator + due-date auto-calculator + BullMQ reminder scheduling + overdue summary.
-- **`invoices.controller.ts`**: JWT-guarded REST controller (`GET/POST/PATCH/DELETE /invoices`, `PATCH /invoices/:id/mark-paid`).
-- **`invoice-reminder.processor.ts`**: BullMQ `@Processor('invoice-reminders')` handler — logs stub, ready for SES/Resend drop-in.
-- **`invoices.module.ts`**: Registers BullMQ queue + AuditLogModule.
-- **`app.module.ts`**: Added `BullModule.forRootAsync` pointing to Redis; registered `InvisibleTaxModule` + `FinancialRunwayModule`.
-
-#### C. NestJS — Invisible Tax Module (new)
-
-- **`invisible-tax.service.ts`**: All 6 calculations (server-side only):
-  - **Underpricing gap**: `recommendedMin - offeredAmount` per deal matched to Rate Intelligence history by brand name.
-  - **Usage rights leakage**: Detects whitelist/paid-ads/dark-post/boosted keywords in `deal.usageRights` → leakage = `amount × (2.0 - 1)`.
-  - **Scope creep tracker**: Counts `REVISION_REQUESTED` deliverable statuses vs contract `revisionLimit`.
-  - **Aggregated risk score**: `AVG(contract.overallRiskScore)` across all deals with contracts.
-  - **Worst active flag**: Highest-severity unacknowledged `ContractRiskFlag` across active contracts.
-  - **Barter reminder**: Deals where `amount = 0` and status is `ACTIVE/COMPLETED`.
-- **`invisible-tax.controller.ts`**: `GET /invisible-tax/summary` (JWT-guarded).
-
-#### D. NestJS — Financial Runway Module (new)
-
-- **`financial-runway.service.ts`**: Confidence-weighted projections:
-  - `CONFIRMED` → weight `1.0`, `LIKELY` → `0.7`, `SPECULATIVE` → `0.3`
-  - **Projected income (30/60/90d)**: `SUM(deal.amount × confidence_weight) WHERE deadline ≤ now + N days`
-  - **Outstanding receivables**: `SUM(totalAmount - paidAmount) WHERE status NOT IN (PAID, CANCELLED)`
-  - **Overdue amount**: Same filter + `dueDate < now`
-  - **Net runway**: `(outstanding - overdue + proj30) / monthlyFixedCosts` — `null` if fixedCosts = 0
-- **`financial-runway.controller.ts`**: `GET /projection`, `GET|PATCH /settings`, `PATCH /deals/:id/confidence`.
-
-#### E. Next.js Web Frontend
-
-- **`/invoices/page.tsx`**: Dark table with color-coded status pills (Draft/Sent/Partial/Paid/Overdue/Disputed/Cancelled), StatBand (Total/Paid/Overdue), slide-over add/edit panel with live line-item totals calculator and mark-paid one-click action.
-- **`/invisible-tax/page.tsx`**: Radial purple glow header + `~$X,XXX left on the table` headline stat + 6 dark-surface metric cards (underpricing gap, usage rights leakage, scope creep, contract risk score, barter reminder, quick stats) + worst-clause highlighted purple-gradient card linking to contract + Recharts area trend chart.
-- **`/financial-runway/page.tsx`**: Full-width purple gradient StatBand (30/60/90-day projections) + dual-series Recharts area chart (projected income + receivables, fixed-cost reference line) + 3 summary cards (receivables/overdue/net runway months) + per-deal confidence inline editor.
-- **`top-nav.tsx`**: Added "Runway" link (`TrendingUp` icon, `/financial-runway`).
-- **`api-client.ts`**: Added `invoicesApi`, `invisibleTaxApi`, `financialRunwayApi` typed namespaces.
-
-#### F. Calculation Formulas Reference
-
-| Metric                  | Formula                                                                 |
-| ----------------------- | ----------------------------------------------------------------------- |
-| Invoice subtotal        | `SUM(quantity × unitPrice)` per line item                               |
-| Invoice tax             | `subtotal × taxRate / 100`                                              |
-| Invoice total           | `subtotal + taxAmount`                                                  |
-| Invoice number          | `INV-{YYYY}-{NNNN}` — sequence resets per creator per year              |
-| Due date                | `issuedAt + PAYMENT_TERMS_DAYS[paymentTerms]` (15/30/45/60/90 days)     |
-| PARTIALLY_PAID          | `paidAmount < totalAmount` on `markPaid`                                |
-| PAID                    | `paidAmount >= totalAmount` on `markPaid`                               |
-| Underpricing gap        | `MAX(0, rateIntelligence.recommendedMin - deal.offeredAmount)` per deal |
-| Usage rights leakage    | `deal.amount × 1.0` (estimated at 2× organic for whitelisting deals)    |
-| Scope creep             | `COUNT(REVISION_REQUESTED deliverables) - contract.revisionLimit`       |
-| Avg risk score          | `AVG(contract.overallRiskScore)` across contracts with scores           |
-| Projected income (Nd)   | `SUM(deal.amount × WEIGHT[confidence]) WHERE deadline ≤ now + N days`   |
-| Outstanding receivables | `SUM(totalAmount - paidAmount) WHERE status NOT IN (PAID, CANCELLED)`   |
-| Overdue amount          | Outstanding receivables WHERE `dueDate < now`                           |
-| Net runway months       | `(outstandingReceivables - overdueAmount + proj30) / monthlyFixedCosts` |
-
-#### G. New Shared Components
-
-| Component                  | Route                            | Description                                                                                  |
-| -------------------------- | -------------------------------- | -------------------------------------------------------------------------------------------- |
-| Stat Band (gradient)       | `/invoices`, `/financial-runway` | Full-width purple-gradient band with 3-column KPI layout (mirrors Phase 3 DashboardStatBand) |
-| Invoice slide-over         | `/invoices`                      | Line-item form with live totals, payment terms selector, deal linker                         |
-| Invisible tax card grid    | `/invisible-tax`                 | 6-metric dark-surface card grid with icon badges, drilldown rows                             |
-| Worst clause card          | `/invisible-tax`                 | Featured purple-gradient card with CTA linking to contract                                   |
-| Dual-series area chart     | `/financial-runway`              | Projected income + receivables with fixed-cost reference line                                |
-| Per-deal confidence editor | `/financial-runway`              | Inline dropdown with live API update per deal row                                            |
-
-#### H. Tests
-
-- `invoices.service.spec.ts`: 12 tests (number generation, totals, due date, mark-paid transitions, overdue detection, input validation)
-- `financial-runway.service.spec.ts`: 6 tests (confidence multipliers, horizon filtering, receivables, overdue, runway months, settings defaults)
-- **Result: 60/60 passing ✅** (up from 42)
+Wrote a step-by-step Vercel (frontend) + Render (backend) deployment guide tailored to
+this exact project — `main.py` already reads an optional `FRONTEND_URL` env var for CORS,
+so no code change is needed there; Render needs its start command overridden to bind
+`$PORT` instead of the hardcoded `8000` in `main.py`'s `main()`. Not yet deployed.
 
 ---
 
-## Phase 6 Summary — Brand Portal Backend & Integration
+## Current status
 
-**Completed:** 2026-06-15
-**Scope:** Lightweight public portal route, secure signed JWT tokens scoped per deal, PDF/DOCX file uploads with magic bytes, comments/replies collab feed, and 22 unit tests.
-
-### ✅ Completed
-
-- **NestJS brand-portal module**: Token generation service yielding short-expiry wrapper JWTs containing opaque UUID identifiers.
-- **MIME & magic byte validations**: Limits files to PDF/DOCX/DOC under 20MB, sanitizing file names to prevent relative path traversal exploits.
-- **Portal public controller**: Header-based `x-portal-token` auth guard (`PortalTokenGuard`) to secure endpoints without relying on CSRF-vulnerable cookies.
-- **Collab feed**: Portal comment author differentiation (BRAND vs CREATOR).
-- **Unit testing**: 22 unit tests checking JWT lookups, access counts, file constraints, status transitions, and audit logs.
-
----
-
-## Phase 7 Summary — Frontend Polish, E2E Testing & Devops Scaffolding
-
-**Completed:** 2026-06-15
-**Scope:** Client-side light/dark theme toggles, shimmering skeleton loader UI, Toast/Notification system, public Brand Portal layout, creator Brand Portal managers, deals slide-over share links, compound DB indexes, CSP/HSTS production headers, E2E integration tests, minimal Docker deployment files, and setup runbooks.
-
-### ✅ Completed
-
-- **Prisma Schema compound indexes**: Speeds up database queries by registering indices on `Deal([creatorId, status, stage])`, `Invoice([creatorId, status])`, `PerformanceLog([creatorId, dealId, recordedAt])`, etc.
-- **CSP & HSTS Hardening**: Configured strict CSP headers for inline scripts and styles, and enforced production-level HSTS inside `apps/api/src/main.ts`.
-- **Theme Toggling**: Premium animated theme switch inside `top-nav.tsx` persisting the user's class root (`.dark` / `.light`) in client-side `localStorage`.
-- **Public Portal view**: Built `apps/web/src/app/portal/[token]/page.tsx` displaying the brand's due dates, checklist, file upload zone, approval pills, and interactive collaboration messages.
-- **Creator dashboard**: Completed `apps/web/src/app/brand-portal/page.tsx` for generating portal tokens, copying shareable links, revoking permissions, and replying to brand comments.
-- **Deals slide-over integration**: Injected direct copy-link and revocation controls inside the deal details slide-over of `/deals`.
-- **E2E Integration Testing**: Added 6 tests in `apps/api/test/brand-portal.e2e-spec.ts` covering validation rules, token expiration, submissions, and comments.
-- **Documentation**: Compiled comprehensive README setup files, production operational runbooks, and design system addendums.
-
----
-
-## Post-Launch Bug Fixes
-
-**Completed:** 2026-06-16  
-**Scope:** Loading states, Error Handling, Navigation, Redis offline handling, Gemini AI Integration stability
-
-### ✅ Completed
-
-- **Dashboard & Brand Portal Infinite Loading Fix**: Addressed useCallback unauthenticated fast-returns bypassing `setLoading(false)`, causing infinite spinners on data fetching components.
-- **Empty State Components Added**: Updated `/invisible-tax` and `/brand-portal` pages with beautiful empty states for when the user has no deals or brand links yet.
-- **Gemini Service Hardening**: Added robust try-catch logging, specific `GEMINI_API_KEY` validation checks, and structured error responses.
-- **Redis Queue Management**: Adjusted `enableOfflineQueue` to `false` preventing silent hanging requests when cache server is momentarily unavailable.
-- **Form Error Surfacing**: Updated nested `Deals` creation forms and the `Rate Intelligence` generation form to properly map array-based class-validator errors into visible frontend alerts.
-- **Top Navigation UX**: Added a dropdown to the top-nav avatar for quick access to "Edit Profile" and "Sign Out" actions.
-## Bug Fix Round 3 — Loading Fix
-## Bug Fix Round 4 - Fix Rate Intelligence Silent Failure
-## Production Readiness Audit
+- Backend: 72 tests passing (1 skipped), typecheck/lint clean.
+- Frontend: `tsc --noEmit` clean, lint clean.
+- Demo data: seeded and verified end-to-end via direct API calls for both a brand and a
+  creator account (deals, contracts, payments, forecast, growth history, AI chat, messages).
+- Outstanding: rotate the leaked API keys (user action), then deploy per the Vercel/Render guide.
