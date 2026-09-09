@@ -24,16 +24,21 @@ export default function BrandLoginPage() {
     e.preventDefault();
     setPending(true);
     setError(null);
-    const { data, error: apiError } = await client.POST("/auth/brand/login", {
-      body: { email, password },
-    });
-    setPending(false);
-    if (apiError || !data) {
-      setError("That email and password combination doesn't match a brand account.");
-      return;
+    try {
+      const { data, error: apiError } = await client.POST("/auth/brand/login", {
+        body: { email, password },
+      });
+      if (apiError || !data) {
+        setError("That email and password combination doesn't match a brand account.");
+      } else {
+        saveSession(data);
+        router.push("/brand");
+      }
+    } catch (err) {
+      setError("Network error: Could not connect to the backend. If you are on Vercel, ensure NEXT_PUBLIC_API_URL is set to your deployed backend URL.");
+    } finally {
+      setPending(false);
     }
-    saveSession(data);
-    router.push("/brand");
   }
 
   return (

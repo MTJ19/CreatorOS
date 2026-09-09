@@ -22,16 +22,27 @@ export default function BrandSignupPage() {
     e.preventDefault();
     setPending(true);
     setError(null);
-    const { data, error: apiError } = await client.POST("/auth/brand/signup", {
-      body: { brand_name: brandName, description: description || null, email, password },
-    });
-    setPending(false);
-    if (apiError || !data) {
-      setError("Couldn't create that account — the email may already be in use.");
+    if (password !== confirm) {
+      setError("Passwords do not match");
+      setPending(false);
       return;
     }
-    saveSession(data);
-    setSession(data);
+
+    try {
+      const { data, error: apiError } = await client.POST("/auth/brand/signup", {
+        body: { brand_name: brandName, description: description || null, email, password },
+      });
+      if (apiError || !data) {
+        setError(apiError?.detail || "Could not create account");
+      } else {
+        saveSession(data);
+        setSession(data);
+      }
+    } catch (err) {
+      setError("Network error: Could not connect to the backend. If you are on Vercel, ensure NEXT_PUBLIC_API_URL is set to your deployed backend URL.");
+    } finally {
+      setPending(false);
+    }
   }
 
   if (session) {

@@ -25,25 +25,30 @@ export default function CreatorSignupPage() {
     e.preventDefault();
     setPending(true);
     setError(null);
-    const { data, error: apiError } = await client.POST("/auth/creator/signup", {
-      body: {
-        display_name: displayName,
-        instagram_handle: instagramHandle,
-        niche,
-        follower_tier: followerTier,
-        followers_count: Number(followersCount),
-        engagement_rate: engagementRate ? Number(engagementRate) : null,
-        email,
-        password,
-      },
-    });
-    setPending(false);
-    if (apiError || !data) {
-      setError("Couldn't create that account. Try again.");
-      return;
+    try {
+      const { data, error: apiError } = await client.POST("/auth/creator/signup", {
+        body: {
+          display_name: displayName,
+          instagram_handle: instagramHandle,
+          niche,
+          follower_tier: followerTier,
+          followers_count: Number(followersCount),
+          engagement_rate: engagementRate ? Number(engagementRate) : null,
+          email,
+          password,
+        },
+      });
+      if (apiError || !data) {
+        setError("Couldn't create that account. Try again.");
+      } else {
+        saveSession(data);
+        router.push("/creator");
+      }
+    } catch (err) {
+      setError("Network error: Could not connect to the backend. If you are on Vercel, ensure NEXT_PUBLIC_API_URL is set to your deployed backend URL.");
+    } finally {
+      setPending(false);
     }
-    saveSession(data);
-    router.push("/creator");
   }
 
   return (
