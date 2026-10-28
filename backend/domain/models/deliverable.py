@@ -13,6 +13,7 @@ class Deliverable(BaseModel):
     title: str
     description: str
     status: str
+    previous_status: str | None = None
     file_path: str | None = None
     created_at: datetime
     updated_at: datetime
@@ -24,5 +25,5 @@ class DeliverableCreateRequest(BaseModel):
     description: str
 
 class DeliverableStatusUpdateRequest(BaseModel):
-    status: Literal['in_production', 'editing', 'submitted', 'approved', 'rejected', 'revision_requested']
+    status: Literal['pending', 'in_production', 'editing', 'submitted', 'approved', 'rejected', 'revision_requested']
     note: str | None = None

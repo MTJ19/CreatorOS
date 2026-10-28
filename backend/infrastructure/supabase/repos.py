@@ -18,9 +18,23 @@ from domain.models.negotiation import (
     NegotiationSession,
 )
 from domain.models.payment import Payment
+from demo_data import is_demo_mode, store
 
 
-class SupabaseBrandRepo:
+class _DemoFallbackMixin:
+    _fallback_repo_name: str = ""
+
+    def __getattribute__(self, name):
+        if not name.startswith("_") and name != "client" and is_demo_mode():
+            store.seed_if_needed()
+            fb = getattr(store, self._fallback_repo_name, None)
+            if fb and hasattr(fb, name):
+                return getattr(fb, name)
+        return super().__getattribute__(name)
+
+
+class SupabaseBrandRepo(_DemoFallbackMixin):
+    _fallback_repo_name = "brand_repo"
     def __init__(self, client: Client):
         self.client = client
     async def create(self, brand: Brand) -> Brand:
@@ -30,7 +44,8 @@ class SupabaseBrandRepo:
         res = await asyncio.to_thread(lambda: self.client.table("brands").select("*").eq("id", str(id)).execute())
         return Brand.model_validate(res.data[0]) if res.data else None
 
-class SupabaseBrandMemberRepo:
+class SupabaseBrandMemberRepo(_DemoFallbackMixin):
+    _fallback_repo_name = "brand_member_repo"
     def __init__(self, client: Client):
         self.client = client
     async def create(self, member: BrandMember) -> BrandMember:
@@ -43,7 +58,8 @@ class SupabaseBrandMemberRepo:
         res = await asyncio.to_thread(lambda: self.client.table("brand_members").select("*").eq("user_id", str(user_id)).execute())
         return BrandMember.model_validate(res.data[0]) if res.data else None
 
-class SupabaseCreatorRepo:
+class SupabaseCreatorRepo(_DemoFallbackMixin):
+    _fallback_repo_name = "creator_repo"
     def __init__(self, client: Client):
         self.client = client
     async def create(self, creator: Creator) -> Creator:
@@ -90,7 +106,8 @@ class SupabaseCreatorRepo:
         )
         return [Brand.model_validate(d["brands"]) for d in res.data if d.get("brands")]
 
-class SupabaseGrowthSnapshotRepo:
+class SupabaseGrowthSnapshotRepo(_DemoFallbackMixin):
+    _fallback_repo_name = "growth_repo"
     def __init__(self, client: Client):
         self.client = client
     async def create(self, snapshot: GrowthSnapshot) -> GrowthSnapshot:
@@ -107,7 +124,8 @@ class SupabaseGrowthSnapshotRepo:
         )
         return [GrowthSnapshot.model_validate(d) for d in res.data]
 
-class SupabaseDealRepo:
+class SupabaseDealRepo(_DemoFallbackMixin):
+    _fallback_repo_name = "deal_repo"
     def __init__(self, client: Client):
         self.client = client
     async def create(self, deal: Deal) -> Deal:
@@ -143,7 +161,8 @@ class SupabaseDealRepo:
         )
         return Deal.model_validate(res.data[0])
 
-class SupabaseContractRepo:
+class SupabaseContractRepo(_DemoFallbackMixin):
+    _fallback_repo_name = "contract_repo"
     def __init__(self, client: Client):
         self.client = client
     async def create(self, contract: Contract) -> Contract:
@@ -183,7 +202,8 @@ class SupabaseContractRepo:
         res = await asyncio.to_thread(lambda: self.client.table("contracts").update({"creator_status": creator_status}).eq("id", str(id)).execute())
         return Contract.model_validate(res.data[0])
 
-class SupabaseDeliverableRepo:
+class SupabaseDeliverableRepo(_DemoFallbackMixin):
+    _fallback_repo_name = "deliverable_repo"
     def __init__(self, client: Client):
         self.client = client
     async def create(self, deliverable: Deliverable) -> Deliverable:
@@ -206,11 +226,12 @@ class SupabaseDeliverableRepo:
             .order("created_at", desc=True).range(offset, offset + limit - 1).execute())
         )
         return [Deliverable.model_validate({k: v for k, v in d.items() if k != 'deals'}) for d in res.data]
-    async def update_status(self, id: UUID, status: str) -> Deliverable:
+    async def update_status(self, id: UUID, status: str, previous_status: str | None = None) -> Deliverable:
         res = await asyncio.to_thread(lambda: self.client.table("deliverables").update({"status": status}).eq("id", str(id)).execute())
         return Deliverable.model_validate(res.data[0])
 
-class SupabaseActivityLogRepo:
+class SupabaseActivityLogRepo(_DemoFallbackMixin):
+    _fallback_repo_name = "activity_log_repo"
     def __init__(self, client: Client):
         self.client = client
     async def create(self, log: ActivityLog) -> ActivityLog:
@@ -239,7 +260,8 @@ class SupabaseActivityLogRepo:
         )
         return [ActivityLog.model_validate({k: v for k, v in d.items() if k != 'deals'}) for d in res.data]
 
-class SupabasePaymentRepo:
+class SupabasePaymentRepo(_DemoFallbackMixin):
+    _fallback_repo_name = "payment_repo"
     def __init__(self, client: Client):
         self.client = client
     async def create(self, payment: Payment) -> Payment:
@@ -275,7 +297,8 @@ class SupabasePaymentRepo:
         res = await asyncio.to_thread(lambda: self.client.table("payments").update(update_data).eq("id", str(id)).execute())
         return Payment.model_validate(res.data[0])
 
-class SupabaseNegotiationSessionRepo:
+class SupabaseNegotiationSessionRepo(_DemoFallbackMixin):
+    _fallback_repo_name = "negotiation_session_repo"
     def __init__(self, client: Client):
         self.client = client
     async def create(self, session: NegotiationSession) -> NegotiationSession:
@@ -317,7 +340,8 @@ class SupabaseNegotiationSessionRepo:
         )
         return [NegotiationOffer.model_validate(d) for d in res.data]
 
-class SupabaseNegotiationConversationRepo:
+class SupabaseNegotiationConversationRepo(_DemoFallbackMixin):
+    _fallback_repo_name = "negotiation_conv_repo"
     def __init__(self, client: Client):
         self.client = client
     async def create(self, conversation: NegotiationConversation) -> NegotiationConversation:
@@ -333,7 +357,8 @@ class SupabaseNegotiationConversationRepo:
         )
         return [NegotiationConversation.model_validate(d) for d in res.data]
 
-class SupabaseRateBenchmarkRepo:
+class SupabaseRateBenchmarkRepo(_DemoFallbackMixin):
+    _fallback_repo_name = "benchmark_repo"
     def __init__(self, client: Client):
         self.client = client
     async def get_historical_rates(self, niche: str, follower_tier: str) -> list[float]:
@@ -346,7 +371,8 @@ class SupabaseRateBenchmarkRepo:
         )
         return [row["base_rate"] for row in res.data]  # type: ignore
 
-class SupabaseMessageRepo:
+class SupabaseMessageRepo(_DemoFallbackMixin):
+    _fallback_repo_name = "message_repo"
     def __init__(self, client: Client):
         self.client = client
     async def create(self, message: Message) -> Message:
@@ -359,5 +385,11 @@ class SupabaseMessageRepo:
             .order("created_at", desc=False).limit(limit).execute())
         )
         return [Message.model_validate(d) for d in res.data]
+    async def mark_thread_read(self, brand_id: UUID, creator_id: UUID, reader_type: str) -> int:
+        return 0
+    async def get_unread_count(self, actor_type: str, actor_id: UUID) -> int:
+        return 0
+    async def get_unread_by_contact(self, actor_type: str, actor_id: UUID) -> dict[str, int]:
+        return {}
 
 

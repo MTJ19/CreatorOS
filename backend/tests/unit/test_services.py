@@ -186,6 +186,54 @@ async def test_deliverable_status_role_gating():
         )
 
 @pytest.mark.asyncio
+async def test_deliverable_revert_transitions():
+    deliverable_repo = FakeDeliverableRepo()
+    activity_log_repo = FakeActivityLogRepo()
+    service = DeliverableService(deliverable_repo, activity_log_repo)
+
+    brand_id, deal_id, creator_id = uuid4(), uuid4(), uuid4()
+    req_create = DeliverableCreateRequest(deal_id=deal_id, title="Test", description="Desc")
+    created = await service.create_deliverable(req_create, brand_id, creator_id, "creator")
+
+    # Advance to in_production -> editing -> submitted
+    await service.update_status(created.id, DeliverableStatusUpdateRequest(status="in_production"), creator_id, "creator", brand_id, deal_id, creator_id)
+    await service.update_status(created.id, DeliverableStatusUpdateRequest(status="editing"), creator_id, "creator", brand_id, deal_id, creator_id)
+    s = await service.update_status(created.id, DeliverableStatusUpdateRequest(status="submitted"), creator_id, "creator", brand_id, deal_id, creator_id)
+    assert s.status == "submitted"
+    assert s.previous_status == "in_production"
+
+    # Revert submitted -> editing
+    r1 = await service.update_status(created.id, DeliverableStatusUpdateRequest(status="editing"), creator_id, "creator", brand_id, deal_id, creator_id)
+    assert r1.status == "editing"
+    assert r1.previous_status == "in_production"
+
+    # Revert editing -> in_production
+    r2 = await service.update_status(created.id, DeliverableStatusUpdateRequest(status="in_production"), creator_id, "creator", brand_id, deal_id, creator_id)
+    assert r2.status == "in_production"
+    assert r2.previous_status is None
+
+    # Revert in_production -> pending
+    r3 = await service.update_status(created.id, DeliverableStatusUpdateRequest(status="pending"), creator_id, "creator", brand_id, deal_id, creator_id)
+    assert r3.status == "pending"
+    assert r3.previous_status is None
+
+    # Brand requests revision loop
+    await service.update_status(created.id, DeliverableStatusUpdateRequest(status="in_production"), creator_id, "creator", brand_id, deal_id, creator_id)
+    await service.update_status(created.id, DeliverableStatusUpdateRequest(status="editing"), creator_id, "creator", brand_id, deal_id, creator_id)
+    await service.update_status(created.id, DeliverableStatusUpdateRequest(status="submitted"), creator_id, "creator", brand_id, deal_id, creator_id)
+    rev = await service.update_status(created.id, DeliverableStatusUpdateRequest(status="revision_requested"), brand_id, "brand", brand_id, deal_id)
+    assert rev.status == "revision_requested"
+
+    # Creator mistakenly marks editing, then reverts back to revision_requested
+    m = await service.update_status(created.id, DeliverableStatusUpdateRequest(status="editing"), creator_id, "creator", brand_id, deal_id, creator_id)
+    assert m.status == "editing"
+    assert m.previous_status == "revision_requested"
+
+    rev_back = await service.update_status(created.id, DeliverableStatusUpdateRequest(status="revision_requested"), creator_id, "creator", brand_id, deal_id, creator_id)
+    assert rev_back.status == "revision_requested"
+    assert rev_back.previous_status is None
+
+@pytest.mark.asyncio
 async def test_creator_profile_update():
     creator_repo = FakeCreatorRepo()
     service = CreatorService(creator_repo, FakeActivityLogRepo())

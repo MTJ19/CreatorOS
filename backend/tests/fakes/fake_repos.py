@@ -139,9 +139,10 @@ class FakeDeliverableRepo:
         # to brand_id) — tests that need real ownership scoping should populate
         # self.data directly with the deliverables that creator owns.
         return list(self.data.values())[offset:offset + limit]
-    async def update_status(self, id: UUID, status: str) -> Deliverable:
+    async def update_status(self, id: UUID, status: str, previous_status: str | None = None) -> Deliverable:
         deliverable = self.data[id]
         deliverable.status = status
+        deliverable.previous_status = previous_status
         return deliverable
 
 class FakeActivityLogRepo:

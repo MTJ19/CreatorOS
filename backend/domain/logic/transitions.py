@@ -1,41 +1,40 @@
 def is_valid_contract_transition(from_status: str, to_status: str) -> bool:
     """
     Valid transitions:
-    - draft -> uploaded -> signed
+    - draft <-> uploaded <-> signed
     - any -> void (brand-only, any time)
     - any -> pending_review (forced by an open escalation, Phase 2)
+    - void -> draft | uploaded | signed (reverting accidental void)
+    - pending_review -> draft | uploaded | signed
     """
     if to_status == "void":
         return True
     if to_status == "pending_review":
         return True
-    
-    if from_status == "draft" and to_status == "uploaded":
+
+    contract_active_statuses = {"draft", "uploaded", "signed"}
+    if from_status in contract_active_statuses and to_status in contract_active_statuses:
         return True
-    if from_status == "uploaded" and to_status == "signed":
+
+    if from_status in ("void", "pending_review") and to_status in contract_active_statuses:
         return True
-        
+
     return False
 
 def is_valid_deliverable_transition(from_status: str, to_status: str) -> bool:
     """
     Valid transitions:
-    - pending -> in_production -> editing -> submitted -> approved | revision_requested
-    - revision_requested -> editing -> submitted (resubmission loop)
-    - any -> rejected (brand-only)
+    Supports full bidirectional transitions and reversions between all deliverable statuses:
+    pending, in_production, editing, submitted, approved, revision_requested, rejected.
+    This ensures neither creator nor brand is ever trapped if a status was selected by mistake.
     """
-    if to_status == "rejected":
-        return True
-
-    if from_status == "pending" and to_status == "in_production":
-        return True
-    if from_status == "in_production" and to_status == "editing":
-        return True
-    if from_status == "editing" and to_status == "submitted":
-        return True
-    if from_status == "submitted" and to_status in ("approved", "revision_requested"):
-        return True
-    if from_status == "revision_requested" and to_status == "editing":
-        return True
-
-    return False
+    deliverable_statuses = {
+        "pending",
+        "in_production",
+        "editing",
+        "submitted",
+        "approved",
+        "revision_requested",
+        "rejected",
+    }
+    return from_status in deliverable_statuses and to_status in deliverable_statuses

@@ -58,6 +58,11 @@ async def get_current_actor(authorization: str | None = Header(default=None)) ->
     """Resolves the caller's session to either a brand or a creator identity."""
     token = _extract_token(authorization)
 
+    from demo_data import resolve_demo_actor
+    demo_actor = resolve_demo_actor(token)
+    if demo_actor:
+        return demo_actor
+
     cached = _actor_cache.get(token)
     if cached and cached[1] > time.monotonic():
         return cached[0]

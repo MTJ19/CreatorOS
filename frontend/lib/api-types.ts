@@ -743,6 +743,39 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/messages/unread": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            unread_count: number;
+                            has_unread: boolean;
+                            by_contact: {
+                                [key: string]: number;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1020,7 +1053,7 @@ export interface components {
              * Status
              * @enum {string}
              */
-            status: "uploaded" | "signed" | "void";
+            status: "draft" | "uploaded" | "signed" | "pending_review" | "void";
         };
         /** CounterOfferRequest */
         CounterOfferRequest: {
@@ -1209,6 +1242,8 @@ export interface components {
             description: string;
             /** Status */
             status: string;
+            /** Previous Status */
+            previous_status?: string | null;
             /** File Path */
             file_path?: string | null;
             /**
@@ -1242,7 +1277,7 @@ export interface components {
              * Status
              * @enum {string}
              */
-            status: "in_production" | "editing" | "submitted" | "approved" | "rejected" | "revision_requested";
+            status: "pending" | "in_production" | "editing" | "submitted" | "approved" | "rejected" | "revision_requested";
             /** Note */
             note?: string | null;
         };

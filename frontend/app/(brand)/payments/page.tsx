@@ -69,11 +69,16 @@ export default function PaymentsPage() {
     reload();
   }
 
-  async function markPaid(p: Payment) {
+  async function handlePaymentStatusChange(p: Payment, newStatus: "pending" | "paid" | "overdue") {
+    if (newStatus === p.status) return;
     const contract = contracts.find((c) => c.id === p.contract_id);
-    if (!contract) return;
-    await client.PATCH("/payments/{contract_id}/mark-paid", {
-      params: { path: { contract_id: p.contract_id }, query: { payment_id: p.id, deal_id: contract.deal_id ?? "" } },
+    if (!contract || !contract.deal_id) return;
+    await client.PATCH("/payments/{contract_id}/status", {
+      params: {
+        path: { contract_id: p.contract_id },
+        query: { payment_id: p.id, deal_id: contract.deal_id },
+      },
+      body: { status: newStatus },
     });
     reload();
   }
@@ -138,7 +143,7 @@ export default function PaymentsPage() {
             <th style={{ fontWeight: 600, padding: "6px 4px", borderBottom: "1px solid var(--color-border)" }}>Deliverable</th>
             <th style={{ fontWeight: 600, padding: "6px 4px", borderBottom: "1px solid var(--color-border)" }}>Amount</th>
             <th style={{ fontWeight: 600, padding: "6px 4px", borderBottom: "1px solid var(--color-border)" }}>Due</th>
-            <th style={{ fontWeight: 600, padding: "6px 4px", borderBottom: "1px solid var(--color-border)" }}></th>
+            <th style={{ fontWeight: 600, padding: "6px 4px", borderBottom: "1px solid var(--color-border)", textAlign: "right" }}>Status</th>
           </tr>
         </thead>
         <tbody>
@@ -157,13 +162,42 @@ export default function PaymentsPage() {
               <td style={{ padding: "8px 4px", borderBottom: "1px solid var(--color-border)", color: "var(--color-ink-soft)" }}>
                 {p.due_date ? new Date(p.due_date).toLocaleDateString() : "—"}
               </td>
-              <td style={{ padding: "8px 4px", borderBottom: "1px solid var(--color-border)" }}>
-                {p.status === "paid" ? (
-                  <StatusPill status="Paid" variant="success" />
-                ) : isBrand ? (
-                  <button className="btn btn-ghost" onClick={() => markPaid(p)}>Mark as paid</button>
+              <td style={{ padding: "8px 4px", borderBottom: "1px solid var(--color-border)", textAlign: "right" }}>
+                {isBrand ? (
+                  <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end", alignItems: "center" }}>
+                    <StatusPill
+                      status={p.status === "paid" ? "Paid" : p.status === "overdue" ? "Overdue" : "Pending"}
+                      variant={p.status === "paid" ? "success" : p.status === "overdue" ? "danger" : "warning"}
+                    />
+                    <select
+                      className="field"
+                      style={{
+                        display: "inline-block",
+                        margin: 0,
+                        width: "auto",
+                        minWidth: "120px",
+                        fontSize: "12.5px",
+                        padding: "6px 10px",
+                        cursor: "pointer",
+                        background: "var(--color-surface-sunken)",
+                        borderColor: "var(--color-border)",
+                        color: "var(--color-ink)",
+                        borderRadius: "var(--radius-sm)",
+                        fontWeight: 500,
+                      }}
+                      value={p.status}
+                      onChange={(e) => handlePaymentStatusChange(p, e.target.value as "pending" | "paid" | "overdue")}
+                    >
+                      <option value="pending">Pending</option>
+                      <option value="paid">Paid</option>
+                      <option value="overdue">Overdue</option>
+                    </select>
+                  </div>
                 ) : (
-                  <StatusPill status="Not paid yet" variant="warning" />
+                  <StatusPill
+                    status={p.status === "paid" ? "Paid" : p.status === "overdue" ? "Overdue" : "Not paid yet"}
+                    variant={p.status === "paid" ? "success" : p.status === "overdue" ? "danger" : "warning"}
+                  />
                 )}
               </td>
             </tr>

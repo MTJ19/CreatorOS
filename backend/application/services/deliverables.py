@@ -11,10 +11,8 @@ from domain.models.deliverable import (
 )
 from exceptions import InvalidStatusTransition, PermissionDeniedError
 
-# Production progress is the creator's own status to report; approving,
-# requesting revisions, or rejecting a submission is the brand's review call.
-_CREATOR_ALLOWED_STATUSES = {"in_production", "editing", "submitted"}
-_BRAND_ALLOWED_STATUSES = {"approved", "revision_requested", "rejected"}
+_CREATOR_ALLOWED_STATUSES = {"pending", "in_production", "editing", "submitted", "revision_requested"}
+_BRAND_ALLOWED_STATUSES = {"pending", "in_production", "editing", "submitted", "approved", "revision_requested", "rejected"}
 
 
 class DeliverableService:
@@ -36,6 +34,7 @@ class DeliverableService:
             title=request.title,
             description=request.description,
             status="pending",
+            previous_status=None,
             file_path=None,
             created_at=datetime.now(UTC),
             updated_at=datetime.now(UTC)
@@ -81,14 +80,24 @@ class DeliverableService:
             if not any(d.id == deliverable_id for d in owned):
                 raise PermissionDeniedError("This deliverable isn't yours")
             if request.status not in _CREATOR_ALLOWED_STATUSES:
-                raise PermissionDeniedError("Only the brand can approve, request revisions, or reject a deliverable")
+                raise PermissionDeniedError("Only the brand can approve or reject a deliverable")
         elif request.status not in _BRAND_ALLOWED_STATUSES:
             raise PermissionDeniedError("Only the creator can update production progress")
 
         if not is_valid_deliverable_transition(deliverable.status, request.status):
             raise InvalidStatusTransition("Deliverable", deliverable.status, request.status)
-            
-        updated = await self.deliverable_repo.update_status(deliverable_id, request.status)
+
+        new_previous_status = deliverable.previous_status
+        if deliverable.status in ("in_production", "revision_requested") and request.status in ("editing", "submitted"):
+            new_previous_status = deliverable.status
+        elif deliverable.status == "pending" and request.status in ("in_production", "editing"):
+            new_previous_status = "pending"
+        elif request.status in ("in_production", "revision_requested", "pending"):
+            new_previous_status = None
+
+        updated = await self.deliverable_repo.update_status(
+            deliverable_id, request.status, previous_status=new_previous_status
+        )
         
         log = ActivityLog(
             id=uuid4(),

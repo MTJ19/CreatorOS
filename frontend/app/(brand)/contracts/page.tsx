@@ -74,17 +74,39 @@ export default function ContractsPage() {
     reload();
   }
 
-  async function acceptContract(c: Contract) {
+  async function handleContractStatusChange(c: Contract, newStatus: string) {
+    if (newStatus === c.status) return;
     const deal = deals.find((d) => d.id === c.deal_id);
-    if (!deal) return;
     setAcceptError("");
-    if (c.status === "draft") {
-      const { error } = await client.PATCH("/contracts/{id}/status", { params: { path: { id: c.id } }, body: { status: "uploaded" } });
-      if (error) { setAcceptError("Couldn't accept — it may have an open review flag that needs resolving first."); return; }
+
+    const { error: patchError } = await client.PATCH("/contracts/{id}/status", {
+      params: { path: { id: c.id } },
+      body: { status: newStatus as any },
+    });
+    if (patchError) {
+      setAcceptError("Couldn't update contract status — it may have an open review flag that needs resolving first.");
+      return;
     }
-    const { error: signError } = await client.PATCH("/contracts/{id}/status", { params: { path: { id: c.id } }, body: { status: "signed" } });
-    if (signError) { setAcceptError("Couldn't accept — it may have an open review flag that needs resolving first."); return; }
-    await client.PATCH("/deals/{id}/status", { params: { path: { id: deal.id } }, body: { status: "in_production" } });
+
+    if (deal) {
+      if (newStatus === "signed") {
+        await client.PATCH("/deals/{id}/status", {
+          params: { path: { id: deal.id } },
+          body: { status: "in_production" },
+        });
+      } else if (c.status === "signed" && newStatus === "uploaded") {
+        await client.PATCH("/deals/{id}/status", {
+          params: { path: { id: deal.id } },
+          body: { status: "contracted" },
+        });
+      } else if (newStatus === "draft" && (deal.status === "in_production" || deal.status === "contracted")) {
+        await client.PATCH("/deals/{id}/status", {
+          params: { path: { id: deal.id } },
+          body: { status: "negotiating" },
+        });
+      }
+    }
+
     reload();
   }
 
@@ -221,7 +243,7 @@ export default function ContractsPage() {
           <th style={{ fontWeight: 600, padding: "6px 4px", borderBottom: "1px solid var(--color-border)" }}>Creator</th>
           <th style={{ fontWeight: 600, padding: "6px 4px", borderBottom: "1px solid var(--color-border)" }}>Contract</th>
           <th style={{ fontWeight: 600, padding: "6px 4px", borderBottom: "1px solid var(--color-border)" }}>Reviewed</th>
-          <th style={{ fontWeight: 600, padding: "6px 4px", borderBottom: "1px solid var(--color-border)" }}></th>
+          <th style={{ fontWeight: 600, padding: "6px 4px", borderBottom: "1px solid var(--color-border)", textAlign: "right" }}>Status</th>
         </tr>
       </thead>
       <tbody>
@@ -234,12 +256,40 @@ export default function ContractsPage() {
             <td style={{ padding: "8px 4px", borderBottom: "1px solid var(--color-border)" }}>
               <StatusPill status={c.raw_text ? "Reviewed" : "Not yet"} variant={c.raw_text ? "success" : "neutral"} />
             </td>
-            <td style={{ padding: "8px 4px", borderBottom: "1px solid var(--color-border)" }}>
-              {c.status === "signed" ? (
-                <StatusPill status="Accepted" variant="success" />
-              ) : (
-                <button className="btn btn-ghost" onClick={() => acceptContract(c)}>Accept</button>
-              )}
+            <td style={{ padding: "8px 4px", borderBottom: "1px solid var(--color-border)", textAlign: "right" }}>
+              <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end", alignItems: "center" }}>
+                <StatusPill
+                  status={c.status === "signed" ? "Accepted" : c.status === "void" ? "Void" : c.status === "pending_review" ? "Pending review" : c.status === "draft" ? "Draft" : "Pending acceptance"}
+                  variant={c.status === "signed" ? "success" : c.status === "void" ? "danger" : c.status === "pending_review" ? "warning" : "neutral"}
+                />
+                <select
+                  className="field"
+                  style={{
+                    display: "inline-block",
+                    margin: 0,
+                    width: "auto",
+                    minWidth: "150px",
+                    fontSize: "12.5px",
+                    padding: "6px 10px",
+                    cursor: "pointer",
+                    background: "var(--color-surface-sunken)",
+                    borderColor: "var(--color-border)",
+                    color: "var(--color-ink)",
+                    borderRadius: "var(--radius-sm)",
+                    fontWeight: 500,
+                  }}
+                  value={c.status}
+                  onChange={(e) => handleContractStatusChange(c, e.target.value)}
+                >
+                  <option value="uploaded">Pending acceptance</option>
+                  <option value="signed">Accepted</option>
+                  <option value="draft">Draft</option>
+                  <option value="void">Void</option>
+                  {c.status === "pending_review" && (
+                    <option value="pending_review">Pending review</option>
+                  )}
+                </select>
+              </div>
             </td>
           </tr>
         ))}

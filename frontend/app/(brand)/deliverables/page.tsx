@@ -29,13 +29,6 @@ function dealStageVariant(status: string): StatusVariant {
   }
 }
 
-const NEXT_STATUS: Record<string, string> = {
-  pending: "in_production",
-  in_production: "editing",
-  editing: "submitted",
-  revision_requested: "editing",
-};
-
 const STATUS_LABEL: Record<string, string> = {
   pending: "Not started",
   in_production: "In progress",
@@ -45,6 +38,38 @@ const STATUS_LABEL: Record<string, string> = {
   rejected: "Rejected",
   revision_requested: "Revision requested",
 };
+
+function getAvailableStatuses(d: Deliverable): { value: string; label: string }[] {
+  const options = [
+    { value: "pending", label: "Not started" },
+    { value: "in_production", label: "In progress" },
+    { value: "editing", label: "Video editing phase" },
+    { value: "submitted", label: "Delivered — awaiting approval" },
+  ];
+
+  if (d.status === "revision_requested" || d.previous_status === "revision_requested") {
+    options.push({ value: "revision_requested", label: "Revision requested" });
+  }
+
+  return options;
+}
+
+function getBrandAvailableStatuses(d: Deliverable): { value: string; label: string }[] {
+  const options = [
+    { value: "in_production", label: "In progress" },
+    { value: "submitted", label: "Delivered — awaiting approval" },
+    { value: "approved", label: "Approved" },
+    { value: "revision_requested", label: "Revision requested" },
+    { value: "rejected", label: "Rejected" },
+  ];
+  if (d.status === "pending") {
+    options.unshift({ value: "pending", label: "Not started" });
+  }
+  if (d.status === "editing") {
+    options.splice(2, 0, { value: "editing", label: "Video editing phase" });
+  }
+  return options;
+}
 
 function variantFor(status: string): StatusVariant {
   switch (status) {
@@ -110,12 +135,11 @@ export default function DeliverablesPage() {
     reload();
   }
 
-  async function advance(d: Deliverable) {
-    const next = NEXT_STATUS[d.status];
-    if (!next) return;
+  async function handleStatusChange(d: Deliverable, newStatus: string) {
+    if (newStatus === d.status) return;
     await client.PATCH("/deliverables/{id}/status", {
       params: { path: { id: d.id }, query: { deal_id: d.deal_id } },
-      body: { status: next as "in_production" | "editing" | "submitted" },
+      body: { status: newStatus as any },
     });
     reload();
   }
@@ -179,38 +203,83 @@ export default function DeliverablesPage() {
             <th style={{ fontWeight: 600, padding: "6px 4px", borderBottom: "1px solid var(--color-border)" }}>Description</th>
             <th style={{ fontWeight: 600, padding: "6px 4px", borderBottom: "1px solid var(--color-border)" }}>Contract</th>
             <th style={{ fontWeight: 600, padding: "6px 4px", borderBottom: "1px solid var(--color-border)" }}>Status</th>
-            <th style={{ fontWeight: 600, padding: "6px 4px", borderBottom: "1px solid var(--color-border)" }}></th>
+            <th style={{ fontWeight: 600, padding: "6px 4px", borderBottom: "1px solid var(--color-border)", textAlign: "right" }}>Action</th>
           </tr>
         </thead>
         <tbody>
-          {filteredItems.map((d) => (
-            <tr key={d.id}>
-              <td style={{ padding: "8px 4px", borderBottom: "1px solid var(--color-border)" }}>{d.title}</td>
-              <td style={{ padding: "8px 4px", borderBottom: "1px solid var(--color-border)", color: "var(--color-ink-soft)" }}>{d.description}</td>
-              <td style={{ padding: "8px 4px", borderBottom: "1px solid var(--color-border)", color: "var(--color-ink-soft)" }}>
-                {d.contract_id ? `${d.contract_id.slice(0, 8)}` : "—"}
-              </td>
-              <td style={{ padding: "8px 4px", borderBottom: "1px solid var(--color-border)" }}>
-                <StatusPill status={STATUS_LABEL[d.status] ?? d.status} variant={variantFor(d.status)} />
-              </td>
-              <td style={{ padding: "8px 4px", borderBottom: "1px solid var(--color-border)" }}>
-                {!isBrand && NEXT_STATUS[d.status] && (
-                  <button className="btn btn-ghost" onClick={() => advance(d)}>
-                    Mark as {STATUS_LABEL[NEXT_STATUS[d.status]]}
-                  </button>
-                )}
-                {isBrand && d.status === "submitted" && (
-                  <button className="btn btn-ghost" onClick={async () => {
-                    await client.PATCH("/deliverables/{id}/status", {
-                      params: { path: { id: d.id }, query: { deal_id: d.deal_id } },
-                      body: { status: "approved" },
-                    });
-                    reload();
-                  }}>Approve</button>
-                )}
-              </td>
-            </tr>
-          ))}
+          {filteredItems.map((d) => {
+            const availableStatuses = getAvailableStatuses(d);
+            const isCompleted = d.status === "approved" || d.status === "rejected";
+            return (
+              <tr key={d.id}>
+                <td style={{ padding: "8px 4px", borderBottom: "1px solid var(--color-border)" }}>{d.title}</td>
+                <td style={{ padding: "8px 4px", borderBottom: "1px solid var(--color-border)", color: "var(--color-ink-soft)" }}>{d.description}</td>
+                <td style={{ padding: "8px 4px", borderBottom: "1px solid var(--color-border)", color: "var(--color-ink-soft)" }}>
+                  {d.contract_id ? `${d.contract_id.slice(0, 8)}` : "—"}
+                </td>
+                <td style={{ padding: "8px 4px", borderBottom: "1px solid var(--color-border)" }}>
+                  <StatusPill status={STATUS_LABEL[d.status] ?? d.status} variant={variantFor(d.status)} />
+                </td>
+                <td style={{ padding: "8px 4px", borderBottom: "1px solid var(--color-border)", textAlign: "right" }}>
+                  {isBrand ? (
+                    <select
+                      className="field"
+                      style={{
+                        display: "inline-block",
+                        margin: 0,
+                        width: "auto",
+                        minWidth: "210px",
+                        fontSize: "12.5px",
+                        padding: "6px 10px",
+                        cursor: "pointer",
+                        background: "var(--color-surface-sunken)",
+                        borderColor: "var(--color-border)",
+                        color: "var(--color-ink)",
+                        borderRadius: "var(--radius-sm)",
+                        fontWeight: 500,
+                      }}
+                      value={d.status}
+                      onChange={(e) => handleStatusChange(d, e.target.value)}
+                    >
+                      {getBrandAvailableStatuses(d).map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                  ) : isCompleted ? (
+                    <span style={{ fontSize: "12px", color: "var(--color-ink-faint)" }}>—</span>
+                  ) : (
+                    <select
+                      className="field"
+                      style={{
+                        display: "inline-block",
+                        margin: 0,
+                        width: "auto",
+                        minWidth: "210px",
+                        fontSize: "12.5px",
+                        padding: "6px 10px",
+                        cursor: "pointer",
+                        background: "var(--color-surface-sunken)",
+                        borderColor: "var(--color-border)",
+                        color: "var(--color-ink)",
+                        borderRadius: "var(--radius-sm)",
+                        fontWeight: 500,
+                      }}
+                      value={d.status}
+                      onChange={(e) => handleStatusChange(d, e.target.value)}
+                    >
+                      {availableStatuses.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
       )}

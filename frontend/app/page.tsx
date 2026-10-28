@@ -1,9 +1,20 @@
+"use client";
+
 import React from "react";
 import Link from "next/link";
 import styles from "./landing.module.css";
 import { GradientPanel } from "@/components/GradientPanel";
 
 export default function LandingPage() {
+  function scrollToSection(e: React.MouseEvent<HTMLAnchorElement>, id: string) {
+    e.preventDefault();
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "start" });
+      window.history.pushState(null, "", `#${id}`);
+    }
+  }
+
   return (
     <div className={styles.page}>
       <div className={styles.announce}>Phase 1 &amp; 2 in active build · Phase 3 fully specified</div>
@@ -12,7 +23,13 @@ export default function LandingPage() {
         <div className={styles.wrap + " " + styles.navInner}>
           <Link href="/" className={styles.logo}>Creator OS</Link>
           <div className={styles.navRight}>
-            <a href="#how-it-works" className={styles.navLink}>How it works</a>
+            <a
+              href="#how-it-works"
+              onClick={(e) => scrollToSection(e, "how-it-works")}
+              className={styles.navLink}
+            >
+              How it works
+            </a>
 
             <details className={styles.dropdown}>
               <summary>Log in</summary>
@@ -47,8 +64,20 @@ export default function LandingPage() {
             systems, built in that order, on top of each other&apos;s data.
           </p>
           <div className={styles.heroCtas}>
-            <a href="#roles" className={styles.btnDark}>Get started ↓</a>
-            <a href="#how-it-works" className={styles.btnGhost}>See how it works</a>
+            <a
+              href="#roles"
+              onClick={(e) => scrollToSection(e, "roles")}
+              className={styles.btnDark}
+            >
+              Get started ↓
+            </a>
+            <a
+              href="#how-it-works"
+              onClick={(e) => scrollToSection(e, "how-it-works")}
+              className={styles.btnGhost}
+            >
+              See how it works
+            </a>
           </div>
 
           <GradientPanel className={styles.artStrip} />

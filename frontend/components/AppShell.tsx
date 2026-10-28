@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import client from "@/lib/api";
 import { loadSession, clearSession } from "@/lib/auth";
 import { StatusPill } from "@/components/StatusPill";
 import {
@@ -31,6 +32,40 @@ export function AppShell({ children, role }: AppShellProps) {
   // wrapped by a layout that hardcodes role="brand". The session's own role
   // is always accurate (it comes from the JWT), so it wins once loaded.
   const [effectiveRole, setEffectiveRole] = useState(role);
+  const [hasUnread, setHasUnread] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function checkUnread() {
+      const session = loadSession();
+      if (!session) {
+        if (!cancelled) setHasUnread(false);
+        return;
+      }
+      try {
+        const { data } = await client.GET("/messages/unread");
+        if (!cancelled && data) {
+          setHasUnread(Boolean(data.has_unread));
+        }
+      } catch {
+        // ignore errors
+      }
+    }
+
+    checkUnread();
+    const interval = setInterval(checkUnread, 4000);
+
+    const onUpdate = () => checkUnread();
+    window.addEventListener("messagesUpdated", onUpdate);
+    window.addEventListener("focus", onUpdate);
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+      window.removeEventListener("messagesUpdated", onUpdate);
+      window.removeEventListener("focus", onUpdate);
+    };
+  }, [pathname]);
 
   useEffect(() => {
     // Deliberate: localStorage is only readable client-side, so this must run
@@ -80,13 +115,31 @@ export function AppShell({ children, role }: AppShellProps) {
         </Link>
         {nav.map((item) => {
           const Icon = item.icon;
+          const isChat = item.href === "/chat";
+          const showDot = isChat && hasUnread;
           return (
             <Link
               key={item.name}
               href={item.href}
               className={`item ${pathname === item.href ? "on" : ""}`}
             >
-              <Icon size={17} strokeWidth={2} />
+              <span style={{ position: "relative", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
+                <Icon size={17} strokeWidth={2} />
+                {showDot && (
+                  <span
+                    style={{
+                      position: "absolute",
+                      top: "-2px",
+                      right: "-2px",
+                      width: "7px",
+                      height: "7px",
+                      borderRadius: "50%",
+                      backgroundColor: "var(--color-danger, #C4351C)",
+                      boxShadow: "0 0 0 2px var(--color-canvas, #F6F4EF)",
+                    }}
+                  />
+                )}
+              </span>
               {item.name}
             </Link>
           );

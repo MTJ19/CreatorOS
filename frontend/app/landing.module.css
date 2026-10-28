@@ -167,6 +167,7 @@
 
 /* ---- role cards ---- */
 .roleGrid {
+  scroll-margin-top: 32px;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 18px;
@@ -227,6 +228,7 @@
 
 /* ---- phase strip ---- */
 .phasesSection {
+  scroll-margin-top: 32px;
   border-top: 1px solid rgba(10, 10, 10, 0.1);
 }
 .phases {

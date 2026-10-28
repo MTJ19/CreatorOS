@@ -104,10 +104,45 @@ export default function DealDetailPage({ params }: { params: Promise<{ id: strin
     reload();
   }
 
-  async function approveDeliverable(d: Deliverable) {
+  async function handleContractStatusChange(c: Contract, newStatus: string) {
+    if (newStatus === c.status) return;
+    await client.PATCH("/contracts/{id}/status", {
+      params: { path: { id: c.id } },
+      body: { status: newStatus as any },
+    });
+    if (deal) {
+      if (newStatus === "signed") {
+        await client.PATCH("/deals/{id}/status", {
+          params: { path: { id: deal.id } },
+          body: { status: "in_production" },
+        });
+      } else if (c.status === "signed" && newStatus === "uploaded") {
+        await client.PATCH("/deals/{id}/status", {
+          params: { path: { id: deal.id } },
+          body: { status: "contracted" },
+        });
+      }
+    }
+    reload();
+  }
+
+  async function handleDeliverableStatusChange(d: Deliverable, newStatus: string) {
+    if (newStatus === d.status) return;
     await client.PATCH("/deliverables/{id}/status", {
       params: { path: { id: d.id }, query: { deal_id: id } },
-      body: { status: "approved" },
+      body: { status: newStatus as any },
+    });
+    reload();
+  }
+
+  async function handlePaymentStatusChange(p: Payment, newStatus: "pending" | "paid" | "overdue") {
+    if (newStatus === p.status) return;
+    await client.PATCH("/payments/{contract_id}/status", {
+      params: {
+        path: { contract_id: p.contract_id },
+        query: { payment_id: p.id, deal_id: id },
+      },
+      body: { status: newStatus },
     });
     reload();
   }
@@ -165,7 +200,37 @@ export default function DealDetailPage({ params }: { params: Promise<{ id: strin
           <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginBottom: "10px" }}>
             {contracts.map((c) => (
               <div key={c.id} style={{ fontSize: "12.5px", display: "flex", gap: "10px", alignItems: "center" }}>
-                <StatusPill status={c.status.replace(/_/g, " ")} variant={c.status === "pending_review" ? "warning" : c.status === "signed" ? "success" : "neutral"} />
+                <StatusPill
+                  status={c.status === "signed" ? "Accepted" : c.status === "void" ? "Void" : c.status === "pending_review" ? "Pending review" : c.status === "draft" ? "Draft" : "Pending acceptance"}
+                  variant={c.status === "signed" ? "success" : c.status === "void" ? "danger" : c.status === "pending_review" ? "warning" : "neutral"}
+                />
+                <select
+                  className="field"
+                  style={{
+                    display: "inline-block",
+                    margin: 0,
+                    width: "auto",
+                    minWidth: "150px",
+                    fontSize: "12px",
+                    padding: "4px 8px",
+                    cursor: "pointer",
+                    background: "var(--color-surface-sunken)",
+                    borderColor: "var(--color-border)",
+                    color: "var(--color-ink)",
+                    borderRadius: "var(--radius-sm)",
+                    fontWeight: 500,
+                  }}
+                  value={c.status}
+                  onChange={(e) => handleContractStatusChange(c, e.target.value)}
+                >
+                  <option value="uploaded">Pending acceptance</option>
+                  <option value="signed">Accepted</option>
+                  <option value="draft">Draft</option>
+                  <option value="void">Void</option>
+                  {c.status === "pending_review" && (
+                    <option value="pending_review">Pending review</option>
+                  )}
+                </select>
                 <Link href={`/contracts/${c.id}/clauses`} style={{ color: "var(--color-accent)" }}>View clauses →</Link>
               </div>
             ))}
@@ -193,10 +258,34 @@ export default function DealDetailPage({ params }: { params: Promise<{ id: strin
                       {linkedContract ? `Contract ${linkedContract.id.slice(0, 8)}` : "Not tied to a contract"}
                     </div>
                   </div>
-                  <StatusPill status={DELIVERABLE_STATUS_LABEL[d.status] ?? d.status} variant={d.status === "approved" ? "success" : d.status === "rejected" ? "danger" : "neutral"} />
-                  {d.status === "submitted" && (
-                    <button className="btn btn-ghost" onClick={() => approveDeliverable(d)}>Approve</button>
-                  )}
+                  <StatusPill status={DELIVERABLE_STATUS_LABEL[d.status] ?? d.status} variant={d.status === "approved" ? "success" : d.status === "rejected" ? "danger" : d.status === "revision_requested" ? "warning" : "neutral"} />
+                  <select
+                    className="field"
+                    style={{
+                      display: "inline-block",
+                      margin: 0,
+                      width: "auto",
+                      minWidth: "180px",
+                      fontSize: "12px",
+                      padding: "4px 8px",
+                      cursor: "pointer",
+                      background: "var(--color-surface-sunken)",
+                      borderColor: "var(--color-border)",
+                      color: "var(--color-ink)",
+                      borderRadius: "var(--radius-sm)",
+                      fontWeight: 500,
+                    }}
+                    value={d.status}
+                    onChange={(e) => handleDeliverableStatusChange(d, e.target.value)}
+                  >
+                    <option value="in_production">In progress</option>
+                    <option value="editing">Video editing phase</option>
+                    <option value="submitted">Delivered — awaiting approval</option>
+                    <option value="approved">Approved</option>
+                    <option value="revision_requested">Revision requested</option>
+                    <option value="rejected">Rejected</option>
+                    {d.status === "pending" && <option value="pending">Not started</option>}
+                  </select>
                 </div>
               );
             })}
@@ -223,8 +312,33 @@ export default function DealDetailPage({ params }: { params: Promise<{ id: strin
               <div key={p.id} style={{ display: "flex", gap: "10px", alignItems: "center", fontSize: "12.5px" }}>
                 <span>{p.invoice_number}</span>
                 <span>{money(Number(p.amount_inr))}</span>
-                <StatusPill status={p.status} variant={p.status === "paid" ? "success" : "warning"} />
-                {p.status !== "paid" && <button className="btn btn-ghost" onClick={() => markPaid(p)}>Mark paid</button>}
+                <StatusPill
+                  status={p.status === "paid" ? "Paid" : p.status === "overdue" ? "Overdue" : "Pending"}
+                  variant={p.status === "paid" ? "success" : p.status === "overdue" ? "danger" : "warning"}
+                />
+                <select
+                  className="field"
+                  style={{
+                    display: "inline-block",
+                    margin: 0,
+                    width: "auto",
+                    minWidth: "110px",
+                    fontSize: "12px",
+                    padding: "4px 8px",
+                    cursor: "pointer",
+                    background: "var(--color-surface-sunken)",
+                    borderColor: "var(--color-border)",
+                    color: "var(--color-ink)",
+                    borderRadius: "var(--radius-sm)",
+                    fontWeight: 500,
+                  }}
+                  value={p.status}
+                  onChange={(e) => handlePaymentStatusChange(p, e.target.value as "pending" | "paid" | "overdue")}
+                >
+                  <option value="pending">Pending</option>
+                  <option value="paid">Paid</option>
+                  <option value="overdue">Overdue</option>
+                </select>
               </div>
             ))}
           </div>

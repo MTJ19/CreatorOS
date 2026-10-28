@@ -13,6 +13,7 @@ class Message(BaseModel):
     sender_type: Literal["brand", "creator"]
     body: str
     created_at: datetime
+    read_at: datetime | None = None
 
 
 class MessageCreateRequest(BaseModel):

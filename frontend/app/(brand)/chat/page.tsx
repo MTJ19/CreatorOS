@@ -24,7 +24,17 @@ export default function ChatPage() {
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
   const [sendError, setSendError] = useState("");
+  const [unreadByContact, setUnreadByContact] = useState<Record<string, number>>({});
   const bottomRef = useRef<HTMLDivElement>(null);
+
+  function fetchUnread() {
+    client.GET("/messages/unread").then(({ data }) => {
+      if (data) {
+        setUnreadByContact(data.by_contact || {});
+        window.dispatchEvent(new Event("messagesUpdated"));
+      }
+    });
+  }
 
   useEffect(() => {
     const session = loadSession();
@@ -35,10 +45,12 @@ export default function ChatPage() {
     if (brand) {
       client.GET("/creators", { params: { query: { limit: 200 } } }).then(({ data }) => {
         setContacts((data ?? []).map((c: Creator) => ({ id: c.id, label: c.display_name })));
+        fetchUnread();
       });
     } else {
       client.GET("/creators/me/brands").then(({ data }) => {
         setContacts((data ?? []).map((b: Brand) => ({ id: b.id, label: b.name })));
+        fetchUnread();
       });
     }
   }, []);
@@ -48,7 +60,10 @@ export default function ChatPage() {
     let cancelled = false;
     function poll() {
       client.GET("/messages", { params: { query: { with_id: selectedId! } } }).then(({ data }) => {
-        if (!cancelled) setMessages(data ?? []);
+        if (!cancelled) {
+          setMessages(data ?? []);
+          fetchUnread();
+        }
       });
     }
     poll();
@@ -76,6 +91,7 @@ export default function ChatPage() {
     }
     setMessages((prev) => [...prev, data]);
     setDraft("");
+    fetchUnread();
   }
 
   if (isBrand === null) {
@@ -96,20 +112,44 @@ export default function ChatPage() {
     <div style={{ display: "grid", gridTemplateColumns: "220px 1fr", gap: "16px", height: "calc(100vh - 140px)" }}>
       <div className="mtile" style={{ overflowY: "auto", padding: "8px" }}>
         <div className="lbl" style={{ margin: "4px 6px 8px" }}>{isBrand ? "Creators" : "Brands"}</div>
-        {contacts.map((c) => (
-          <button
-            key={c.id}
-            onClick={() => setSelectedId(c.id)}
-            style={{
-              display: "block", width: "100%", textAlign: "left", padding: "8px 6px",
-              borderRadius: "6px", border: "none", cursor: "pointer", fontSize: "12.5px",
-              background: c.id === selectedId ? "var(--color-surface-sunken)" : "transparent",
-              color: "var(--color-ink)",
-            }}
-          >
-            {c.label}
-          </button>
-        ))}
+        {contacts.map((c) => {
+          const hasPending = (unreadByContact[c.id] || 0) > 0;
+          return (
+            <button
+              key={c.id}
+              onClick={() => setSelectedId(c.id)}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                width: "100%",
+                textAlign: "left",
+                padding: "8px 10px",
+                borderRadius: "6px",
+                border: "none",
+                cursor: "pointer",
+                fontSize: "12.5px",
+                background: c.id === selectedId ? "var(--color-surface-sunken)" : "transparent",
+                color: "var(--color-ink)",
+                fontWeight: hasPending ? 600 : 400,
+              }}
+            >
+              <span>{c.label}</span>
+              {hasPending && (
+                <span
+                  style={{
+                    width: "7px",
+                    height: "7px",
+                    borderRadius: "50%",
+                    backgroundColor: "var(--color-danger, #C4351C)",
+                    flexShrink: 0,
+                    marginLeft: "8px",
+                  }}
+                />
+              )}
+            </button>
+          );
+        })}
       </div>
 
       <div className="mtile" style={{ display: "flex", flexDirection: "column", padding: "12px" }}>
